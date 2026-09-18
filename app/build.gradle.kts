@@ -28,8 +28,8 @@ android {
         // The AYN Thor ships Android 13.
         minSdk = 33
         targetSdk = 35
-        versionCode = 6
-        versionName = "0.3.0"
+        versionCode = 9
+        versionName = "0.4.0"
     }
 
     signingConfigs {
@@ -95,4 +95,6 @@ dependencies {
     implementation("dev.rikka.shizuku:provider:13.1.5")
 
     testImplementation("junit:junit:4.13.2")
+    // Android's own org.json is only a stub in JVM unit tests
+    testImplementation("org.json:json:20240303")
 }

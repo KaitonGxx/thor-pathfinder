@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService
 import android.content.Intent
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.VibratorManager
 import android.view.KeyEvent
@@ -57,11 +58,16 @@ class PathfinderService : AccessibilityService() {
     }
 
     private fun perform(button: PhysicalButton, gesture: Gesture, action: ButtonAction) {
-        val resolved = when (action) {
-            ButtonAction.NORMAL -> if (button.kind == ButtonKind.SYSTEM) button.normalAction else return
-            else -> action
+        val resolved = when {
+            action != ButtonAction.NORMAL -> action
+            button.kind != ButtonKind.SYSTEM -> return
+            // No global action does what this button does: press the real key.
+            button.normalAction == null -> return replay(button, long = gesture == Gesture.HOLD)
+            else -> button.normalAction!!
         }
-        if (gesture != Gesture.PRESS && resolved != ButtonAction.NOTHING && shortcuts.vibrate) buzz()
+        // Buzz for shortcuts only, not for a long press left on Normal.
+        val shortcut = action != ButtonAction.NORMAL && resolved != ButtonAction.NOTHING
+        if (gesture != Gesture.PRESS && shortcut && shortcuts.vibrate) buzz()
         when (resolved) {
             ButtonAction.NORMAL, ButtonAction.NOTHING -> Unit
             ButtonAction.BACK -> performGlobalAction(GLOBAL_ACTION_BACK)
@@ -74,6 +80,7 @@ class PathfinderService : AccessibilityService() {
             ButtonAction.LOCK_SCREEN -> performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
             ButtonAction.SWAP_SCREENS -> worker.execute { swapOutcomeMessage(ScreenSwap.swap(this))?.let(::toast) }
             ButtonAction.CLOSE_ALL -> worker.execute { toast(closeAllOutcomeMessage(RecentTasks.closeAll(this))) }
+            ButtonAction.SCREEN_RECORD -> worker.execute { screenRecordOutcomeMessage(ScreenRecord.open(this))?.let(::toast) }
             ButtonAction.MOUSE_MODE -> worker.execute {
                 toast(
                     when (MouseMode.toggle()) {
@@ -84,6 +91,27 @@ class PathfinderService : AccessibilityService() {
                 )
             }
             ButtonAction.LAUNCH_APP -> launch(shortcuts.app(button, gesture))
+        }
+    }
+
+    /**
+     * Presses [button]'s real key again, through its input device, so the
+     * system does what the button itself does (the AYN button's menu, or its
+     * long-press panel). The engine lets that one press through untouched.
+     */
+    private fun replay(button: PhysicalButton, long: Boolean) {
+        val device = button.device ?: return
+        val scanCode = button.scanCode ?: return
+        if (!Shell.ready) {
+            toast("The ${button.label}'s own menu needs Shizuku")
+            return
+        }
+        engine.letThrough(button, SystemClock.uptimeMillis() + REPLAY_WINDOW_MS)
+        worker.execute {
+            if (!KeyReplay.press(device, scanCode, if (long) LONG_PRESS_MS else SHORT_PRESS_MS)) {
+                handler.post { engine.letThrough(button, Long.MIN_VALUE) }
+                toast("Couldn't press the ${button.label}")
+            }
         }
     }
 
@@ -122,6 +150,13 @@ class PathfinderService : AccessibilityService() {
         @Volatile
         var running = false
             private set
+
+        /** How long a replayed press may take to arrive and still be let through. */
+        private const val REPLAY_WINDOW_MS = 3000L
+        private const val SHORT_PRESS_MS = 50L
+
+        /** Past AYN's long-press point (about 400 ms, when the key starts repeating). */
+        private const val LONG_PRESS_MS = 900L
     }
 }
 

@@ -43,8 +43,8 @@ independent project, not affiliated with Wayfinder or AYN.
 - Select, Start, L3 and R3: double-press and hold. Games still receive every
   press of these buttons, so a plain press stays with the game.
 - Actions: swap screens, mouse mode on/off, back, home, recent apps, close all
-  apps, notifications, quick settings, screenshot, power menu, lock screen, or
-  open any app.
+  apps, notifications, quick settings, screenshot, screen record (testing),
+  power menu, lock screen, or open any app.
 
 **🖱️ Mouse mode**
 - Turn the Thor's mouse mode on or off from a shortcut.
@@ -54,12 +54,15 @@ independent project, not affiliated with Wayfinder or AYN.
 - A step-by-step setup that checks each requirement before moving on.
 - Works with the Thor's controller as well as touch. Every control shows a
   clear outline when it has focus.
+- Check For Updates, at the top of the settings, compares your copy with the
+  newest release here and opens its page.
 
 **🔒 Private and light**
 - The accessibility service receives button presses only. It cannot read the
   screen or anything you type.
-- No internet access. The app is under 2 MB and runs no background work of its
-  own.
+- It only goes online when you tap Check For Updates, to ask GitHub for the
+  newest release's version number. Nothing about you or your Thor is sent.
+- The app is under 2 MB and runs no background work of its own.
 
 ## 📦 Out of the box
 
@@ -112,6 +115,12 @@ their normal behaviour, with no delay, until you give them a shortcut.
 > a Restart now button after you change it. Resetting the Thor's own mouse mode
 > settings can turn it off again; if so, switch it back on in Pathfinder.
 
+> [!NOTE]
+> **Screen record is still being tested, and takes a few seconds.** The
+> recorder's options panel can only be opened from its Quick Settings tile, so
+> the shortcut opens Quick Settings, finds the tile (on any page) and presses
+> it for you. Keep the Screen record tile in Quick Settings for this to work.
+
 ## 🔧 How it works
 
 **Seeing the buttons.** Android only shares button presses with
@@ -122,6 +131,12 @@ its *scan code*. That's how Pathfinder tells the Home button (102) from the
 AYN button (194), although Android calls both "Home". Presses that Android
 makes up itself, such as the back gesture on the screen, carry no scan code,
 so Pathfinder leaves them alone.
+
+The AYN button isn't really a Home button, though: the Thor's own software
+catches it and opens AYN's menu on a press, or another panel on a long press.
+Nothing else can open those, so when a gesture on the AYN button is left on
+*Normal*, Pathfinder presses the real button again, through Shizuku, and lets
+that one press through to the Thor.
 
 **Moving apps between screens.** Android keeps each open app in a *task*, and
 every task belongs to one screen. Pathfinder asks Android to hand the app's
@@ -137,6 +152,15 @@ through Shizuku (`am stack remove` for each task, then `am force-stop` for
 each app), so the Recents screen never has to open. Home screens stay; even
 Pathfinder's own window is closed, so Recents ends up empty. Both screens then
 return to their home screens, as after Clear all.
+
+**Screen record.** The recorder's options panel is a dialog inside System UI
+that only its Quick Settings tile opens: its recording service isn't exported,
+the panel isn't an app screen, and Android's tile-click command only reaches
+third-party tiles. So the shortcut does what a finger would, through Shizuku:
+it opens Quick Settings, reads the panel with Android's `uiautomator` tool to
+find the tile on whichever page it is, and taps it. The tile's label comes from
+System UI's own resources, so it's found in any language. Pathfinder's
+accessibility service takes no part in this.
 
 **Mouse mode.** The Thor's mouse mode is one system setting that AYN's input
 engine watches. Pathfinder flips it, through Shizuku, exactly as the Thor's own

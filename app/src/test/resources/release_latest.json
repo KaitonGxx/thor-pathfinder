@@ -1,0 +1,23 @@
+{
+  "url": "https://api.github.com/repos/KaitonGxx/thor-pathfinder/releases/1",
+  "assets_url": "https://api.github.com/repos/KaitonGxx/thor-pathfinder/releases/1/assets",
+  "html_url": "https://github.com/KaitonGxx/thor-pathfinder/releases/tag/v0.3.0",
+  "id": 1,
+  "author": {
+    "login": "KaitonGxx",
+    "html_url": "https://github.com/KaitonGxx",
+    "type": "User"
+  },
+  "tag_name": "v0.3.0",
+  "target_commitish": "main",
+  "name": "Thor Pathfinder 0.3.0",
+  "draft": false,
+  "prerelease": false,
+  "assets": [
+    {
+      "name": "thor-pathfinder-0.3.0.apk",
+      "browser_download_url": "https://github.com/KaitonGxx/thor-pathfinder/releases/download/v0.3.0/thor-pathfinder-0.3.0.apk"
+    }
+  ],
+  "body": "Adds \"tag_name\": \"v9.9.9\" as text, which must not count."
+}

@@ -4,20 +4,24 @@ import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -31,7 +35,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.thorpathfinder.app.ButtonAction
@@ -42,6 +49,7 @@ import com.thorpathfinder.app.PhysicalButton
 import com.thorpathfinder.app.Shell
 import com.thorpathfinder.app.Shortcuts
 import com.thorpathfinder.app.SystemState
+import com.thorpathfinder.app.UpdateCheck
 import com.thorpathfinder.app.normalLabel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -56,17 +64,15 @@ fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit) {
     var editingTiming by remember { mutableStateOf<Timing?>(null) }
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-        Column(
-            Modifier
-                .widthIn(max = 760.dp)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+        ScrollingColumn(
+            state = rememberScrollState(),
+            modifier = Modifier.widthIn(max = 760.dp).fillMaxWidth(),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Header(context, onRunSetup = { onFix(SetupStep.WELCOME) })
+            Header(context)
             if (!state.allGood) NeedsAttention(state, onFix)
-            AboutCard()
+            AboutCard(onRunSetup = { onFix(SetupStep.WELCOME) })
 
             Text(
                 "Tap a gesture to change what it does. On Back, Home and the AYN button, Pathfinder " +
@@ -126,23 +132,126 @@ fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit) {
 }
 
 @Composable
-private fun Header(context: Context, onRunSetup: () -> Unit) {
+private fun Header(context: Context) {
     val version = remember {
         runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull()
     }
+    val scope = rememberCoroutineScope()
+    var checking by remember { mutableStateOf(false) }
+    var outcome by remember { mutableStateOf<UpdateCheck.Outcome?>(null) }
+
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Text("Thor Pathfinder", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
-            if (version != null) {
-                Text(
-                    "Version $version",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+        Text("Thor Pathfinder", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
+        if (version != null) {
+            Spacer(Modifier.width(12.dp))
+            VersionBadge(version)
+        }
+        Spacer(Modifier.weight(1f).widthIn(min = 12.dp))
+        OutlinedButton(
+            onClick = {
+                if (checking) return@OutlinedButton
+                checking = true
+                scope.launch {
+                    outcome = withContext(Dispatchers.IO) { UpdateCheck.check(version.orEmpty()) }
+                    checking = false
+                }
+            },
+            modifier = Modifier.focusOutline(PillShape),
+        ) {
+            if (checking) {
+                CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                Spacer(Modifier.width(8.dp))
+                Text("Checking…")
+            } else {
+                Text("Check For Updates")
             }
         }
-        OutlinedButton(onClick = onRunSetup, modifier = Modifier.focusOutline(PillShape)) { Text("Run setup again") }
     }
+
+    outcome?.let {
+        UpdateDialog(
+            outcome = it,
+            installed = version.orEmpty(),
+            onOpen = { page ->
+                outcome = null
+                runCatching { context.openUrl(page) }
+            },
+            onDismiss = { outcome = null },
+        )
+    }
+}
+
+@Composable
+private fun VersionBadge(version: String) {
+    Surface(
+        shape = PillShape,
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    ) {
+        Text(
+            "v$version",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+        )
+    }
+}
+
+/** The answer to Check For Updates, with the way to the release page. */
+@Composable
+private fun UpdateDialog(
+    outcome: UpdateCheck.Outcome,
+    installed: String,
+    onOpen: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val open = remember { FocusRequester() }
+    val close = remember { FocusRequester() }
+    val title: String
+    val message: String
+    val page: String
+    when (outcome) {
+        is UpdateCheck.Outcome.Available -> {
+            title = "Update available"
+            message = "Version ${outcome.latest.version} is out. You have $installed."
+            page = outcome.latest.page
+        }
+        is UpdateCheck.Outcome.UpToDate -> {
+            title = "You're up to date"
+            message = if (UpdateCheck.isNewer(installed, outcome.latest.version)) {
+                "You have $installed, which is newer than the latest release (${outcome.latest.version})."
+            } else {
+                "$installed is the latest version."
+            }
+            page = outcome.latest.page
+        }
+        is UpdateCheck.Outcome.Failed -> {
+            title = "Couldn't check for updates"
+            message = outcome.message
+            page = UpdateCheck.LATEST_PAGE
+        }
+    }
+    val update = outcome is UpdateCheck.Outcome.Available
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = { Text(message) },
+        confirmButton = {
+            TextButton(
+                onClick = { onOpen(page) },
+                modifier = Modifier.focusRequester(open).focusOutline(PillShape),
+            ) { Text("Open release page") }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.focusRequester(close).focusOutline(PillShape),
+            ) { Text(if (update) "Not now" else "Close") }
+        },
+    )
+    // With an update, the release page is what they came for.
+    val inputMode = LocalInputModeManager.current.inputMode
+    LaunchedEffect(inputMode) { runCatching { (if (update) open else close).requestFocus() } }
 }
 
 @Composable
@@ -334,7 +443,7 @@ private fun TimingCard(shortcuts: ObservedShortcuts, onEdit: (Timing) -> Unit) {
 }
 
 @Composable
-private fun AboutCard() {
+private fun AboutCard(onRunSetup: () -> Unit) {
     var showLicenses by remember { mutableStateOf(false) }
     SectionCard("About") {
         Text(
@@ -345,6 +454,7 @@ private fun AboutCard() {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         ValueRow("Open-source licenses", "View") { showLicenses = true }
+        ValueRow("Setup", "Run again", onClick = onRunSetup)
     }
     if (showLicenses) LicensesDialog(onDismiss = { showLicenses = false })
 }

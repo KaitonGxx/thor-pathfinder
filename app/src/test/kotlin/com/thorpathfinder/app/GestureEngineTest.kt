@@ -194,6 +194,48 @@ class GestureEngineTest {
     }
 
     @Test
+    fun aLongPressLeftOnNormalIsAHold() {
+        // The AYN button with a double-press shortcut: a long press must still
+        // reach its own long-press function, so it fires as a Normal hold.
+        val e = engine((PhysicalButton.AYN to DOUBLE) to SCREENSHOT)
+        assertEquals(true to true, e.tap(PhysicalButton.AYN, heldMs = 900))
+        clock.advance(1000)
+        assertEquals(listOf(Triple(PhysicalButton.AYN, HOLD, NORMAL)), fired)
+    }
+
+    @Test
+    fun aShortPressLeftOnNormalIsStillAPress() {
+        val e = engine((PhysicalButton.AYN to DOUBLE) to SCREENSHOT)
+        e.tap(PhysicalButton.AYN, heldMs = 120)
+        clock.advance(1000)
+        assertEquals(listOf(Triple(PhysicalButton.AYN, PRESS, NORMAL)), fired)
+    }
+
+    @Test
+    fun aReplayedPressGoesStraightThrough() {
+        val e = engine((PhysicalButton.AYN to DOUBLE) to SCREENSHOT)
+        e.letThrough(PhysicalButton.AYN, until = clock.now + 3000)
+        clock.advance(200)
+        assertEquals(false to false, e.tap(PhysicalButton.AYN, heldMs = 900)) // even a long one
+        clock.advance(1000)
+        assertTrue(fired.isEmpty())
+        // only that one press: the next is Pathfinder's again
+        assertEquals(true to true, e.tap(PhysicalButton.AYN))
+    }
+
+    @Test
+    fun aReplayThatNeverArrivesStopsBeingWaitedFor() {
+        val e = engine((PhysicalButton.AYN to DOUBLE) to SCREENSHOT)
+        e.letThrough(PhysicalButton.AYN, until = clock.now + 3000)
+        clock.advance(3001)
+        assertEquals(true to true, e.tap(PhysicalButton.AYN))
+        e.letThrough(PhysicalButton.AYN, until = clock.now + 3000)
+        e.letThrough(PhysicalButton.AYN, until = Long.MIN_VALUE)
+        clock.advance(500)
+        assertEquals(true to true, e.tap(PhysicalButton.AYN))
+    }
+
+    @Test
     fun homeAndTheAynButtonAreToldApartByScanCode() {
         assertEquals(PhysicalButton.HOME, PhysicalButton.of(android.view.KeyEvent.KEYCODE_HOME, 102))
         assertEquals(PhysicalButton.AYN, PhysicalButton.of(android.view.KeyEvent.KEYCODE_HOME, 194))

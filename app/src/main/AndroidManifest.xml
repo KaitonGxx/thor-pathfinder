@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <!-- Bring a moved app back to the front if a launcher lands on top of it -->
     <uses-permission android:name="android.permission.REORDER_TASKS" />
+    <!-- Check For Updates asks GitHub for the newest release, only when tapped -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <queries>
         <!-- Setup checks for Shizuku, and for Wayfinder, which also claims the Back button -->

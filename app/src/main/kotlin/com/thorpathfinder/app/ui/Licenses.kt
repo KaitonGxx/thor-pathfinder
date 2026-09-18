@@ -125,7 +125,7 @@ private fun LicenseText(item: Licensed, onDismiss: () -> Unit) {
                         CircularProgressIndicator()
                     }
                 } else {
-                    LazyColumn(Modifier.heightIn(max = 420.dp).padding(horizontal = 12.dp)) {
+                    LazyColumn(Modifier.weight(1f, fill = false).heightIn(max = 420.dp).padding(horizontal = 12.dp)) {
                         itemsIndexed(text) { index, paragraph ->
                             Text(
                                 paragraph,

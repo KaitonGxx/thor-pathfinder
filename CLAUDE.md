@@ -10,18 +10,24 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
 
 ## Status (2026-09-18)
 
-- v0.3.0 (versionCode 6): adds the Close all apps action. 0.2.0 was the
-  first public release.
+- v0.4.0 (versionCode 9), released 2026-09-18: adds the Screen record action
+  (labelled "(Testing)"), the AYN button's own menu when a gesture is left on
+  Normal, Check For Updates, and controller scrolling that reaches the true
+  top and bottom of a page. 0.3.0 added Close all apps; 0.2.0 was the first
+  public release.
   Release APK is about 1.7 MB (R8 on). Bump `versionCode` for every APK
   handed over.
 - **Tested on an AYN Thor (firmware 1.0.0.377):** the setup wizard, hold
   Back to swap (two apps; a lone app in both directions), double Back for
   recents, double Select for mouse mode, the focus fix, the YouTube/Discord
   sequence (a lone app's vacated screen goes home, with no flash), Close all
-  apps (Recents left empty, apps stopped, screens home, service alive) and
-  the overlay messages.
-- **Not yet verified on hardware:** "Open an app", shortcuts on Home and the
-  AYN button in daily use, the covered-app fix-up (`moveTaskToFront`), the
+  apps (Recents left empty, apps stopped, screens home, service alive), the
+  overlay messages, Screen record from a tile on either Quick Settings page,
+  the AYN button with a double-press shortcut (press opens AYN's menu, long
+  press its panel), Check For Updates and its release-page link, and
+  controller scrolling to both ends of the settings and the shortcut picker.
+- **Not yet verified on hardware:** "Open an app", shortcuts on Home in daily
+  use, the covered-app fix-up (`moveTaskToFront`), the
   media-first swap order with a real video (logic unit-tested), and the
   "Restricted setting" flow for sideloaded installs (adb installs skip it).
 - **Signing.** Releases are signed with the project key (certificate SHA-256
@@ -57,7 +63,10 @@ app/src/main/kotlin/com/thorpathfinder/app/
   PathfinderService.kt  accessibility service: key events -> engine -> actions
   ScreenSwap.kt         parse `am stack list`, plan, script, covered-app fix-up
   RecentTasks.kt        Close all apps: parse `dumpsys activity recents`, `am stack remove`
+  KeyReplay.kt          replay a real key with `sendevent` (the AYN button's own menu)
+  ScreenRecord.kt       Screen record: expand QS, `uiautomator dump`, find the tile, tap
   MouseMode.kt          mouse mode toggle, reverse scrolling (AYN config edit)
+  UpdateCheck.kt        Check For Updates: GitHub's latest release, version compare
   Shell.kt              Shizuku process runner (newProcess via reflection)
   Overlay.kt            toast-like message as an accessibility overlay window
   Device.kt             Thor + firmware gate (min 1.0.0.377)
@@ -65,6 +74,7 @@ app/src/main/kotlin/com/thorpathfinder/app/
   ui/Setup.kt           step-by-step wizard with gated Next
   ui/SettingsScreen.kt  settings; ObservedShortcuts keeps focus on edits
   ui/Components.kt      theme, focusOutline, SwitchRow, ValueRow, ChoiceDialog
+  ui/EdgeScroll.kt      ScrollingColumn: controller focus reaches the true ends
   ui/AppPicker.kt       launcher apps for "Open an app"
   ui/Licenses.kt        About → Open-source licenses (texts in assets/licenses)
   ui/Preview.kt         debug builds only: fake states for screenshots
@@ -114,6 +124,43 @@ app/src/test/           JVM tests; resources are real captures from the Thor
   (Recents ends up empty) but never force-stops its own package, since the
   accessibility service runs in it. Removal alone leaves processes cached, so
   every other closed app gets `am force-stop`.
+- **AYN button.** AYN's PhoneWindowManager.interceptKeyBeforeDispatching
+  (when config bool 17891754 is true) consumes scan code 194 and sends the
+  broadcast `action.tcc.button.key.event` with `key_action_down` and
+  `key_isLongPress`: down (true, false), long press on key repeat after
+  ~400 ms (true, true), up (false, false). Receivers: com.odin.dualscreen.
+  assistant (press: its menu, window on display 4), System UI and system
+  (long press: `primaryScreenTopLayout` on the top screen). It never acts as
+  Home. The broadcast is protected (shell: "Permission Denial: not allowed
+  to send broadcast"), so a Normal press is replayed as the real key:
+  `sendevent` on the `gpio-keys` device (path from /proc/bus/input/devices,
+  readable by shell; event1 on the test Thor) via Shizuku, 50 ms press or
+  900 ms for a long press, and `GestureEngine.letThrough` passes that one
+  press untouched. A long press with no hold shortcut fires HOLD/NORMAL.
+- **Screen record.** System UI's recorder panel (window "Screen Recorder",
+  TYPE_STATUS_BAR_SUB_PANEL, owner com.android.systemui; on this ROM it also
+  picks top/bottom screen) opens only from the `screenrecord` QS tile.
+  Dead ends: `RecordingService` (actions `com.android.systemui.screenrecord.
+  START/STOP/SHARE/UPDATE_STATE`) is not exported, so the shell may not
+  start it; `ScreenRecordDialog` is a SystemUIDialog, not an activity;
+  `cmd statusbar click-tile` only reaches TileService tiles; no broadcast
+  opens it; AYN's ST_OPERATION_RECORD_SCREEN uses gameassistant's own
+  VideoRecordService (not exported). The shell `screenrecord` tool (v1.3)
+  records display 0 only, no audio, no menu. Working route: `cmd statusbar
+  expand-settings`, `uiautomator dump` (about 2 s; needs a file, /dev/tty
+  has no tty under Shizuku), tiles are `tile_label` nodes inside
+  `qs_pager` (8 per page in landscape), page from `footer_page_indicator`
+  ("Page 1 of 2"), swipe the pager to change page, `input -d 0 tap`. QS
+  keeps the last page shown. Label from System UI's string
+  `quick_settings_screen_record_label` via getResourcesForApplication.
+- **Check For Updates** (`UpdateCheck.kt`) is the app's only network use
+  and the reason for the INTERNET permission: one GET to
+  `api.github.com/repos/KaitonGxx/thor-pathfinder/releases/latest`, only when
+  the button is tapped, with `User-Agent: Thor-Pathfinder` (Android's default
+  names the device model). `tag_name` without its `v` is compared number by
+  number with versionName. The dialog opens the release's `html_url` if it is
+  on github.com, otherwise `/releases/latest`. Unsigned API calls are limited
+  to 60 an hour per IP; a 403 or 429 gets its own message.
 - **Messages.** `Toast` from the service never shows: Android 13 suppresses
   background toasts from an app without the notification permission
   ("Suppressing toast from package ... by user request" in logcat). The
@@ -142,6 +189,17 @@ app/src/test/           JVM tests; resources are real captures from the Thor
   input mode, so focus requests are retried when
   `LocalInputModeManager.inputMode` changes. Never rebuild UI to refresh
   values (`key(revision)`): it destroys the focused row and focus jumps away.
+- **Controller scrolling.** Compose brings a focused item into view with the
+  least scrolling, so focusing the first or last control left the page's
+  padding out of sight. `ScrollingColumn` (ui/EdgeScroll.kt) provides a
+  `BringIntoViewSpec` (experimental in foundation 1.7) that scrolls to the
+  very top or bottom when the item is within 64 dp of that end and still fits
+  there, and gives its content the default spec back so dialogs opened inside
+  are unaffected. The settings screen and the setup pages use it.
+- **List dialogs.** The list gets `weight(1f, fill = false)` inside the
+  dialog's Column. Without it, a list taller than the screen (the shortcut
+  picker in landscape) squeezed the Cancel button to zero height; the squeezed
+  button could still take focus, and Up from the first option jumped to it.
 
 ## Testing on the device
 

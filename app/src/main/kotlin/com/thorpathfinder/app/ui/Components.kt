@@ -168,8 +168,10 @@ fun <T> ChoiceDialog(
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                 )
+                // Shrinks to fit a short screen, so Cancel stays in sight below it.
                 Column(
                     Modifier
+                        .weight(1f, fill = false)
                         .heightIn(max = 420.dp)
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 12.dp),
@@ -204,7 +206,7 @@ fun <T> ChoiceDialog(
                 }
                 TextButton(
                     onClick = onDismiss,
-                    modifier = Modifier.align(Alignment.End).padding(horizontal = 16.dp).focusOutline(),
+                    modifier = Modifier.align(Alignment.End).padding(horizontal = 16.dp).focusOutline(PillShape),
                 ) { Text("Cancel") }
             }
         }

@@ -71,7 +71,7 @@ fun AppPickerDialog(onPick: (String) -> Unit, onDismiss: () -> Unit) {
                         CircularProgressIndicator()
                     }
                 } else {
-                    LazyColumn(Modifier.heightIn(max = 420.dp).padding(horizontal = 12.dp)) {
+                    LazyColumn(Modifier.weight(1f, fill = false).heightIn(max = 420.dp).padding(horizontal = 12.dp)) {
                         items(list, key = { it.pkg }) { app ->
                             Row(
                                 Modifier

@@ -41,6 +41,12 @@ class GestureEngine(
         var lastUp: Long? = null
         /** The press in progress already fired a shortcut, so it can't start a pair. */
         var used = false
+        /** When the swallowed press began, to tell a long press from a short one. */
+        var downTime = 0L
+        /** A press starting by this time is Pathfinder's own replay: let it through. */
+        var passUntil = Long.MIN_VALUE
+        /** The press in progress is being let through, down to its release. */
+        var passing = false
     }
 
     private val states = EnumMap<PhysicalButton, State>(PhysicalButton::class.java)
@@ -56,12 +62,21 @@ class GestureEngine(
      */
     fun onKey(button: PhysicalButton, down: Boolean, repeat: Int, time: Long, canceled: Boolean = false): Boolean =
         when (button.kind) {
-            ButtonKind.SYSTEM -> onSystemKey(button, down, repeat, canceled)
+            ButtonKind.SYSTEM -> onSystemKey(button, down, repeat, time, canceled)
             ButtonKind.GAMEPAD -> {
                 onGamepadKey(button, down, repeat, time, canceled)
                 false
             }
         }
+
+    /**
+     * Lets the next press of [button] that starts by [until] (event time) reach
+     * the system untouched: Pathfinder is about to replay the real key.
+     * [Long.MIN_VALUE] withdraws it.
+     */
+    fun letThrough(button: PhysicalButton, until: Long) {
+        state(button).passUntil = until
+    }
 
     /** Drops all timers, for when the service stops. */
     fun reset() {
@@ -72,13 +87,23 @@ class GestureEngine(
         states.clear()
     }
 
-    private fun onSystemKey(button: PhysicalButton, down: Boolean, repeat: Int, canceled: Boolean): Boolean {
+    private fun onSystemKey(button: PhysicalButton, down: Boolean, repeat: Int, time: Long, canceled: Boolean): Boolean {
         val s = state(button)
+        if (s.passing) {
+            if (!down) s.passing = false
+            return false
+        }
+        if (down && repeat == 0 && time <= s.passUntil) {
+            s.passUntil = Long.MIN_VALUE
+            s.passing = true
+            return false
+        }
         if (down) {
             if (repeat > 0) return s.intercepting
             // Untouched buttons keep their own behaviour, with no delay at all.
             s.intercepting = button.gestures.any { mapped(button, it) }
             if (!s.intercepting) return false
+            s.downTime = time
             s.holdFired = false
             s.secondPress = s.pendingPress != null
             s.pendingPress?.cancel()
@@ -101,6 +126,9 @@ class GestureEngine(
         when {
             canceled || s.holdFired -> Unit
             s.secondPress -> fire(button, Gesture.DOUBLE, config.action(button, Gesture.DOUBLE))
+            // A long press with no hold shortcut is still a hold, left on Normal:
+            // the AYN button, for one, does something else on a long press.
+            time - s.downTime >= config.holdMs -> fire(button, Gesture.HOLD, config.action(button, Gesture.HOLD))
             // No double-press shortcut: act at once instead of waiting for a second press.
             !mapped(button, Gesture.DOUBLE) -> press(button)
             else -> s.pendingPress = scheduler.schedule(config.doubleMs) {

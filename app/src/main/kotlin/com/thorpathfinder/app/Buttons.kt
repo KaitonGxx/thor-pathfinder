@@ -23,24 +23,42 @@ enum class ButtonKind { SYSTEM, GAMEPAD }
  * device, mapped to HOME), and key events Android injects itself, such as the
  * Back of an on-screen gesture or a global action, carry scan code 0 and must
  * pass through untouched.
+ *
+ * The AYN button is not a Home button, though: AYN's key handler consumes it
+ * and opens AYN's own menu on a press and another panel on a long press. No
+ * global action does either, so its "Normal" is the real key, replayed on
+ * [device] (see [KeyReplay]).
  */
 enum class PhysicalButton(
     val label: String,
     val kind: ButtonKind,
     val keyCode: Int,
     val scanCode: Int? = null,
+    /** The kernel input device a "Normal" press is replayed on, when no global action matches it. */
+    val device: String? = null,
 ) {
     BACK("Back", ButtonKind.SYSTEM, KeyEvent.KEYCODE_BACK, scanCode = 158),
     HOME("Home", ButtonKind.SYSTEM, KeyEvent.KEYCODE_HOME, scanCode = 102),
-    AYN("AYN button", ButtonKind.SYSTEM, KeyEvent.KEYCODE_HOME, scanCode = 194),
+    AYN("AYN button", ButtonKind.SYSTEM, KeyEvent.KEYCODE_HOME, scanCode = 194, device = "gpio-keys"),
     SELECT("Select", ButtonKind.GAMEPAD, KeyEvent.KEYCODE_BUTTON_SELECT),
     START("Start", ButtonKind.GAMEPAD, KeyEvent.KEYCODE_BUTTON_START),
     L3("L3 (click left stick)", ButtonKind.GAMEPAD, KeyEvent.KEYCODE_BUTTON_THUMBL),
     R3("R3 (click right stick)", ButtonKind.GAMEPAD, KeyEvent.KEYCODE_BUTTON_THUMBR);
 
-    /** What "Normal" does for a system button's press. */
-    val normalAction: ButtonAction
-        get() = if (this == BACK) ButtonAction.BACK else ButtonAction.HOME
+    /** What "Normal" does for a system button's press, or null when the real key is replayed. */
+    val normalAction: ButtonAction?
+        get() = when (this) {
+            BACK -> ButtonAction.BACK
+            HOME -> ButtonAction.HOME
+            else -> null
+        }
+
+    /** What a "Normal" press does, in words. */
+    val normalName: String
+        get() = when (this) {
+            AYN -> "AYN menu"
+            else -> normalAction?.label ?: label
+        }
 
     /** The gestures that can be changed on this button. */
     val gestures: List<Gesture>
@@ -72,6 +90,7 @@ enum class ButtonAction(val label: String, val needsShizuku: Boolean = false) {
     NOTIFICATIONS("Notifications"),
     QUICK_SETTINGS("Quick settings"),
     SCREENSHOT("Screenshot"),
+    SCREEN_RECORD("Screen record (Testing)", needsShizuku = true),
     POWER_MENU("Power menu"),
     LOCK_SCREEN("Lock screen"),
     LAUNCH_APP("Open an app");
@@ -86,7 +105,8 @@ enum class ButtonAction(val label: String, val needsShizuku: Boolean = false) {
 /** What a gesture left on NORMAL means, for display. */
 fun normalLabel(button: PhysicalButton, gesture: Gesture): String = when {
     button.kind == ButtonKind.GAMEPAD -> "Nothing extra"
-    gesture == Gesture.PRESS -> "Normal (${button.normalAction.label})"
+    gesture == Gesture.PRESS -> "Normal (${button.normalName})"
     gesture == Gesture.DOUBLE -> "Normal (two presses)"
+    button.normalAction == null -> "Normal (long press)"
     else -> "Normal (a press)"
 }
