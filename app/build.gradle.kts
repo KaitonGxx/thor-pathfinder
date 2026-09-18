@@ -1,8 +1,23 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
+
+/**
+ * Release signing. The key and its password never live in the repository:
+ * they come from keystore.properties in the project root (gitignored), or from
+ * environment variables on a build server. Every release must use the same
+ * key, or Android refuses to install it over the previous one.
+ */
+val signing = Properties().apply {
+    rootProject.file("keystore.properties").takeIf { it.isFile }?.inputStream()?.use { load(it) }
+}
+
+fun signingValue(property: String, environment: String): String? =
+    signing.getProperty(property) ?: System.getenv(environment)
 
 android {
     namespace = "com.thorpathfinder.app"
@@ -13,15 +28,33 @@ android {
         // The AYN Thor ships Android 13.
         minSdk = 33
         targetSdk = 35
-        versionCode = 4
-        versionName = "0.1.3"
+        versionCode = 5
+        versionName = "0.2.0"
+    }
+
+    signingConfigs {
+        create("release") {
+            signingValue("storeFile", "PATHFINDER_KEYSTORE")?.let { storeFile = file(it) }
+            storePassword = signingValue("storePassword", "PATHFINDER_KEYSTORE_PASSWORD")
+            keyAlias = signingValue("keyAlias", "PATHFINDER_KEY_ALIAS")
+            keyPassword = signingValue("keyPassword", "PATHFINDER_KEY_PASSWORD")
+        }
+    }
+
+    // Without the key (anyone but the maintainer), builds fall back to the
+    // local debug key: they install fine but can't update a released copy.
+    val releaseKey = signingConfigs.getByName("release").takeIf { it.storeFile?.isFile == true }
+    if (releaseKey == null) {
+        logger.warn("Thor Pathfinder: no release key (keystore.properties); signing with the debug key.")
     }
 
     buildTypes {
+        debug {
+            // Same key for debug builds, so either kind installs over the other.
+            releaseKey?.let { signingConfig = it }
+        }
         release {
-            // Development builds use the local debug key. Before a public
-            // release, switch to a dedicated release key kept out of git.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = releaseKey ?: signingConfigs.getByName("debug")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(

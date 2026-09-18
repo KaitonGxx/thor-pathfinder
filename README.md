@@ -7,9 +7,13 @@ apps on the top and bottom screens trade places. Double-press Select and the
 Thor's mouse mode turns on or off. Every shortcut can be changed, on seven of
 the Thor's buttons.
 
-It was inspired by [Thor Wayfinder](https://github.com/Thor-Wayfinder/thor-wayfinder)
-and does everything Wayfinder does. It contains none of Wayfinder's code and is
-not affiliated with Wayfinder or with AYN.
+It's made in the spirit of [Thor Wayfinder](https://github.com/Thor-Wayfinder/thor-wayfinder),
+which found the way first, and covers everything Wayfinder does. It's an
+independent project, not affiliated with Wayfinder or AYN.
+
+> **AI disclosure:** Thor Pathfinder was written with Claude, Anthropic's AI
+> assistant, under the direction of its maintainer, who tested the changes on
+> an AYN Thor.
 
 ## Features
 
@@ -19,8 +23,8 @@ not affiliated with Wayfinder or with AYN.
   other screen instead of restarting the app there.
 - When a lone app leaves a screen, that screen goes to its home screen rather
   than revealing whatever was underneath.
-- If one of the two apps is playing a video or music, it moves first, so it
-  doesn't stutter. See [Known limitations](#known-limitations).
+- If one of the two apps is playing a video or music, it moves first, so
+  playback stays smooth.
 
 **Button shortcuts** on Back, Home, the AYN button, Select, Start, L3 and R3:
 - Back, Home and the AYN button: press, double-press and hold.
@@ -68,7 +72,9 @@ their normal behaviour, with no delay, until you give them a shortcut.
 
 ## Install and set up
 
-1. Install the APK on the Thor.
+1. Download the latest `Thor-Pathfinder-*.apk` from
+   [Releases](https://github.com/KaitonGxx/thor-pathfinder/releases/latest) and
+   open it on the Thor to install it.
 2. Open Thor Pathfinder and follow the setup:
    1. **Check your Thor**: confirms the model and firmware.
    2. **Thor Wayfinder** (only if it's installed): both apps use the Back
@@ -81,36 +87,46 @@ installed from outside the Play Store until you allow them. If you see this,
 open Pathfinder's app info, tap ⋮ in the corner, choose **Allow restricted
 settings**, then turn the service on again.
 
+Every release is signed with the same key, so new versions install over old
+ones. The release notes list the key's fingerprint and the APK's checksum.
+
 ## Known limitations
 
-- **One of two swapping apps can stutter.** A swap is two moves in a row, and
-  for a few milliseconds the first app sits on top of the second. That is
-  enough for a video or game on the second app to drop a frame. Pathfinder
-  moves a playing video or song first, and otherwise the top screen's app,
-  where games usually run.
 - **Reverse scrolling needs a restart.** The setting lives in AYN's own mouse
   mode configuration, which the Thor reads once at start-up. Pathfinder offers
   a Restart now button after you change it. Resetting the Thor's own mouse mode
   settings can turn it off again; if so, switch it back on in Pathfinder.
-- **A double-press shortcut delays single presses.** With a double-press on
-  Back, Home or the AYN button, a single press waits for the double-press gap
-  (300 ms by default, adjustable) before it acts.
 
 ## How it works
 
-- **Buttons**: an accessibility service with key filtering. Back, Home and the
-  AYN button are told apart by their scan codes (158, 102 and 194; the AYN
-  button reaches Android as Home), which also lets presses that Android itself
-  injects pass through untouched.
-- **Swapping**: `am display move-stack`, run through Shizuku, moves an app's
-  whole window stack to the other screen, so the app is not restarted.
-- **Mouse mode**: AYN's switch is the system setting
-  `global_gamepad_to_mouse_mode`, which the Thor's input engine watches.
-- **Scroll direction**: in mouse mode the right stick drags a virtual finger,
-  which is why pushing up scrolls the page down. AYN's input engine reverses
-  that swipe when the right stick's `reverseJoystick` flag is set in
-  `AYN_Thor_Settings/global_mouse_mode_config.json`. Pathfinder changes only
-  that value and keeps a copy of the original next to it.
+**Seeing the buttons.** Android only shares button presses with
+*accessibility services*, so Pathfinder runs one. It hears about each press
+just before the app on screen does, and asks for nothing else: no screen
+contents and no typing. Every physical button also reports a hardware number,
+its *scan code*. That's how Pathfinder tells the Home button (102) from the
+AYN button (194), although Android calls both "Home". Presses that Android
+makes up itself, such as the back gesture on the screen, carry no scan code,
+so Pathfinder leaves them alone.
+
+**Moving apps between screens.** Android keeps each open app in a *task*, and
+every task belongs to one screen. Pathfinder asks Android to hand the app's
+task to the other screen (`am display move-stack`), the same move Android
+makes itself, so the app keeps running instead of restarting. Asking for that
+takes more access than an app normally has, and that's what Shizuku provides:
+it runs the command with the same rights as a USB debugging connection, with
+no root needed.
+
+**Mouse mode.** The Thor's mouse mode is one system setting that AYN's input
+engine watches. Pathfinder flips it, through Shizuku, exactly as the Thor's own
+switch does.
+
+**Scroll direction.** In mouse mode the right stick isn't a mouse wheel: it
+drags an invisible finger across the screen, which is why pushing up moves the
+page down. AYN's input engine can reverse that drag. The switch for it sits in
+the Thor's mouse mode settings file
+(`AYN_Thor_Settings/global_mouse_mode_config.json`) but has no button in the
+Thor's menus. Pathfinder changes only that one value, keeps a copy of the
+original next to it, and the Thor picks it up the next time it starts.
 
 ## Reporting a problem
 
@@ -131,8 +147,9 @@ You need JDK 17 and the Android SDK (platform 35).
 ./gradlew :app:testDebugUnitTest :app:assembleRelease
 ```
 
-The APK is written to `app/build/outputs/apk/release/app-release.apk`. Release
-builds are currently signed with the local debug key.
+The APK is written to `app/build/outputs/apk/release/app-release.apk`. Without
+the project's signing key it is signed with your local debug key, so it
+installs fine but can't update a copy installed from Releases.
 
 ## License
 

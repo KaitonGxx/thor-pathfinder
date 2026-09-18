@@ -10,9 +10,9 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
 
 ## Status (2026-09-18)
 
-- v0.1.3 (versionCode 4). 33 unit tests pass. Release APK is about 1.7 MB (R8
-  on); copy it to `Thor-Pathfinder.apk` (gitignored). Bump `versionCode` for
-  every APK handed over.
+- v0.2.0 (versionCode 5), the first public release. 33 unit tests pass.
+  Release APK is about 1.7 MB (R8 on). Bump `versionCode` for every APK
+  handed over.
 - **Tested on an AYN Thor (firmware 1.0.0.377):** the setup wizard, hold
   Back to swap (two apps; a lone app in both directions), double Back for
   recents, double Select for mouse mode, the focus fix, and the
@@ -22,8 +22,18 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
   AYN button in daily use, the covered-app fix-up (`moveTaskToFront`), the
   media-first swap order with a real video (logic unit-tested), and the
   "Restricted setting" flow for sideloaded installs (adb installs skip it).
-- Release builds are signed with the local debug key. Before publishing
-  APKs: a dedicated release keystore kept out of git.
+- **Signing.** Releases are signed with the project key (certificate SHA-256
+  `2706e85ba69b3f77e37227b4c0a0f99311fc73434d7264216f7bf32cbe439897`,
+  CN=Thor Pathfinder). Gradle reads it from `keystore.properties` in the
+  project root (gitignored) or from `PATHFINDER_KEYSTORE*` environment
+  variables; debug builds use it too, so either installs over the other.
+  Without it, both fall back to the local debug key. Never commit, print or
+  share the key or its password.
+- **Releasing.** Bump `versionCode`/`versionName`, run the tests, build
+  `assembleRelease`, copy the APK to `release/Thor-Pathfinder-X.Y.Z.apk`
+  (gitignored), check it with `apksigner verify --print-certs`, commit and
+  push, then `gh release create vX.Y.Z <apk>` with notes that list the APK's
+  SHA-256 and the certificate fingerprint.
 - **Clean-room.** Written from scratch. Never copy Thor Wayfinder's code, text
   or branding: it is CC BY-NC-ND, and its README forbids copying, modifying or
   derivatives without written permission. Facts about AYN's firmware are fine.
@@ -144,7 +154,7 @@ check sources for bytes below 0x20 (other than tab/newline) and 0x7F.
 
 ## Possible next steps
 
-- A release keystore and GitHub releases with the APK.
+- A GitHub Actions build (it would need the key as repository secrets).
 - Per-app exclusions (for example, leave Select alone in emulators).
 - An atomic swap (WindowContainerTransaction) to remove the brief cover.
 - Button combinations; opening an app on a chosen screen; translations.
