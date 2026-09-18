@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Thor Pathfinder</string>
+    <string name="accessibility_description">Thor Pathfinder watches the Back, Home, AYN, Select, Start, L3 and R3 buttons for your shortcuts: swapping screens, recent apps, mouse mode and more. It only receives button presses. It cannot read the screen or anything you type.</string>
+</resources>

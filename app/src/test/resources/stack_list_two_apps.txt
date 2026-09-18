@@ -1,0 +1,21 @@
+RootTask id=93 bounds=[0,0][1920,1080] displayId=0 userId=0
+ configuration={1.0 ?mcc?mnc [en_US] ldltr sw468dp w833dp h444dp 369dpi nrml long hdr widecg land night finger -keyb/v/h -nav/h winConfig={ mBounds=Rect(0, 0 - 1920, 1080) mAppBounds=Rect(0, 0 - 1920, 1025) mMaxBounds=Rect(0, 0 - 1920, 1080) mDisplayRotation=ROTATION_90 mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=standard mAlwaysOnTop=undefined mRotation=ROTATION_90} s.13 fontWeightAdjustment=0}
+  taskId=93: com.android.settings/com.android.settings.Settings bounds=[0,0][1920,1080] userId=0 visible=true topActivity=ComponentInfo{com.android.settings/com.android.settings.Settings}
+
+RootTask id=1 bounds=[0,0][1920,1080] displayId=0 userId=0
+ configuration={1.0 ?mcc?mnc [en_US] ldltr sw468dp w833dp h444dp 369dpi nrml long hdr widecg land night finger -keyb/v/h -nav/h winConfig={ mBounds=Rect(0, 0 - 1920, 1080) mAppBounds=Rect(0, 0 - 1920, 1025) mMaxBounds=Rect(0, 0 - 1920, 1080) mDisplayRotation=ROTATION_90 mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=home mAlwaysOnTop=undefined mRotation=ROTATION_90} s.13 fontWeightAdjustment=0}
+  taskId=83: rip.moth.cocoonshell/rip.moth.cocoonshell.MainActivity bounds=[0,0][1920,1080] userId=0 visible=false topActivity=ComponentInfo{rip.moth.cocoonshell/rip.moth.cocoonshell.MainActivity}
+
+RootTask id=89 bounds=[0,0][1920,1080] displayId=0 userId=0
+ configuration={1.0 ?mcc?mnc [en_US] ldltr sw468dp w833dp h444dp 369dpi nrml long hdr widecg land night finger -keyb/v/h -nav/h winConfig={ mBounds=Rect(0, 0 - 1920, 1080) mAppBounds=Rect(0, 0 - 1920, 1025) mMaxBounds=Rect(0, 0 - 1920, 1080) mDisplayRotation=ROTATION_90 mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=recents mAlwaysOnTop=undefined mRotation=ROTATION_90} s.13 fontWeightAdjustment=0}
+  taskId=90: com.android.launcher3/com.android.quickstep.RecentsActivity bounds=[0,0][1920,1080] userId=0 visible=false topActivity=ComponentInfo{com.android.launcher3/com.android.quickstep.RecentsActivity}
+
+RootTask id=3 bounds=[0,0][1920,1080] displayId=0 userId=0
+ configuration={1.0 ?mcc?mnc [en_US] ldltr sw468dp w833dp h444dp 369dpi nrml long hdr widecg land night finger -keyb/v/h -nav/h winConfig={ mBounds=Rect(0, 0 - 1920, 1080) mAppBounds=Rect(0, 0 - 1920, 1025) mMaxBounds=Rect(0, 0 - 1920, 1080) mDisplayRotation=ROTATION_90 mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_90} s.13 fontWeightAdjustment=0}
+  taskId=4: unknown bounds=[0,0][1920,1080] userId=0 visible=false
+  taskId=5: unknown bounds=[1920,0][2880,1080] userId=0 visible=false
+
+RootTask id=92 bounds=[0,0][1240,1080] displayId=4 userId=0
+ configuration={1.0 ?mcc?mnc [en_US] ldltr sw468dp w538dp h444dp 369dpi nrml hdr widecg land night finger -keyb/v/h -nav/h winConfig={ mBounds=Rect(0, 0 - 1240, 1080) mAppBounds=Rect(0, 0 - 1240, 1025) mMaxBounds=Rect(0, 0 - 1240, 1080) mDisplayRotation=ROTATION_90 mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=standard mAlwaysOnTop=undefined mRotation=ROTATION_90} s.13 fontWeightAdjustment=0}
+  taskId=92: com.thorwayfinder.app/com.thorwayfinder.app.MainActivity bounds=[0,0][1240,1080] userId=0 visible=true topActivity=ComponentInfo{com.thorwayfinder.app/com.thorwayfinder.app.MainActivity}
+

@@ -1,0 +1,5 @@
+# Test fixtures are captures from the Thor; keep them byte for byte
+app/src/test/resources/** -text
+
+gradlew text eol=lf
+*.bat text eol=crlf
