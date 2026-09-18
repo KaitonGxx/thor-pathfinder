@@ -19,7 +19,7 @@ independent project, not affiliated with Wayfinder or AYN.
 > assistant, under the direction of its maintainer, who tested the changes on
 > an AYN Thor.
 
-## Screenshots
+## 📸 Screenshots
 
 | Setup | Main menu |
 |:---:|:---:|
@@ -27,7 +27,7 @@ independent project, not affiliated with Wayfinder or AYN.
 | **Button shortcuts** | **Choosing a shortcut** |
 | <img src="docs/screenshots/button-shortcuts.png" alt="The Back button's press, double-press and hold shortcuts"> | <img src="docs/screenshots/shortcut-picker.png" alt="Choosing what holding Back does"> |
 
-## Features
+## ✨ Features
 
 **🔀 Swap screens**
 - Swaps the apps on the two screens, or sends a lone app to the other screen.
@@ -61,7 +61,7 @@ independent project, not affiliated with Wayfinder or AYN.
 - No internet access. The app is under 2 MB and runs no background work of its
   own.
 
-## Out of the box
+## 📦 Out of the box
 
 | Button | Gesture | Does |
 |---|---|---|
@@ -73,7 +73,7 @@ independent project, not affiliated with Wayfinder or AYN.
 Everything else is left alone until you change it. Home and the AYN button keep
 their normal behaviour, with no delay, until you give them a shortcut.
 
-## Requirements
+## ✅ Requirements
 
 - An **AYN Thor** on firmware **1.0.0.377 or newer** (Android 13). Setup checks
   this, and offers the system update screen if the Thor needs updating.
@@ -82,7 +82,7 @@ their normal behaviour, with no delay, until you give them a shortcut.
   swapping screens and for anything to do with mouse mode. Shizuku grants the
   extra access without rooting the Thor, and walks you through its own setup.
 
-## Install and set up
+## 📲 Install and set up
 
 1. Download the latest `Thor-Pathfinder-*.apk` from
    [Releases](https://github.com/KaitonGxx/thor-pathfinder/releases/latest) and
@@ -94,22 +94,25 @@ their normal behaviour, with no delay, until you give them a shortcut.
    3. **Accessibility**: turn on Thor Pathfinder's service.
    4. **Shizuku**: install and start Shizuku if needed, then allow Pathfinder.
 
-**"Restricted setting"**: Android blocks accessibility services for apps
-installed from outside the Play Store until you allow them. If you see this,
-open Pathfinder's app info, tap ⋮ in the corner, choose **Allow restricted
-settings**, then turn the service on again.
+> [!TIP]
+> **"Restricted setting"?** Android blocks accessibility services for apps
+> installed from outside the Play Store until you allow them. If you see this,
+> open Pathfinder's app info, tap ⋮ in the corner, choose **Allow restricted
+> settings**, then turn the service on again.
 
-Every release is signed with the same key, so new versions install over old
-ones. The release notes list the key's fingerprint and the APK's checksum.
+> [!NOTE]
+> Every release is signed with the same key, so new versions install over old
+> ones. The release notes list the key's fingerprint and the APK's checksum.
 
-## Known limitations
+## ⚠️ Known limitations
 
-- **Reverse scrolling needs a restart.** The setting lives in AYN's own mouse
-  mode configuration, which the Thor reads once at start-up. Pathfinder offers
-  a Restart now button after you change it. Resetting the Thor's own mouse mode
-  settings can turn it off again; if so, switch it back on in Pathfinder.
+> [!IMPORTANT]
+> **Reverse scrolling needs a restart.** The setting lives in AYN's own mouse
+> mode configuration, which the Thor reads once at start-up. Pathfinder offers
+> a Restart now button after you change it. Resetting the Thor's own mouse mode
+> settings can turn it off again; if so, switch it back on in Pathfinder.
 
-## How it works
+## 🔧 How it works
 
 **Seeing the buttons.** Android only shares button presses with
 *accessibility services*, so Pathfinder runs one. It hears about each press
@@ -140,7 +143,7 @@ the Thor's mouse mode settings file
 Thor's menus. Pathfinder changes only that one value, keeps a copy of the
 original next to it, and the Thor picks it up the next time it starts.
 
-## Reporting a problem
+## 🐛 Reporting a problem
 
 Please include your firmware version (shown in setup) and, if you can, a log:
 
@@ -151,7 +154,7 @@ adb logcat -s PathfinderSwap PathfinderShell PathfinderMouse
 Each swap logs one line describing what Pathfinder saw on both screens and
 what it moved.
 
-## Building
+## 🛠️ Building
 
 You need JDK 17 and the Android SDK (platform 35).
 
@@ -163,7 +166,7 @@ The APK is written to `app/build/outputs/apk/release/app-release.apk`. Without
 the project's signing key it is signed with your local debug key, so it
 installs fine but can't update a copy installed from Releases.
 
-## License
+## 📜 License
 
 Thor Pathfinder is free software, released under the
 [GNU General Public License v3.0](LICENSE).
