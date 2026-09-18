@@ -44,7 +44,6 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
   `moe.shizuku.manager.permission.*` permissions (using them, as the API
   library does, is how clients work).
 - Git: `main`, published at https://github.com/KaitonGxx/thor-pathfinder.
-  Commit and push only when asked.
 
 ## Layout
 
@@ -85,7 +84,7 @@ app/src/test/           JVM tests; resources are real captures from the Thor
   root task on top without relaunching it (~15 ms; `am` is a script around
   `cmd activity`). There is no shell "bring task to front": use
   `ActivityManager.moveTaskToFront` (REORDER_TASKS, a normal permission).
-- **Cocoon** (the user's launcher) closes its home activities (MainActivity on
+- **Cocoon** (a third-party launcher) closes its home activities (MainActivity on
   0, ExternalDisplayActivity on 4) while an app covers them, and relaunches
   ExternalDisplayActivity itself when display 4 changes, which can land on top
   of an app that just arrived. Hence the 300 ms `covered()` fix-up.
@@ -100,7 +99,7 @@ app/src/test/           JVM tests; resources are real captures from the Thor
 - **Home exclusions** come from HOME and SECONDARY_HOME activities; whole
   packages only when priority >= 0. Android Settings registers FallbackHome at
   -1000, and excluding its package would make Settings unswappable. Launchers
-  on the user's Thor: launcher3, odinlauncher, cocoonshell and
+  on the test Thor: launcher3, odinlauncher, cocoonshell and
   `xyz.blacksheep.mjolnir`.
 - **Mouse mode.** Switch: system setting `global_gamepad_to_mouse_mode`
   (com.odin.mapping logs "Config changed: Empty->Mouse"). Config:

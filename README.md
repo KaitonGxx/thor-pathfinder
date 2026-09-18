@@ -1,4 +1,8 @@
-# Thor Pathfinder
+# 🧭 Thor Pathfinder
+
+[![Latest release](https://img.shields.io/github/v/release/KaitonGxx/thor-pathfinder?label=release)](https://github.com/KaitonGxx/thor-pathfinder/releases/latest)
+[![License: GPL-3.0](https://img.shields.io/github/license/KaitonGxx/thor-pathfinder)](LICENSE)
+[![AYN Thor, Android 13+](https://img.shields.io/badge/AYN_Thor-Android_13%2B-3DDC84?logo=android&logoColor=white)](#requirements)
 
 Move apps between the AYN Thor's two screens, and put shortcuts on its buttons.
 
@@ -17,7 +21,7 @@ independent project, not affiliated with Wayfinder or AYN.
 
 ## Features
 
-**Swap screens**
+**🔀 Swap screens**
 - Swaps the apps on the two screens, or sends a lone app to the other screen.
 - Apps keep running while they move. Pathfinder hands the app's window to the
   other screen instead of restarting the app there.
@@ -26,7 +30,7 @@ independent project, not affiliated with Wayfinder or AYN.
 - If one of the two apps is playing a video or music, it moves first, so
   playback stays smooth.
 
-**Button shortcuts** on Back, Home, the AYN button, Select, Start, L3 and R3:
+**🎮 Button shortcuts** on Back, Home, the AYN button, Select, Start, L3 and R3:
 - Back, Home and the AYN button: press, double-press and hold.
 - Select, Start, L3 and R3: double-press and hold. Games still receive every
   press of these buttons, so a plain press stays with the game.
@@ -34,16 +38,16 @@ independent project, not affiliated with Wayfinder or AYN.
   notifications, quick settings, screenshot, power menu, lock screen, or open
   any app.
 
-**Mouse mode**
+**🖱️ Mouse mode**
 - Turn the Thor's mouse mode on or off from a shortcut.
 - Reverse right-stick scrolling, so pushing the stick up scrolls the page up.
 
-**Built for the Thor**
+**🕹️ Built for the Thor**
 - A step-by-step setup that checks each requirement before moving on.
 - Works with the Thor's controller as well as touch. Every control shows a
   clear outline when it has focus.
 
-**Private and light**
+**🔒 Private and light**
 - The accessibility service receives button presses only. It cannot read the
   screen or anything you type.
 - No internet access. The app is under 2 MB and runs no background work of its
