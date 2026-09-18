@@ -47,8 +47,19 @@ independent project, not affiliated with Wayfinder or AYN.
   power menu, lock screen, or open any app.
 
 **🖱️ Mouse mode**
-- Turn the Thor's mouse mode on or off from a shortcut.
-- Reverse right-stick scrolling, so pushing the stick up scrolls the page up.
+
+*Before:* mouse mode was switched only with the Thor's own switch, and the
+right stick scrolled backwards. The stick drags an invisible finger across the
+screen, so pushing up moved the page down. The Thor can reverse that, but
+there's no button for it in its menus.
+
+*With Pathfinder:*
+- Double-press Select, or any shortcut you pick, to turn mouse mode on or off.
+  A short message says which.
+- One switch reverses the right stick, so pushing up scrolls up, like a mouse
+  wheel. It takes effect after a restart, and Pathfinder offers a Restart now
+  button.
+- Cursor speed and sensitivity stay in the Thor's own mouse mode settings.
 
 **🕹️ Built for the Thor**
 - A step-by-step setup that checks each requirement before moving on.
