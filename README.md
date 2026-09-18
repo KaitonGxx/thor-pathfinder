@@ -42,9 +42,9 @@ independent project, not affiliated with Wayfinder or AYN.
 - Back, Home and the AYN button: press, double-press and hold.
 - Select, Start, L3 and R3: double-press and hold. Games still receive every
   press of these buttons, so a plain press stays with the game.
-- Actions: swap screens, mouse mode on/off, back, home, recent apps,
-  notifications, quick settings, screenshot, power menu, lock screen, or open
-  any app.
+- Actions: swap screens, mouse mode on/off, back, home, recent apps, close all
+  apps, notifications, quick settings, screenshot, power menu, lock screen, or
+  open any app.
 
 **🖱️ Mouse mode**
 - Turn the Thor's mouse mode on or off from a shortcut.
@@ -130,6 +130,13 @@ makes itself, so the app keeps running instead of restarting. Asking for that
 takes more access than an app normally has, and that's what Shizuku provides:
 it runs the command with the same rights as a USB debugging connection, with
 no root needed.
+
+**Closing all apps.** Recents' "Clear all" button removes every task shown in
+Recents and stops those apps. Pathfinder's *Close all apps* does the same
+through Shizuku (`am stack remove` for each task, then `am force-stop` for
+each app), so the Recents screen never has to open. Home screens stay; even
+Pathfinder's own window is closed, so Recents ends up empty. Both screens then
+return to their home screens, as after Clear all.
 
 **Mouse mode.** The Thor's mouse mode is one system setting that AYN's input
 engine watches. Pathfinder flips it, through Shizuku, exactly as the Thor's own

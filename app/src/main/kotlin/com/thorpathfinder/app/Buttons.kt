@@ -66,6 +66,7 @@ enum class ButtonAction(val label: String, val needsShizuku: Boolean = false) {
     BACK("Back"),
     HOME("Home"),
     RECENTS("Recent apps"),
+    CLOSE_ALL("Close all apps", needsShizuku = true),
     SWAP_SCREENS("Swap screens", needsShizuku = true),
     MOUSE_MODE("Mouse mode on/off", needsShizuku = true),
     NOTIFICATIONS("Notifications"),

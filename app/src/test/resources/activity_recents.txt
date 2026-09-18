@@ -1,0 +1,165 @@
+ACTIVITY MANAGER RECENT TASKS (dumpsys activity recents)
+mRecentsUid=10091
+mRecentsComponent=ComponentInfo{com.android.launcher3/com.android.quickstep.RecentsActivity}
+mFreezeTaskListReordering=false
+mFreezeTaskListReorderingPendingTimeout=false
+mHiddenTasks=[Task{2358116 #264 type=home A=10127:rip.moth.cocoonshell}]
+  Recent tasks:
+  * Recent #0: Task{93fb9d #271 type=standard A=10131:com.google.android.youtube}
+    userId=0 effectiveUid=u0a131 mCallingUid=2000 mUserSetupComplete=true mCallingPackage=com.android.shell mCallingFeatureId=null
+    affinity=10131:com.google.android.youtube
+    intent={flg=0x10000000 cmp=com.google.android.youtube/.app.honeycomb.Shell$HomeActivity}
+    origActivity=com.google.android.youtube/.app.honeycomb.Shell$HomeActivity
+    mActivityComponent=com.google.android.youtube/com.google.android.apps.youtube.app.watchwhile.MainActivity
+    autoRemoveRecents=false isPersistable=true activityType=1
+    rootWasReset=false mNeverRelinquishIdentity=true mReuseTask=false mLockTaskAuth=LOCK_TASK_AUTH_PINNABLE
+    Activities=[ActivityRecord{944bbe3 u0 com.google.android.youtube/.app.honeycomb.Shell$HomeActivity} t271}]
+    askedCompatMode=false inRecents=true isAvailable=true
+    mRootProcess=ProcessRecord{81559e0 25443:com.google.android.youtube/u0a131}
+    taskId=271 rootTaskId=271
+    hasChildPipActivity=false
+    mHasBeenVisible=true
+    mResizeMode=RESIZE_MODE_RESIZEABLE mSupportsPictureInPicture=true isResizeable=true
+    lastActiveTime=19243118 (inactive for 2s)
+  * Recent #1: Task{98ff1c1 #270 type=standard A=1000:com.android.settings.root}
+    userId=0 effectiveUid=1000 mCallingUid=2000 mUserSetupComplete=true mCallingPackage=com.android.shell mCallingFeatureId=null
+    affinity=1000:com.android.settings.root
+    intent={flg=0x10000000 cmp=com.android.settings/.Settings}
+    origActivity=com.android.settings/.Settings
+    mActivityComponent=com.android.settings/.homepage.SettingsHomepageActivity
+    autoRemoveRecents=false isPersistable=true activityType=1
+    rootWasReset=false mNeverRelinquishIdentity=true mReuseTask=false mLockTaskAuth=LOCK_TASK_AUTH_PINNABLE
+    Activities=[ActivityRecord{57658a7 u0 com.android.settings/.Settings} t270}]
+    askedCompatMode=false inRecents=true isAvailable=true
+    mRootProcess=ProcessRecord{35781ef 31717:com.android.settings/1000}
+    taskId=270 rootTaskId=270
+    hasChildPipActivity=false
+    mHasBeenVisible=true
+    mResizeMode=RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION mSupportsPictureInPicture=false isResizeable=true
+    lastActiveTime=19243118 (inactive for 2s)
+  * Recent #2: Task{225478c #267 type=home A=10127:rip.moth.cocoonshell}
+    userId=0 effectiveUid=u0a127 mCallingUid=u0a91 mUserSetupComplete=true mCallingPackage=com.android.launcher3 mCallingFeatureId=null
+    affinity=10127:rip.moth.cocoonshell
+    intent={act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10000000 cmp=rip.moth.cocoonshell/.MainActivity}
+    mActivityComponent=rip.moth.cocoonshell/.MainActivity
+    autoRemoveRecents=false isPersistable=true activityType=2
+    rootWasReset=false mNeverRelinquishIdentity=true mReuseTask=false mLockTaskAuth=LOCK_TASK_AUTH_PINNABLE
+    Activities=[ActivityRecord{c8a6ea u0 rip.moth.cocoonshell/.MainActivity} t267}]
+    askedCompatMode=false inRecents=true isAvailable=true
+    taskId=267 rootTaskId=266
+    hasChildPipActivity=false
+    mHasBeenVisible=true
+    mResizeMode=RESIZE_MODE_UNRESIZEABLE mSupportsPictureInPicture=false isResizeable=false
+    lastActiveTime=19241401 (inactive for 4s)
+  * Recent #3: Task{4b08cc7 #268 type=standard A=10157:com.thorpathfinder.app}
+    userId=0 effectiveUid=u0a157 mCallingUid=u0a127 mUserSetupComplete=true mCallingPackage=rip.moth.cocoonshell mCallingFeatureId=null
+    affinity=10157:com.thorpathfinder.app
+    intent={act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10000000 pkg=com.thorpathfinder.app cmp=com.thorpathfinder.app/.ui.MainActivity}
+    mActivityComponent=com.thorpathfinder.app/.ui.MainActivity
+    autoRemoveRecents=false isPersistable=true activityType=1
+    rootWasReset=false mNeverRelinquishIdentity=true mReuseTask=false mLockTaskAuth=LOCK_TASK_AUTH_PINNABLE
+    Activities=[ActivityRecord{8e38a1d u0 com.thorpathfinder.app/.ui.MainActivity} t268}]
+    askedCompatMode=false inRecents=true isAvailable=true
+    mRootProcess=ProcessRecord{b739776 13714:com.thorpathfinder.app/u0a157}
+    taskId=268 rootTaskId=268
+    hasChildPipActivity=false
+    mHasBeenVisible=true
+    mResizeMode=RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION mSupportsPictureInPicture=false isResizeable=true
+    lastActiveTime=18804833 (inactive for 441s)
+  * Recent #4: Task{8d77acc #90 type=recents I=com.android.launcher3/com.android.quickstep.RecentsActivity}
+    userId=0 effectiveUid=u0a91 mCallingUid=u0a91 mUserSetupComplete=true mCallingPackage=com.android.launcher3 mCallingFeatureId=null
+    intent={act=android.intent.action.MAIN cat=[android.intent.category.DEFAULT] flg=0x10810000 cmp=com.android.launcher3/com.android.quickstep.RecentsActivity}
+    mActivityComponent=com.android.launcher3/com.android.quickstep.RecentsActivity
+    autoRemoveRecents=false isPersistable=false activityType=3
+    rootWasReset=false mNeverRelinquishIdentity=true mReuseTask=false mLockTaskAuth=LOCK_TASK_AUTH_PINNABLE
+    Activities=[ActivityRecord{1342c2a u0 com.android.launcher3/com.android.quickstep.RecentsActivity} t90}]
+    askedCompatMode=false inRecents=true isAvailable=true
+    taskId=90 rootTaskId=89
+    hasChildPipActivity=false
+    mHasBeenVisible=true
+    mResizeMode=RESIZE_MODE_RESIZEABLE mSupportsPictureInPicture=false isResizeable=true
+    lastActiveTime=19062080 (inactive for 184s)
+  * Recent #5: Task{84780c #260 type=standard A=10127:rip.moth.cocoonshell}
+    userId=0 effectiveUid=u0a127 mCallingUid=u0a127 mUserSetupComplete=true mCallingPackage=rip.moth.cocoonshell mCallingFeatureId=null
+    affinity=10127:rip.moth.cocoonshell
+    intent={flg=0x18800000 cmp=rip.moth.cocoonshell/.ExternalDisplayActivity}
+    mActivityComponent=rip.moth.cocoonshell/.ExternalDisplayActivity
+    rootWasReset=false mNeverRelinquishIdentity=true mReuseTask=false mLockTaskAuth=LOCK_TASK_AUTH_PINNABLE
+    Activities=[ActivityRecord{a008b6a u0 rip.moth.cocoonshell/.ExternalDisplayActivity} t260}]
+    askedCompatMode=false inRecents=true isAvailable=true
+    taskId=260 rootTaskId=260
+    hasChildPipActivity=false
+    mHasBeenVisible=true
+    mResizeMode=RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION mSupportsPictureInPicture=false isResizeable=true
+    lastActiveTime=17954119 (inactive for 1291s)
+  * Recent #6: Task{a89d800 #158 type=standard A=10127:rip.moth.cocoonshell}
+    userId=0 effectiveUid=u0a127 mCallingUid=u0a127 mUserSetupComplete=true mCallingPackage=rip.moth.cocoonshell mCallingFeatureId=null
+    affinity=10127:rip.moth.cocoonshell
+    intent={flg=0x18800000 cmp=rip.moth.cocoonshell/.ExternalDisplayActivity}
+    mActivityComponent=rip.moth.cocoonshell/.ExternalDisplayActivity
+    rootWasReset=false mNeverRelinquishIdentity=true mReuseTask=false mLockTaskAuth=LOCK_TASK_AUTH_PINNABLE
+    Activities=[ActivityRecord{255ae7e u0 rip.moth.cocoonshell/.ExternalDisplayActivity} t158}]
+    askedCompatMode=false inRecents=true isAvailable=true
+    taskId=158 rootTaskId=158
+    hasChildPipActivity=false
+    mHasBeenVisible=true
+    mResizeMode=RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION mSupportsPictureInPicture=false isResizeable=true
+    lastActiveTime=5289365 (inactive for 13956s)
+  * Recent #7: Task{904ee4f #148 type=standard A=10127:rip.moth.cocoonshell}
+    userId=0 effectiveUid=u0a127 mCallingUid=u0a127 mUserSetupComplete=true mCallingPackage=rip.moth.cocoonshell mCallingFeatureId=null
+    affinity=10127:rip.moth.cocoonshell
+    intent={flg=0x18800000 cmp=rip.moth.cocoonshell/.ExternalDisplayActivity}
+    mActivityComponent=rip.moth.cocoonshell/.ExternalDisplayActivity
+    rootWasReset=false mNeverRelinquishIdentity=true mReuseTask=false mLockTaskAuth=LOCK_TASK_AUTH_PINNABLE
+    Activities=[ActivityRecord{a3b5ae5 u0 rip.moth.cocoonshell/.ExternalDisplayActivity} t148}]
+    askedCompatMode=false inRecents=true isAvailable=true
+    taskId=148 rootTaskId=148
+    hasChildPipActivity=false
+    mHasBeenVisible=true
+    mResizeMode=RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION mSupportsPictureInPicture=false isResizeable=true
+    lastActiveTime=5190100 (inactive for 14055s)
+  * Recent #8: Task{cf0f56a #2 type=home A=1000:com.android.settings.FallbackHome}
+    userId=0 effectiveUid=1000 mCallingUid=0 mUserSetupComplete=true mCallingPackage=null mCallingFeatureId=null
+    affinity=1000:com.android.settings.FallbackHome
+    intent={act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10800100 cmp=com.android.settings/.FallbackHome}
+    mActivityComponent=com.android.settings/.FallbackHome
+    autoRemoveRecents=false isPersistable=false activityType=2
+    rootWasReset=false mNeverRelinquishIdentity=true mReuseTask=false mLockTaskAuth=LOCK_TASK_AUTH_PINNABLE
+    Activities=[]
+    askedCompatMode=false inRecents=true isAvailable=true
+    taskId=2 rootTaskId=2
+    hasChildPipActivity=false
+    mHasBeenVisible=true
+    mResizeMode=RESIZE_MODE_UNRESIZEABLE mSupportsPictureInPicture=false isResizeable=false
+    lastActiveTime=18150 (inactive for 19227s)
+
+  Visible recent tasks (most recent first):
+  * RecentTaskInfo #0: 
+    id=271 userId=0 hasTask=true lastActiveTime=19243118
+    baseIntent=Intent { flg=0x10000000 cmp=com.google.android.youtube/.app.honeycomb.Shell$HomeActivity }
+    baseActivity={com.google.android.youtube/com.google.android.apps.youtube.app.watchwhile.MainActivity}
+    topActivity={com.google.android.youtube/com.google.android.apps.youtube.app.watchwhile.MainActivity}
+    origActivity={com.google.android.youtube/com.google.android.youtube.app.honeycomb.Shell$HomeActivity}
+    realActivity={com.google.android.youtube/com.google.android.apps.youtube.app.watchwhile.MainActivity}
+    isExcluded=false activityType=standard windowingMode=fullscreen supportsMultiWindow=true
+    taskDescription { colorBackground=#ff303030 colorPrimary=#ff0f0f0f iconRes=/0 iconBitmap=false resizeMode=RESIZE_MODE_RESIZEABLE minWidth=-1 minHeight=-1 colorBackgroundFloating=#ff424242 }
+    lastSnapshotData { taskSize=null contentInsets=null bufferSize=null }
+  * RecentTaskInfo #1: 
+    id=270 userId=0 hasTask=true lastActiveTime=19243118
+    baseIntent=Intent { flg=0x10000000 cmp=com.android.settings/.Settings }
+    baseActivity={com.android.settings/com.android.settings.homepage.SettingsHomepageActivity}
+    topActivity={com.android.settings/com.android.settings.homepage.SettingsHomepageActivity}
+    origActivity={com.android.settings/com.android.settings.Settings}
+    realActivity={com.android.settings/com.android.settings.homepage.SettingsHomepageActivity}
+    isExcluded=false activityType=standard windowingMode=fullscreen supportsMultiWindow=true
+    taskDescription { colorBackground=#ff1b1c17 colorPrimary=#ff1b1c17 iconRes=/0 iconBitmap=false resizeMode=RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION minWidth=-1 minHeight=-1 colorBackgroundFloating=#ff1b1c17 }
+    lastSnapshotData { taskSize=null contentInsets=null bufferSize=null }
+  * RecentTaskInfo #2: 
+    id=268 userId=0 hasTask=true lastActiveTime=18804833
+    baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10000000 pkg=com.thorpathfinder.app cmp=com.thorpathfinder.app/.ui.MainActivity }
+    baseActivity={com.thorpathfinder.app/com.thorpathfinder.app.ui.MainActivity}
+    topActivity={com.thorpathfinder.app/com.thorpathfinder.app.ui.MainActivity}
+    realActivity={com.thorpathfinder.app/com.thorpathfinder.app.ui.MainActivity}
+    isExcluded=false activityType=standard windowingMode=fullscreen supportsMultiWindow=true
+    taskDescription { colorBackground=#ff303030 colorPrimary=#ff212121 iconRes=/0 iconBitmap=false resizeMode=RESIZE_MODE_RESIZEABLE_VIA_SDK_VERSION minWidth=-1 minHeight=-1 colorBackgroundFloating=#ff424242 }
+    lastSnapshotData { taskSize=Point(1240, 1080) contentInsets=Rect(0, 0 - 0, 0) bufferSize=Point(1240, 1080) }

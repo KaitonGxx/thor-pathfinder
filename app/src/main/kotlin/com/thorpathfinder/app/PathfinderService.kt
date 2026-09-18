@@ -8,7 +8,6 @@ import android.os.VibrationEffect
 import android.os.VibratorManager
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
-import android.widget.Toast
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -24,12 +23,14 @@ class PathfinderService : AccessibilityService() {
     private lateinit var shortcuts: Shortcuts
     private lateinit var engine: GestureEngine
     private lateinit var worker: ExecutorService
+    private lateinit var overlay: Overlay
 
     override fun onServiceConnected() {
         // Off a Thor, or on firmware older than the one verified, stay out of the way.
         if (!Device.current.ok) return
         shortcuts = Shortcuts(this)
         worker = Executors.newSingleThreadExecutor()
+        overlay = Overlay(this)
         engine = GestureEngine(
             config = shortcuts,
             scheduler = { delay, task ->
@@ -72,6 +73,7 @@ class PathfinderService : AccessibilityService() {
             ButtonAction.POWER_MENU -> performGlobalAction(GLOBAL_ACTION_POWER_DIALOG)
             ButtonAction.LOCK_SCREEN -> performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
             ButtonAction.SWAP_SCREENS -> worker.execute { swapOutcomeMessage(ScreenSwap.swap(this))?.let(::toast) }
+            ButtonAction.CLOSE_ALL -> worker.execute { toast(closeAllOutcomeMessage(RecentTasks.closeAll(this))) }
             ButtonAction.MOUSE_MODE -> worker.execute {
                 toast(
                     when (MouseMode.toggle()) {
@@ -99,9 +101,8 @@ class PathfinderService : AccessibilityService() {
         vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
     }
 
-    private fun toast(message: String) = handler.post {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-    }
+    // Not a Toast: Android 13 would suppress one from a background service (see Overlay).
+    private fun toast(message: String) = handler.post { overlay.show(message) }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) = Unit
 
@@ -110,6 +111,7 @@ class PathfinderService : AccessibilityService() {
     override fun onUnbind(intent: Intent?): Boolean {
         running = false
         if (::engine.isInitialized) engine.reset()
+        if (::overlay.isInitialized) overlay.dismiss()
         handler.removeCallbacksAndMessages(null)
         if (::worker.isInitialized) worker.shutdown()
         return super.onUnbind(intent)

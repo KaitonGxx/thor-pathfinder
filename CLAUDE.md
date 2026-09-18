@@ -10,14 +10,16 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
 
 ## Status (2026-09-18)
 
-- v0.2.0 (versionCode 5), the first public release. 33 unit tests pass.
+- v0.3.0 (versionCode 6): adds the Close all apps action. 0.2.0 was the
+  first public release.
   Release APK is about 1.7 MB (R8 on). Bump `versionCode` for every APK
   handed over.
 - **Tested on an AYN Thor (firmware 1.0.0.377):** the setup wizard, hold
   Back to swap (two apps; a lone app in both directions), double Back for
-  recents, double Select for mouse mode, the focus fix, and the
-  YouTube/Discord sequence (a lone app's vacated screen goes home, with no
-  flash).
+  recents, double Select for mouse mode, the focus fix, the YouTube/Discord
+  sequence (a lone app's vacated screen goes home, with no flash), Close all
+  apps (Recents left empty, apps stopped, screens home, service alive) and
+  the overlay messages.
 - **Not yet verified on hardware:** "Open an app", shortcuts on Home and the
   AYN button in daily use, the covered-app fix-up (`moveTaskToFront`), the
   media-first swap order with a real video (logic unit-tested), and the
@@ -54,8 +56,10 @@ app/src/main/kotlin/com/thorpathfinder/app/
   Shortcuts.kt          SharedPreferences store + defaults; implements GestureConfig
   PathfinderService.kt  accessibility service: key events -> engine -> actions
   ScreenSwap.kt         parse `am stack list`, plan, script, covered-app fix-up
+  RecentTasks.kt        Close all apps: parse `dumpsys activity recents`, `am stack remove`
   MouseMode.kt          mouse mode toggle, reverse scrolling (AYN config edit)
   Shell.kt              Shizuku process runner (newProcess via reflection)
+  Overlay.kt            toast-like message as an accessibility overlay window
   Device.kt             Thor + firmware gate (min 1.0.0.377)
   SystemState.kt        what setup checks (device, service, Shizuku, Wayfinder)
   ui/Setup.kt           step-by-step wizard with gated Next
@@ -96,6 +100,25 @@ app/src/test/           JVM tests; resources are real captures from the Thor
   and a video drops its surface. A media-playing app (`dumpsys media_session`,
   state 3 or 6) moves first; otherwise the top app. An atomic swap would need
   a WindowContainerTransaction.
+- **Close all apps.** Recents' Clear all = `removeAllVisibleRecentTasks`;
+  the shell (REMOVE_TASKS) gets the same per task with `am stack remove <id>`,
+  which also works for tasks only in Recents (no longer on a screen) and ends
+  the process. `dumpsys activity recents` lists `* Recent #n: Task{.. #id
+  type=standard|home|recents ..}` blocks with `mActivityComponent=pkg/.Cls`
+  (abbreviated), `intent={.. flg=0x.. ..}` (0x00800000 = exclude from
+  Recents; Cocoon's secondary-home tasks carry it) and `inRecents=`. The
+  Thor's own Clear all (its recents app, "Killing ...: stop <pkg> due to from
+  pid <recents>" in logcat) removes the tasks, force-stops each package, and
+  sends both screens home; it removes Pathfinder's task too, but the service
+  process survives. Close all matches that: it removes Pathfinder's own task
+  (Recents ends up empty) but never force-stops its own package, since the
+  accessibility service runs in it. Removal alone leaves processes cached, so
+  every other closed app gets `am force-stop`.
+- **Messages.** `Toast` from the service never shows: Android 13 suppresses
+  background toasts from an app without the notification permission
+  ("Suppressing toast from package ... by user request" in logcat). The
+  service draws its messages as a TYPE_ACCESSIBILITY_OVERLAY window on the
+  default display instead (`Overlay.kt`), which needs no permission.
 - **Home exclusions** come from HOME and SECONDARY_HOME activities; whole
   packages only when priority >= 0. Android Settings registers FallbackHome at
   -1000, and excluding its package would make Settings unswappable. Launchers
