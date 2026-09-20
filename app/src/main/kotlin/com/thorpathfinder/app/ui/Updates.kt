@@ -73,7 +73,11 @@ class UpdateUi(private val context: Context, private val scope: CoroutineScope) 
             else -> null
         }
 
-    /** What the last run left behind, so the button says something at once. */
+    /**
+     * What the last check found, so the button says something at once. A
+     * check runs whenever the screen comes to the front, so this is never
+     * more than [QUIET_MS] old by the time anyone reads it.
+     */
     private fun remembered(): State {
         val known = settings.known ?: return State.Idle
         return if (UpdateCheck.isNewer(known.version, installed)) {
@@ -83,7 +87,7 @@ class UpdateUi(private val context: Context, private val scope: CoroutineScope) 
         }
     }
 
-    /** Called when the settings screen appears. */
+    /** Called every time the settings screen comes to the front. */
     fun checkOnOpen() {
         if (!settings.checkOnOpen) return
         if (System.currentTimeMillis() - settings.lastCheckMs < QUIET_MS) return
@@ -152,7 +156,7 @@ class UpdateUi(private val context: Context, private val scope: CoroutineScope) 
         }
 
     private companion object {
-        /** Long enough that flicking in and out of the app doesn't ask GitHub again. */
+        /** Long enough that flicking in and out doesn't ask GitHub each time. */
         const val QUIET_MS = 15 * 60 * 1000L
     }
 }

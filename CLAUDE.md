@@ -10,6 +10,9 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
 
 ## Status (2026-09-20)
 
+- v0.5.1 (versionCode 11), released 2026-09-20: the update check runs on
+  every return to the settings, so coming back from Home refreshes the button
+  instead of showing what the last check found.
 - v0.5.0 (versionCode 10), released 2026-09-20: updates look after themselves
   (check on open, the button's wording and mark, the yellow notice card, and
   an opt-in silent install), the cog's Settings menu, the keep-running list
@@ -190,11 +193,12 @@ app/src/test/           JVM tests; resources are real captures from the Thor
   `html_url` and the first `assets[].browser_download_url` that starts with
   the repo's `/releases/download/` and ends in `.apk`. Unsigned API calls are
   limited to 60 an hour per IP; a 403 or 429 gets its own message.
-  `ui/Updates.kt` holds the screen's state: a check runs when the settings
-  open (`checkOnOpen`, unless one ran in the last 15 minutes), the button
-  reads "Update Available", "Up to date" or "Check For Updates", and the last
-  answer is kept in the `updates` preferences so the button says something
-  before the new check lands. A new version raises a yellow card
+  `ui/Updates.kt` holds the screen's state: a check runs on every ON_RESUME
+  of the settings (`LifecycleEventEffect`, not `LaunchedEffect(Unit)`, or
+  returning from Home would never re-check), unless one ran in the last 15
+  minutes. The button reads "Update Available", "Up to date" or "Check For
+  Updates", and the last answer is kept in the `updates` preferences so the
+  button says something before the new check lands. A new version raises a yellow card
   (`WarningContainer`) with Update now, Dismiss (until the app is reopened)
   and Don't show again (kept per version in `hiddenVersion`).
 - **Installing an update** (`Updates.kt`, off by default) goes through

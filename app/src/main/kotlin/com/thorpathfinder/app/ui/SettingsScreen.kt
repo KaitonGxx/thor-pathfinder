@@ -46,6 +46,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import com.thorpathfinder.app.ButtonAction
 import com.thorpathfinder.app.ButtonKind
 import com.thorpathfinder.app.Gesture
@@ -66,7 +68,9 @@ fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit, onOpenSetting
     val scope = rememberCoroutineScope()
     val shortcuts = remember { ObservedShortcuts(Shortcuts(context)) }
     val updates = remember { UpdateUi(context, scope) }
-    LaunchedEffect(Unit) { updates.checkOnOpen() }
+    // Every time the screen comes back, not only the first time it is built:
+    // leaving Pathfinder and returning is exactly when a release may be out.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { updates.checkOnOpen() }
     var editing by remember { mutableStateOf<Pair<PhysicalButton, Gesture>?>(null) }
     var choosingApp by remember { mutableStateOf<Pair<PhysicalButton, Gesture>?>(null) }
     var choosingScreen by remember { mutableStateOf<Triple<PhysicalButton, Gesture, String>?>(null) }
