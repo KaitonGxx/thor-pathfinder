@@ -26,6 +26,8 @@ independent project, not affiliated with Wayfinder or AYN.
 | <img src="docs/screenshots/welcome.png" alt="Setup's welcome screen, listing the default shortcuts"> | <img src="docs/screenshots/main-menu.png" alt="Pathfinder's main menu"> |
 | **Button shortcuts** | **Choosing a shortcut** |
 | <img src="docs/screenshots/button-shortcuts.png" alt="The Back button's press, double-press and hold shortcuts"> | <img src="docs/screenshots/shortcut-picker.png" alt="Choosing what holding Back does"> |
+| **Settings** | **Open-source licenses** |
+| <img src="docs/screenshots/settings-menu.png" alt="The settings menu: close all apps, mouse mode, timing, update settings, run setup again"> | <img src="docs/screenshots/licenses.png" alt="The licenses of Pathfinder and everything it ships"> |
 
 ## ✨ Features
 
