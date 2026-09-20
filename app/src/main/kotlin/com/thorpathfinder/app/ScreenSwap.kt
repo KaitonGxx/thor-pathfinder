@@ -141,13 +141,17 @@ object ScreenSwap {
         data class Failed(val message: String) : Outcome
     }
 
+    /** The Thor's other screen: the lowest display that isn't the default one. */
+    fun otherDisplay(context: Context): Display? =
+        context.getSystemService(DisplayManager::class.java).displays
+            .filter { it.displayId != Display.DEFAULT_DISPLAY }
+            .minByOrNull { it.displayId }
+
     /** Swaps the two screens' apps. Blocking: run off the main thread. */
     fun swap(context: Context): Outcome {
         if (!Shell.ready) return Outcome.NeedsShizuku
-        val displays = context.getSystemService(DisplayManager::class.java).displays
         val main = Display.DEFAULT_DISPLAY
-        val other = displays.filter { it.displayId != main }.minByOrNull { it.displayId }
-            ?: return Outcome.NoSecondScreen
+        val other = otherDisplay(context) ?: return Outcome.NoSecondScreen
         if (other.state == Display.STATE_OFF) return Outcome.SecondScreenOff
 
         val list = Shell.run("am", "stack", "list")

@@ -1,23 +1,37 @@
 package com.thorpathfinder.app.ui
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
@@ -46,6 +60,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 
@@ -57,6 +72,44 @@ fun PathfinderTheme(content: @Composable () -> Unit) {
         if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
     }.getOrElse { if (dark) darkColorScheme() else lightColorScheme() }
     MaterialTheme(colorScheme = colors, content = content)
+}
+
+/** Material's scheme has no warning colour, so the update notice brings its own. */
+val WarningContainer: Color
+    @Composable get() = if (isSystemInDarkTheme()) Color(0xFF4A3B12) else Color(0xFFFFF0C2)
+
+val OnWarningContainer: Color
+    @Composable get() = if (isSystemInDarkTheme()) Color(0xFFF7E3A8) else Color(0xFF473600)
+
+/** Green for "nothing to do", yellow for "have a look"; both readable in either theme. */
+val OkGreen: Color
+    @Composable get() = if (isSystemInDarkTheme()) Color(0xFF3FA95E) else Color(0xFF2E7D32)
+
+val WarningYellow: Color
+    @Composable get() = if (isSystemInDarkTheme()) Color(0xFFF2C14E) else Color(0xFFB07800)
+
+/** A green dot with a white tick: everything is as it should be. */
+@Composable
+fun OkDot(size: Dp = 18.dp) {
+    Box(Modifier.size(size).background(OkGreen, CircleShape), contentAlignment = Alignment.Center) {
+        Icon(
+            Icons.Filled.Check,
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier.size(size * 0.7f),
+        )
+    }
+}
+
+/** A yellow triangle: something is waiting. */
+@Composable
+fun WarningTriangle(size: Dp = 18.dp) {
+    Icon(
+        Icons.Filled.Warning,
+        contentDescription = null,
+        tint = WarningYellow,
+        modifier = Modifier.size(size),
+    )
 }
 
 val RowShape: Shape = RoundedCornerShape(12.dp)
@@ -74,6 +127,94 @@ fun Modifier.focusOutline(shape: Shape = RowShape): Modifier = composed {
     val color = if (isSystemInDarkTheme()) Color.White else MaterialTheme.colorScheme.onSurface
     onFocusChanged { focused = it.isFocused || it.hasFocus }
         .border(2.dp, if (focused) color.copy(alpha = 0.9f) else Color.Transparent, shape)
+}
+
+/**
+ * A page of its own, with a back arrow and a title. Its content fills what's
+ * left, so a list inside it can take `weight(1f)`.
+ */
+@Composable
+fun PageScaffold(
+    title: String,
+    subtitle: String? = null,
+    onBack: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    BackHandler(onBack = onBack)
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        Column(Modifier.widthIn(max = 760.dp).fillMaxSize().padding(horizontal = 16.dp)) {
+            Row(
+                Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onBack, modifier = Modifier.focusOutline(PillShape)) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                }
+                Spacer(Modifier.width(8.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    if (subtitle != null) {
+                        Text(
+                            subtitle,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            content()
+        }
+    }
+}
+
+/** A row that opens a page of its own. One focus stop. */
+@Composable
+fun NavRow(title: String, detail: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Row(
+        modifier
+            .fillMaxWidth()
+            .focusOutline()
+            .clip(RowShape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                detail,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(Modifier.width(12.dp))
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+/** A heading inside a list, for a group of rows. */
+@Composable
+fun ListHeading(title: String, detail: String? = null) {
+    Column(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp, bottom = 4.dp)) {
+        Text(
+            title,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        if (detail != null) {
+            Text(
+                detail,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
 }
 
 /** A titled card; a rule separates the title from what's under it. */
@@ -100,9 +241,15 @@ fun SectionCard(title: String, subtitle: String? = null, content: @Composable Co
 
 /** A setting that shows its value and opens a picker. One focus stop. */
 @Composable
-fun ValueRow(title: String, value: String, enabled: Boolean = true, onClick: () -> Unit) {
+fun ValueRow(
+    title: String,
+    value: String,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
     Row(
-        Modifier
+        modifier
             .fillMaxWidth()
             .focusOutline()
             .clip(RowShape)
@@ -123,9 +270,16 @@ fun ValueRow(title: String, value: String, enabled: Boolean = true, onClick: () 
 
 /** A whole-row switch: one focus stop for the D-pad, touch anywhere on it. */
 @Composable
-fun SwitchRow(title: String, detail: String?, checked: Boolean, enabled: Boolean = true, onChange: (Boolean) -> Unit) {
+fun SwitchRow(
+    title: String,
+    detail: String?,
+    checked: Boolean,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier,
+    onChange: (Boolean) -> Unit,
+) {
     Row(
-        Modifier
+        modifier
             .fillMaxWidth()
             .focusOutline()
             .clip(RowShape)

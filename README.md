@@ -45,6 +45,9 @@ independent project, not affiliated with Wayfinder or AYN.
 - Actions: swap screens, mouse mode on/off, back, home, recent apps, close all
   apps, notifications, quick settings, screenshot, screen record (testing),
   power menu, lock screen, or open any app.
+- Close all apps can spare the apps you choose: their window closes with the
+  rest, but they aren't force-stopped, so music or a download carries on.
+  Background helpers like OdinTools and ClusterTune are offered first.
 
 **🖱️ Mouse mode**
 
@@ -56,23 +59,35 @@ there's no button for it in its menus.
 *With Pathfinder:*
 - Double-press Select, or any shortcut you pick, to turn mouse mode on or off.
   A short message says which.
-- One switch reverses the right stick, so pushing up scrolls up, like a mouse
-  wheel. It takes effect after a restart, and Pathfinder offers a Restart now
-  button.
+- One switch, under the cog's Mouse mode page, reverses the right stick, so
+  pushing up scrolls up, like a mouse wheel. It takes effect after a restart,
+  and Pathfinder offers a Restart now button.
 - Cursor speed and sensitivity stay in the Thor's own mouse mode settings.
 
 **🕹️ Built for the Thor**
 - A step-by-step setup that checks each requirement before moving on.
+- The cog at the top opens a settings menu: which apps keep running, mouse
+  mode, the hold and double-press timings, updates, and running setup again.
+- When something needs attention, it says why. Android switches accessibility
+  services off whenever their app updates, and Shizuku stops when the Thor
+  restarts.
 - Works with the Thor's controller as well as touch. Every control shows a
   clear outline when it has focus.
-- Check For Updates, at the top of the settings, compares your copy with the
-  newest release here and opens its page.
+- Pathfinder looks for a newer release when it opens, and the button at the
+  top says what it found. A new version brings up a notice you can dismiss,
+  for now or for good.
+- If you turn it on, Pathfinder installs an update itself: it fetches the APK
+  from the release here and installs it through Shizuku, with nothing to
+  confirm. It starts off, and only ever installs a build signed with the same
+  key as the copy you already have.
 
 **🔒 Private and light**
 - The accessibility service receives button presses only. It cannot read the
   screen or anything you type.
-- It only goes online when you tap Check For Updates, to ask GitHub for the
-  newest release's version number. Nothing about you or your Thor is sent.
+- It goes online only to ask GitHub for the newest release: when you open
+  Pathfinder, which you can turn off, and when you tap the button. With
+  automatic updates on it also downloads the APK from the release. Nothing
+  about you or your Thor is sent.
 - The app is under 2 MB and runs no background work of its own.
 
 ## 📦 Out of the box
@@ -163,6 +178,11 @@ through Shizuku (`am stack remove` for each task, then `am force-stop` for
 each app), so the Recents screen never has to open. Home screens stay; even
 Pathfinder's own window is closed, so Recents ends up empty. Both screens then
 return to their home screens, as after Clear all.
+
+Apps on your keep-running list lose their window with the rest, but skip the
+force-stop. Removing a window ends what's on screen; force-stopping also ends
+an app's background work, which is what would cut off music, a download or a
+sync.
 
 **Screen record.** The recorder's options panel is a dialog inside System UI
 that only its Quick Settings tile opens: its recording service isn't exported,

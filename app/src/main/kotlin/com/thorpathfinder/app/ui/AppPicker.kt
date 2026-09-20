@@ -41,9 +41,9 @@ import androidx.core.graphics.drawable.toBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-private class AppEntry(val pkg: String, val label: String, val icon: ImageBitmap)
+internal class AppEntry(val pkg: String, val label: String, val icon: ImageBitmap)
 
-/** Every app with a launcher icon, to open from a shortcut. */
+/** Pick an app for a shortcut to open. */
 @Composable
 fun AppPickerDialog(onPick: (String) -> Unit, onDismiss: () -> Unit) {
     val context = LocalContext.current
@@ -99,7 +99,8 @@ fun AppPickerDialog(onPick: (String) -> Unit, onDismiss: () -> Unit) {
     }
 }
 
-private fun loadApps(context: Context): List<AppEntry> {
+/** Every app with a launcher icon, Pathfinder itself aside, by name. */
+internal fun loadApps(context: Context): List<AppEntry> {
     val pm = context.packageManager
     val launchable = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
     return pm.queryIntentActivities(launchable, 0)

@@ -21,7 +21,10 @@ object UpdateCheck {
     /** GitHub redirects this to whichever release is newest. */
     const val LATEST_PAGE = "https://github.com/$REPO/releases/latest"
 
-    data class Release(val version: String, val page: String)
+    /** Every APK Pathfinder will download starts with this. */
+    const val DOWNLOAD_PREFIX = "https://github.com/$REPO/releases/download/"
+
+    data class Release(val version: String, val page: String, val apk: String?)
 
     sealed interface Outcome {
         /** [latest] is newer than the installed version. */
@@ -77,10 +80,19 @@ object UpdateCheck {
                 // Only ever open a page on GitHub.
                 page = release.optString("html_url").takeIf { it.startsWith("https://github.com/") }
                     ?: LATEST_PAGE,
+                apk = apk(release),
             )
         }
     } catch (e: JSONException) {
         null
+    }
+
+    /** The release's own APK, or null when it has none to download. */
+    private fun apk(release: JSONObject): String? {
+        val assets = release.optJSONArray("assets") ?: return null
+        return (0 until assets.length())
+            .mapNotNull { assets.optJSONObject(it)?.optString("browser_download_url") }
+            .firstOrNull { it.startsWith(DOWNLOAD_PREFIX) && it.endsWith(".apk") }
     }
 
     /** Whether version [a] is newer than [b], number by number, so 0.10.0 is newer than 0.9.2. */

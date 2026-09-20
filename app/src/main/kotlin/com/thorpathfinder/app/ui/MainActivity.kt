@@ -44,6 +44,7 @@ class MainActivity : ComponentActivity() {
                     var setupAt by rememberSaveable {
                         mutableStateOf(preview?.step ?: if (shortcuts.setupDone) null else SetupStep.WELCOME)
                     }
+                    var settings by rememberSaveable { mutableStateOf(false) }
                     Box(Modifier.safeDrawingPadding()) {
                         val step = setupAt
                         if (step != null) {
@@ -56,8 +57,21 @@ class MainActivity : ComponentActivity() {
                                     setupAt = null
                                 },
                             )
+                        } else if (settings) {
+                            MoreSettingsScreen(
+                                current,
+                                onBack = { settings = false },
+                                onRunSetup = {
+                                    settings = false
+                                    setupAt = SetupStep.WELCOME
+                                },
+                            )
                         } else {
-                            SettingsScreen(current, onFix = { setupAt = it })
+                            SettingsScreen(
+                                current,
+                                onFix = { setupAt = it },
+                                onOpenSettings = { settings = true },
+                            )
                         }
                     }
                 }

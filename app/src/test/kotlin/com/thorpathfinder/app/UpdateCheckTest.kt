@@ -12,11 +12,28 @@ class UpdateCheckTest {
     private val latest = javaClass.classLoader!!.getResource("release_latest.json")!!.readText()
 
     @Test
-    fun readsTheVersionAndTheReleasePage() {
+    fun readsTheVersionThePageAndTheApk() {
         assertEquals(
-            UpdateCheck.Release("0.3.0", "https://github.com/KaitonGxx/thor-pathfinder/releases/tag/v0.3.0"),
+            UpdateCheck.Release(
+                version = "0.3.0",
+                page = "https://github.com/KaitonGxx/thor-pathfinder/releases/tag/v0.3.0",
+                apk = "https://github.com/KaitonGxx/thor-pathfinder/releases/download/v0.3.0/" +
+                    "thor-pathfinder-0.3.0.apk",
+            ),
             UpdateCheck.parse(latest),
         )
+    }
+
+    @Test
+    fun onlyDownloadsApksFromPathfindersOwnReleases() {
+        val elsewhere = """
+            {"tag_name": "v1.0.0", "assets": [
+                {"browser_download_url": "https://example.com/evil.apk"},
+                {"browser_download_url": "https://github.com/KaitonGxx/thor-pathfinder/releases/download/v1.0.0/notes.txt"}
+            ]}
+        """.trimIndent()
+        assertNull(UpdateCheck.parse(elsewhere)?.apk)
+        assertNull(UpdateCheck.parse("""{"tag_name": "v1.0.0"}""")?.apk)
     }
 
     @Test

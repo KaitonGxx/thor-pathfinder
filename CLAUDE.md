@@ -8,8 +8,12 @@ Kotlin + Jetpack Compose, package `com.thorpathfinder.app`, minSdk 33
 Machine-specific notes (toolchain paths, the test Thor's serial, git
 identity) live in `CLAUDE.local.md`, which is gitignored.
 
-## Status (2026-09-18)
+## Status (2026-09-20)
 
+- v0.5.0 (versionCode 10), released 2026-09-20: updates look after themselves
+  (check on open, the button's wording and mark, the yellow notice card, and
+  an opt-in silent install), the cog's Settings menu, the keep-running list
+  for Close all apps, and a screen to open an app on.
 - v0.4.0 (versionCode 9), released 2026-09-18: adds the Screen record action
   (labelled "(Testing)"), the AYN button's own menu when a gesture is left on
   Normal, Check For Updates, and controller scrolling that reaches the true
@@ -17,6 +21,17 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
   public release.
   Release APK is about 1.7 MB (R8 on). Bump `versionCode` for every APK
   handed over.
+- What 0.5.0 changed: the cog next to the update button opens a full-screen
+  Settings menu (`ui/MoreSettings.kt`) with a page each for Close all apps
+  (the keep-running list, OdinTools and ClusterTune offered first), Mouse mode
+  and Timing, plus Run setup again, which asks on a page of its own before it
+  starts (the cautious button holds focus). Mouse mode, Timing and Setup moved
+  off the main screen, which now holds the header, what needs attention, the
+  update notice, About and the seven button cards. Also: "Open an app" asks
+  which screen to open it on, and updates check themselves (see below). Each line in the attention card can carry a
+  reason: the accessibility service says Android switches it off on every app
+  update, and Shizuku's line depends on its status (not installed, stopped by
+  a restart, or waiting to allow Pathfinder).
 - **Tested on an AYN Thor (firmware 1.0.0.377):** the setup wizard, hold
   Back to swap (two apps; a lone app in both directions), double Back for
   recents, double Select for mouse mode, the focus fix, the YouTube/Discord
@@ -66,16 +81,21 @@ app/src/main/kotlin/com/thorpathfinder/app/
   KeyReplay.kt          replay a real key with `sendevent` (the AYN button's own menu)
   ScreenRecord.kt       Screen record: expand QS, `uiautomator dump`, find the tile, tap
   MouseMode.kt          mouse mode toggle, reverse scrolling (AYN config edit)
-  UpdateCheck.kt        Check For Updates: GitHub's latest release, version compare
+  UpdateCheck.kt        GitHub's latest release: version compare, page and APK links
+  Updates.kt            update preferences, and the silent install through Shizuku
   Shell.kt              Shizuku process runner (newProcess via reflection)
   Overlay.kt            toast-like message as an accessibility overlay window
   Device.kt             Thor + firmware gate (min 1.0.0.377)
   SystemState.kt        what setup checks (device, service, Shizuku, Wayfinder)
   ui/Setup.kt           step-by-step wizard with gated Next
   ui/SettingsScreen.kt  settings; ObservedShortcuts keeps focus on edits
-  ui/Components.kt      theme, focusOutline, SwitchRow, ValueRow, ChoiceDialog
+  ui/Components.kt      theme, focusOutline, SwitchRow, ValueRow, ChoiceDialog,
+                        PageScaffold (a page with a back arrow), NavRow, ListHeading
   ui/EdgeScroll.kt      ScrollingColumn: controller focus reaches the true ends
-  ui/AppPicker.kt       launcher apps for "Open an app"
+  ui/AppPicker.kt       launcher apps for "Open an app" (loadApps is shared)
+  ui/MoreSettings.kt    the cog's menu: Mouse mode, Timing, Update settings, Setup
+  ui/Updates.kt         update state for the screen: button wording, notice card
+  ui/KeepRunning.kt     the cog's Close all apps page: what not to force-stop
   ui/Licenses.kt        About → Open-source licenses (texts in assets/licenses)
   ui/Preview.kt         debug builds only: fake states for screenshots
 app/src/test/           JVM tests; resources are real captures from the Thor
@@ -123,7 +143,16 @@ app/src/test/           JVM tests; resources are real captures from the Thor
   process survives. Close all matches that: it removes Pathfinder's own task
   (Recents ends up empty) but never force-stops its own package, since the
   accessibility service runs in it. Removal alone leaves processes cached, so
-  every other closed app gets `am force-stop`.
+  every other closed app gets `am force-stop`. Apps on the user's keep-running
+  list (`Shortcuts.keepRunning`, a StringSet of package names, chosen in
+  `ui/KeepRunning.kt`) are left out of the force-stop only: their task is
+  removed like any other, so Recents still ends up empty, but their background
+  work survives. SharedPreferences hands out its own Set instance, so the
+  getter copies it. OdinTools (`de.langerhans.odintools`) and ClusterTune
+  (`com.aure.clustertune`) head that page under "Highly recommended": both
+  watch the foreground app from a service, which a force-stop ends. They are
+  named in the manifest's `queries`, or Android would hide them from
+  `getApplicationInfo`.
 - **AYN button.** AYN's PhoneWindowManager.interceptKeyBeforeDispatching
   (when config bool 17891754 is true) consumes scan code 194 and sends the
   broadcast `action.tcc.button.key.event` with `key_action_down` and
@@ -153,14 +182,32 @@ app/src/test/           JVM tests; resources are real captures from the Thor
   ("Page 1 of 2"), swipe the pager to change page, `input -d 0 tap`. QS
   keeps the last page shown. Label from System UI's string
   `quick_settings_screen_record_label` via getResourcesForApplication.
-- **Check For Updates** (`UpdateCheck.kt`) is the app's only network use
-  and the reason for the INTERNET permission: one GET to
-  `api.github.com/repos/KaitonGxx/thor-pathfinder/releases/latest`, only when
-  the button is tapped, with `User-Agent: Thor-Pathfinder` (Android's default
-  names the device model). `tag_name` without its `v` is compared number by
-  number with versionName. The dialog opens the release's `html_url` if it is
-  on github.com, otherwise `/releases/latest`. Unsigned API calls are limited
-  to 60 an hour per IP; a 403 or 429 gets its own message.
+- **Updates** are the app's only network use and the reason for the INTERNET
+  permission. `UpdateCheck.kt` GETs
+  `api.github.com/repos/KaitonGxx/thor-pathfinder/releases/latest` with
+  `User-Agent: Thor-Pathfinder` (Android's default names the device model),
+  and reads `tag_name` (compared with versionName number by number),
+  `html_url` and the first `assets[].browser_download_url` that starts with
+  the repo's `/releases/download/` and ends in `.apk`. Unsigned API calls are
+  limited to 60 an hour per IP; a 403 or 429 gets its own message.
+  `ui/Updates.kt` holds the screen's state: a check runs when the settings
+  open (`checkOnOpen`, unless one ran in the last 15 minutes), the button
+  reads "Update Available", "Up to date" or "Check For Updates", and the last
+  answer is kept in the `updates` preferences so the button says something
+  before the new check lands. A new version raises a yellow card
+  (`WarningContainer`) with Update now, Dismiss (until the app is reopened)
+  and Don't show again (kept per version in `hiddenVersion`).
+- **Installing an update** (`Updates.kt`, off by default) goes through
+  Shizuku: `pm install-create -r -S <size>`, then `pm install-write -S <size>
+  <session> base -` with the APK on stdin (`Shell.pipe`, so no file has to be
+  readable by the shell user), then `pm install-commit`. Nothing is confirmed
+  by the user, and the commit usually never returns because Android stops the
+  process as it swaps the app over. Before that, the download must come from
+  the repo's own `/releases/download/`, and the APK must carry Pathfinder's
+  package name, the same signing certificate as the installed copy
+  (`GET_SIGNING_CERTIFICATES`, SHA-256 compared) and a higher versionCode.
+  Without Shizuku there is no silent route, so the card offers the release
+  page instead.
 - **Messages.** `Toast` from the service never shows: Android 13 suppresses
   background toasts from an app without the notification permission
   ("Suppressing toast from package ... by user request" in logcat). The

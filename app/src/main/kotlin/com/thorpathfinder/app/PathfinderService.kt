@@ -1,12 +1,14 @@
 package com.thorpathfinder.app
 
 import android.accessibilityservice.AccessibilityService
+import android.app.ActivityOptions
 import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.VibratorManager
+import android.view.Display
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import java.util.concurrent.ExecutorService
@@ -79,7 +81,7 @@ class PathfinderService : AccessibilityService() {
             ButtonAction.POWER_MENU -> performGlobalAction(GLOBAL_ACTION_POWER_DIALOG)
             ButtonAction.LOCK_SCREEN -> performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
             ButtonAction.SWAP_SCREENS -> worker.execute { swapOutcomeMessage(ScreenSwap.swap(this))?.let(::toast) }
-            ButtonAction.CLOSE_ALL -> worker.execute { toast(closeAllOutcomeMessage(RecentTasks.closeAll(this))) }
+            ButtonAction.CLOSE_ALL -> worker.execute { toast(closeAllOutcomeMessage(RecentTasks.closeAll(this, shortcuts.keepRunning))) }
             ButtonAction.SCREEN_RECORD -> worker.execute { screenRecordOutcomeMessage(ScreenRecord.open(this))?.let(::toast) }
             ButtonAction.MOUSE_MODE -> worker.execute {
                 toast(
@@ -90,7 +92,7 @@ class PathfinderService : AccessibilityService() {
                     }
                 )
             }
-            ButtonAction.LAUNCH_APP -> launch(shortcuts.app(button, gesture))
+            ButtonAction.LAUNCH_APP -> launch(shortcuts.app(button, gesture), shortcuts.screen(button, gesture))
         }
     }
 
@@ -115,13 +117,43 @@ class PathfinderService : AccessibilityService() {
         }
     }
 
-    private fun launch(pkg: String?) {
+    /**
+     * Opens [pkg] on the [screen] the shortcut chose. Both of the Thor's
+     * screens are ordinary public displays, so an app may launch on either;
+     * `setLaunchDisplayId` needs no extra permission for that.
+     */
+    private fun launch(pkg: String?, screen: LaunchScreen) {
         val intent = pkg?.let { packageManager.getLaunchIntentForPackage(it) }
         if (intent == null) {
             toast("That app isn't installed")
             return
         }
-        startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val display = when (screen) {
+            LaunchScreen.TOP -> Display.DEFAULT_DISPLAY
+            LaunchScreen.BOTTOM -> {
+                val other = ScreenSwap.otherDisplay(this)
+                if (other == null) {
+                    toast("No second screen found")
+                    return
+                }
+                // It still opens there; this just says why nothing shows up.
+                if (other.state == Display.STATE_OFF) toast("The other screen is off")
+                other.displayId
+            }
+        }
+        val options = ActivityOptions.makeBasic().setLaunchDisplayId(display).toBundle()
+        if (runCatching { startActivity(intent, options) }.isSuccess) return
+        // Shizuku can start it as the shell instead, the way a swap moves one.
+        val component = intent.component?.flattenToShortString()
+        if (!Shell.ready || component == null) {
+            toast("Couldn't open that app")
+            return
+        }
+        worker.execute {
+            val started = Shell.run("am", "start", "--display", display.toString(), "-n", component)
+            if (!started.ok) toast("Couldn't open that app")
+        }
     }
 
     private fun buzz() {

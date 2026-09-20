@@ -28,6 +28,10 @@ data class RecentTask(
  * Recents, minus home screens and tasks that hide themselves from Recents.
  * Pathfinder's own window goes too, so Recents ends up empty; only its
  * process is spared, because the accessibility service runs in it.
+ *
+ * The apps on the user's keep-running list lose their task like the rest,
+ * but are not force-stopped, so whatever they do in the background carries
+ * on (see [Shortcuts.keepRunning]).
  */
 object RecentTasks {
 
@@ -97,10 +101,16 @@ object RecentTasks {
 
     /**
      * The apps to force-stop once their tasks are gone: every closed app but
-     * Pathfinder itself, whose process hosts the accessibility service.
+     * Pathfinder itself, whose process hosts the accessibility service, and
+     * the ones the user asked to [keepRunning].
      */
-    fun stoppable(closing: List<RecentTask>, selfPackage: String): List<String> =
-        closing.mapNotNull { it.packageName }.distinct().filter { it != selfPackage && packageName.matches(it) }
+    fun stoppable(
+        closing: List<RecentTask>,
+        selfPackage: String,
+        keepRunning: Set<String> = emptySet(),
+    ): List<String> = closing.mapNotNull { it.packageName }
+        .distinct()
+        .filter { it != selfPackage && it !in keepRunning && packageName.matches(it) }
 
     sealed interface Outcome {
         data class Closed(val count: Int) : Outcome
@@ -110,13 +120,13 @@ object RecentTasks {
     }
 
     /** Closes every app in Recents. Blocking: run off the main thread. */
-    fun closeAll(context: Context): Outcome {
+    fun closeAll(context: Context, keepRunning: Set<String> = emptySet()): Outcome {
         if (!Shell.ready) return Outcome.NeedsShizuku
         val dump = Shell.run("dumpsys", "activity", "recents")
         if (!dump.ok) return Outcome.Failed(dump.err.ifBlank { "dumpsys failed" })
         val tasks = closable(parse(dump.out), ScreenSwap.exclusions(context))
         val ids = tasks.map { it.id }
-        val packages = stoppable(tasks, context.packageName)
+        val packages = stoppable(tasks, context.packageName, keepRunning)
         Log.i(TAG, "closing tasks $ids, stopping $packages")
         if (ids.isEmpty()) return Outcome.NothingToClose
         // The Thor's Clear all force-stops each app after removing its task, so

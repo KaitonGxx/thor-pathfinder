@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,11 +15,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -44,7 +49,7 @@ import androidx.compose.ui.unit.dp
 import com.thorpathfinder.app.ButtonAction
 import com.thorpathfinder.app.ButtonKind
 import com.thorpathfinder.app.Gesture
-import com.thorpathfinder.app.MouseMode
+import com.thorpathfinder.app.LaunchScreen
 import com.thorpathfinder.app.PhysicalButton
 import com.thorpathfinder.app.Shell
 import com.thorpathfinder.app.Shortcuts
@@ -56,12 +61,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit) {
+fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit, onOpenSettings: () -> Unit) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val shortcuts = remember { ObservedShortcuts(Shortcuts(context)) }
+    val updates = remember { UpdateUi(context, scope) }
+    LaunchedEffect(Unit) { updates.checkOnOpen() }
     var editing by remember { mutableStateOf<Pair<PhysicalButton, Gesture>?>(null) }
     var choosingApp by remember { mutableStateOf<Pair<PhysicalButton, Gesture>?>(null) }
-    var editingTiming by remember { mutableStateOf<Timing?>(null) }
+    var choosingScreen by remember { mutableStateOf<Triple<PhysicalButton, Gesture, String>?>(null) }
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         ScrollingColumn(
@@ -70,9 +78,12 @@ fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit) {
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Header(context)
+            Header(context, updates, onOpenSettings)
             if (!state.allGood) NeedsAttention(state, onFix)
-            AboutCard(onRunSetup = { onFix(SetupStep.WELCOME) })
+            updates.notice?.let { release ->
+                UpdateCard(updates, release, onOpenPage = { runCatching { context.openUrl(it) } })
+            }
+            AboutCard()
 
             Text(
                 "Tap a gesture to change what it does. On Back, Home and the AYN button, Pathfinder " +
@@ -83,9 +94,6 @@ fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit) {
             PhysicalButton.entries.forEach { button ->
                 ButtonCard(context, button, shortcuts) { gesture -> editing = button to gesture }
             }
-
-            MouseCard(state)
-            TimingCard(shortcuts, onEdit = { editingTiming = it })
         }
     }
 
@@ -110,74 +118,82 @@ fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit) {
     choosingApp?.let { (button, gesture) ->
         AppPickerDialog(
             onPick = { pkg ->
-                shortcuts.set(button, gesture, ButtonAction.LAUNCH_APP, pkg)
                 choosingApp = null
+                choosingScreen = Triple(button, gesture, pkg)
             },
             onDismiss = { choosingApp = null },
         )
     }
-    editingTiming?.let { timing ->
+    // Nothing is saved until the screen is picked, so Cancel leaves the gesture as it was.
+    choosingScreen?.let { (button, gesture, pkg) ->
         ChoiceDialog(
-            title = timing.title,
-            options = timing.choices,
-            selected = timing.get(shortcuts),
-            label = { "$it ms" },
-            onPick = {
-                timing.set(shortcuts, it)
-                editingTiming = null
+            title = "Open ${appLabel(context, pkg)} on",
+            options = LaunchScreen.entries,
+            selected = shortcuts.screen(button, gesture),
+            label = { it.label },
+            onPick = { screen ->
+                shortcuts.set(button, gesture, ButtonAction.LAUNCH_APP, pkg, screen)
+                choosingScreen = null
             },
-            onDismiss = { editingTiming = null },
+            onDismiss = { choosingScreen = null },
         )
     }
 }
 
 @Composable
-private fun Header(context: Context) {
-    val version = remember {
-        runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull()
-    }
-    val scope = rememberCoroutineScope()
-    var checking by remember { mutableStateOf(false) }
-    var outcome by remember { mutableStateOf<UpdateCheck.Outcome?>(null) }
-
+private fun Header(context: Context, updates: UpdateUi, onOpenSettings: () -> Unit) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text("Thor Pathfinder", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
-        if (version != null) {
+        if (updates.installed.isNotEmpty()) {
             Spacer(Modifier.width(12.dp))
-            VersionBadge(version)
+            VersionBadge(updates.installed)
         }
         Spacer(Modifier.weight(1f).widthIn(min = 12.dp))
-        OutlinedButton(
-            onClick = {
-                if (checking) return@OutlinedButton
-                checking = true
-                scope.launch {
-                    outcome = withContext(Dispatchers.IO) { UpdateCheck.check(version.orEmpty()) }
-                    checking = false
-                }
-            },
-            modifier = Modifier.focusOutline(PillShape),
-        ) {
-            if (checking) {
-                CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                Spacer(Modifier.width(8.dp))
-                Text("Checking…")
-            } else {
-                Text("Check For Updates")
-            }
+        UpdateButton(
+            label = updates.buttonLabel,
+            state = updates.state,
+            onClick = { updates.check(answerInDialog = true) },
+        )
+        Spacer(Modifier.width(4.dp))
+        IconButton(onClick = onOpenSettings, modifier = Modifier.focusOutline(PillShape)) {
+            Icon(Icons.Filled.Settings, contentDescription = "Settings")
         }
     }
 
-    outcome?.let {
+    updates.answer?.let {
         UpdateDialog(
             outcome = it,
-            installed = version.orEmpty(),
+            installed = updates.installed,
             onOpen = { page ->
-                outcome = null
+                updates.answer = null
                 runCatching { context.openUrl(page) }
             },
-            onDismiss = { outcome = null },
+            onDismiss = { updates.answer = null },
         )
+    }
+}
+
+/** Says where updates stand, with a mark to match, and checks again when pressed. */
+@Composable
+private fun UpdateButton(label: String, state: UpdateUi.State, onClick: () -> Unit) {
+    val content: @Composable RowScope.() -> Unit = {
+        when (state) {
+            is UpdateUi.State.Checking -> CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+            is UpdateUi.State.Available -> WarningTriangle()
+            is UpdateUi.State.UpToDate -> OkDot()
+            else -> Unit
+        }
+        if (state is UpdateUi.State.Checking || state is UpdateUi.State.Available ||
+            state is UpdateUi.State.UpToDate
+        ) {
+            Spacer(Modifier.width(8.dp))
+        }
+        Text(label)
+    }
+    if (state is UpdateUi.State.Available) {
+        Button(onClick = onClick, modifier = Modifier.focusOutline(PillShape), content = content)
+    } else {
+        OutlinedButton(onClick = onClick, modifier = Modifier.focusOutline(PillShape), content = content)
     }
 }
 
@@ -254,6 +270,9 @@ private fun UpdateDialog(
     LaunchedEffect(inputMode) { runCatching { (if (update) open else close).requestFocus() } }
 }
 
+/** Something setup checks, with a line on why it happened when that isn't obvious. */
+private class Problem(val text: String, val detail: String?, val step: SetupStep)
+
 @Composable
 private fun NeedsAttention(state: SystemState, onFix: (SetupStep) -> Unit) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
@@ -265,20 +284,62 @@ private fun NeedsAttention(state: SystemState, onFix: (SetupStep) -> Unit) {
                 color = MaterialTheme.colorScheme.onErrorContainer,
             )
             val problems = buildList {
-                if (!state.device.ok) add("This Thor's firmware isn't supported" to SetupStep.DEVICE)
-                if (state.wayfinderOn) add("Thor Wayfinder is also handling the Back button" to SetupStep.WAYFINDER)
-                if (!state.serviceOn) add("Pathfinder's accessibility service is off" to SetupStep.ACCESSIBILITY)
-                if (state.shizuku != Shell.Status.READY) add("Shizuku isn't connected" to SetupStep.SHIZUKU)
-            }
-            problems.forEach { (text, step) ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.weight(1f),
+                if (!state.device.ok) {
+                    add(Problem("This Thor's firmware isn't supported", null, SetupStep.DEVICE))
+                }
+                if (state.wayfinderOn) {
+                    add(Problem("Thor Wayfinder is also handling the Back button", null, SetupStep.WAYFINDER))
+                }
+                if (!state.serviceOn) {
+                    add(
+                        Problem(
+                            "Pathfinder's accessibility service is off",
+                            // The first thing anyone sees after updating the app.
+                            "Android switches accessibility services off whenever their app is " +
+                                "updated. Turn it back on and your shortcuts work again.",
+                            SetupStep.ACCESSIBILITY,
+                        )
                     )
-                    TextButton(onClick = { onFix(step) }, modifier = Modifier.focusOutline(PillShape)) { Text("Fix") }
+                }
+                if (state.shizuku != Shell.Status.READY) {
+                    add(
+                        Problem(
+                            "Shizuku isn't connected",
+                            when (state.shizuku) {
+                                Shell.Status.NOT_INSTALLED ->
+                                    "Swapping screens, mouse mode and closing apps go through " +
+                                        "Shizuku, which grants that access without rooting the Thor."
+                                Shell.Status.NOT_RUNNING ->
+                                    "Shizuku stops whenever the Thor restarts, so it needs " +
+                                        "starting again after a reboot."
+                                else -> "Shizuku is running, but hasn't let Pathfinder in yet."
+                            },
+                            SetupStep.SHIZUKU,
+                        )
+                    )
+                }
+            }
+            problems.forEach { problem ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            problem.text,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                        problem.detail?.let {
+                            Text(
+                                it,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                            )
+                        }
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    TextButton(
+                        onClick = { onFix(problem.step) },
+                        modifier = Modifier.focusOutline(PillShape),
+                    ) { Text("Fix") }
                 }
             }
         }
@@ -291,7 +352,7 @@ private fun NeedsAttention(state: SystemState, onFix: (SetupStep) -> Unit) {
  * would destroy the focused row and throw the controller's focus elsewhere.
  */
 @Stable
-private class ObservedShortcuts(private val store: Shortcuts) {
+internal class ObservedShortcuts(private val store: Shortcuts) {
     private val version = mutableIntStateOf(0)
 
     private fun <T> observe(read: () -> T): T {
@@ -307,8 +368,16 @@ private class ObservedShortcuts(private val store: Shortcuts) {
 
     fun app(button: PhysicalButton, gesture: Gesture) = observe { store.app(button, gesture) }
 
-    fun set(button: PhysicalButton, gesture: Gesture, action: ButtonAction, app: String? = null) {
-        store.set(button, gesture, action, app)
+    fun screen(button: PhysicalButton, gesture: Gesture) = observe { store.screen(button, gesture) }
+
+    fun set(
+        button: PhysicalButton,
+        gesture: Gesture,
+        action: ButtonAction,
+        app: String? = null,
+        screen: LaunchScreen = LaunchScreen.TOP,
+    ) {
+        store.set(button, gesture, action, app, screen)
         changed()
     }
 
@@ -344,7 +413,9 @@ private fun ButtonCard(context: Context, button: PhysicalButton, shortcuts: Obse
             val action = shortcuts.action(button, gesture)
             val value = when (action) {
                 ButtonAction.NORMAL -> normalLabel(button, gesture)
-                ButtonAction.LAUNCH_APP -> "Open ${appLabel(context, shortcuts.app(button, gesture))}"
+                ButtonAction.LAUNCH_APP ->
+                    "Open ${appLabel(context, shortcuts.app(button, gesture))} " +
+                        "(${shortcuts.screen(button, gesture).short})"
                 else -> action.label
             }
             ValueRow(gesture.label, value) { onEdit(gesture) }
@@ -360,90 +431,7 @@ private fun appLabel(context: Context, pkg: String?): String = pkg?.let {
 } ?: "an app"
 
 @Composable
-private fun MouseCard(state: SystemState) {
-    val scope = rememberCoroutineScope()
-    val ready = state.shizuku == Shell.Status.READY
-    // null until read, or when AYN's config can't be read
-    var reversed by remember { mutableStateOf<Boolean?>(null) }
-    var busy by remember { mutableStateOf(false) }
-    var needsRestart by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(ready) {
-        reversed = if (ready) withContext(Dispatchers.IO) { MouseMode.isScrollReversed() } else null
-    }
-
-    SectionCard(
-        "Mouse mode",
-        "Cursor speed and scroll sensitivity stay in the Thor's own mouse mode settings.",
-    ) {
-        SwitchRow(
-            title = "Reverse right-stick scrolling",
-            detail = when {
-                !ready -> "Needs Shizuku."
-                reversed == null -> "Couldn't read the Thor's mouse mode settings."
-                else -> "Push the stick up to scroll up the page. Takes effect after a restart."
-            },
-            checked = reversed == true,
-            enabled = reversed != null && !busy,
-            onChange = { want ->
-                busy = true
-                error = null
-                scope.launch {
-                    if (withContext(Dispatchers.IO) { MouseMode.setScrollReversed(want) }) {
-                        reversed = want
-                        needsRestart = true
-                    } else {
-                        error = "Couldn't change the Thor's mouse mode settings."
-                    }
-                    busy = false
-                }
-            },
-        )
-        error?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
-        if (needsRestart) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "Restart the Thor to apply the new direction.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.weight(1f),
-                )
-                Spacer(Modifier.width(12.dp))
-                Button(
-                    onClick = { scope.launch(Dispatchers.IO) { MouseMode.restart() } },
-                    modifier = Modifier.focusOutline(PillShape),
-                ) { Text("Restart now") }
-            }
-        }
-    }
-}
-
-private enum class Timing(val title: String, val choices: List<Long>) {
-    HOLD("How long to hold", Shortcuts.HOLD_CHOICES),
-    DOUBLE("Double-press gap", Shortcuts.DOUBLE_CHOICES);
-
-    fun get(s: ObservedShortcuts) = if (this == HOLD) s.holdMs else s.doubleMs
-
-    fun set(s: ObservedShortcuts, value: Long) {
-        if (this == HOLD) s.holdMs = value else s.doubleMs = value
-    }
-}
-
-@Composable
-private fun TimingCard(shortcuts: ObservedShortcuts, onEdit: (Timing) -> Unit) {
-    SectionCard(
-        "Timing",
-        "With a double-press shortcut on Back, Home or the AYN button, a single press waits for the " +
-            "gap to pass before it acts.",
-    ) {
-        ValueRow("How long to hold", "${shortcuts.holdMs} ms") { onEdit(Timing.HOLD) }
-        ValueRow("Double-press gap", "${shortcuts.doubleMs} ms") { onEdit(Timing.DOUBLE) }
-        SwitchRow("Vibrate when a shortcut runs", null, shortcuts.vibrate) { shortcuts.vibrate = it }
-    }
-}
-
-@Composable
-private fun AboutCard(onRunSetup: () -> Unit) {
+private fun AboutCard() {
     var showLicenses by remember { mutableStateOf(false) }
     SectionCard("About") {
         Text(
@@ -454,7 +442,6 @@ private fun AboutCard(onRunSetup: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         ValueRow("Open-source licenses", "View") { showLicenses = true }
-        ValueRow("Setup", "Run again", onClick = onRunSetup)
     }
     if (showLicenses) LicensesDialog(onDismiss = { showLicenses = false })
 }

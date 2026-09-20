@@ -77,6 +77,12 @@ enum class Gesture(val label: String) {
     HOLD("Hold"),
 }
 
+/** The screen an "Open an app" shortcut opens its app on. */
+enum class LaunchScreen(val label: String, val short: String) {
+    TOP("Top screen", "top"),
+    BOTTOM("Bottom screen", "bottom"),
+}
+
 enum class ButtonAction(val label: String, val needsShizuku: Boolean = false) {
     /** The button's own behaviour (system) or nothing on top of the game (gamepad). */
     NORMAL("Normal"),

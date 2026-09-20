@@ -24,11 +24,28 @@ class Shortcuts(context: Context) : GestureConfig {
     fun app(button: PhysicalButton, gesture: Gesture): String? =
         prefs.getString(key(button, gesture) + ".app", null)
 
-    fun set(button: PhysicalButton, gesture: Gesture, action: ButtonAction, app: String? = null) {
+    /** The screen a LAUNCH_APP gesture opens its app on. */
+    fun screen(button: PhysicalButton, gesture: Gesture): LaunchScreen =
+        prefs.getString(key(button, gesture) + ".screen", null)
+            ?.let { name -> LaunchScreen.entries.firstOrNull { it.name == name } }
+            ?: LaunchScreen.TOP
+
+    fun set(
+        button: PhysicalButton,
+        gesture: Gesture,
+        action: ButtonAction,
+        app: String? = null,
+        screen: LaunchScreen = LaunchScreen.TOP,
+    ) {
         prefs.edit {
             putString(key(button, gesture), action.name)
-            if (action == ButtonAction.LAUNCH_APP) putString(key(button, gesture) + ".app", app)
-            else remove(key(button, gesture) + ".app")
+            if (action == ButtonAction.LAUNCH_APP) {
+                putString(key(button, gesture) + ".app", app)
+                putString(key(button, gesture) + ".screen", screen.name)
+            } else {
+                remove(key(button, gesture) + ".app")
+                remove(key(button, gesture) + ".screen")
+            }
         }
     }
 
@@ -43,6 +60,14 @@ class Shortcuts(context: Context) : GestureConfig {
     var vibrate: Boolean
         get() = prefs.getBoolean("vibrate", true)
         set(value) = prefs.edit { putBoolean("vibrate", value) }
+
+    /**
+     * Apps Close all apps removes from the task view but never force-stops.
+     * The returned set is a copy: SharedPreferences hands out its own.
+     */
+    var keepRunning: Set<String>
+        get() = prefs.getStringSet("keepRunning", null)?.toSet() ?: emptySet()
+        set(value) = prefs.edit { putStringSet("keepRunning", value.toSet()) }
 
     var setupDone: Boolean
         get() = prefs.getBoolean("setupDone", false)

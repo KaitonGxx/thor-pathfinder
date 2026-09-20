@@ -12,6 +12,9 @@
         <!-- Setup checks for Shizuku, and for Wayfinder, which also claims the Back button -->
         <package android:name="moe.shizuku.privileged.api" />
         <package android:name="com.thorwayfinder.app" />
+        <!-- Offered first in the keep-running list: they work in the background -->
+        <package android:name="de.langerhans.odintools" />
+        <package android:name="com.aure.clustertune" />
         <!-- Apps a shortcut can open -->
         <intent>
             <action android:name="android.intent.action.MAIN" />

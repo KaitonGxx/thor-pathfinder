@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
 import rikka.shizuku.Shizuku
+import java.io.OutputStream
 import kotlin.concurrent.thread
 
 /**
@@ -48,6 +49,20 @@ object Shell {
         errReader.join()
         if (exit != 0) Log.w(TAG, "${command.joinToString(" ")} → $exit ${err.trim()}")
         return Result(exit, out, err)
+    }
+
+    /** Runs [command], writing its stdin with [input]: for bytes, not text. */
+    fun pipe(vararg command: String, input: (OutputStream) -> Unit): Result {
+        val process = newProcess(arrayOf(*command))
+        var err = ""
+        val errReader = thread { err = process.errorStream.bufferedReader().readText() }
+        val outReader = thread { process.inputStream.bufferedReader().readText() }
+        process.outputStream.use(input)
+        val exit = process.waitFor()
+        errReader.join()
+        outReader.join()
+        if (exit != 0) Log.w(TAG, "${command.joinToString(" ")} → $exit ${err.trim()}")
+        return Result(exit, "", err)
     }
 
     /** Runs a `sh -c` [script]; [args] arrive as $1, $2… so they need no quoting. */

@@ -65,6 +65,20 @@ class RecentTasksTest {
     }
 
     @Test
+    fun anAppOnTheKeepRunningListLosesItsTaskButIsNotStopped() {
+        val closing = RecentTasks.closable(RecentTasks.parse(captured), thor)
+        val stopping = RecentTasks.stoppable(
+            closing,
+            "com.thorpathfinder.app",
+            keepRunning = setOf("com.google.android.youtube", "org.example.not.open"),
+        )
+        // Its task is closed with the rest...
+        assertTrue(271 in closing.map { it.id })
+        // ...but only Settings is force-stopped.
+        assertEquals(listOf("com.android.settings"), stopping)
+    }
+
+    @Test
     fun aTaskHiddenFromRecentsIsLeftAloneEvenIfNotALauncher() {
         val hidden = listOf(
             RecentTask(50, "standard", "org.example.app/org.example.app.Main", 0x10800000, inRecents = true),
