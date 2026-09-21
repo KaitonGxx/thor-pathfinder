@@ -10,6 +10,8 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
 
 ## Status (2026-09-21)
 
+- v0.6.1 (versionCode 13), released 2026-09-21: button cards close instantly,
+  so a D-pad press right after closing one no longer throws focus to the top.
 - v0.6.0 (versionCode 12), released 2026-09-21: Back and Home replay the
   real key when left on Normal (the RetroArch fix), the Thor Lite passes the
   device check, "Open an app" takes one app (top, bottom or ask) or two (one
@@ -273,6 +275,12 @@ app/src/test/           JVM tests; resources are real captures from the Thor
   input mode, so focus requests are retried when
   `LocalInputModeManager.inputMode` changes. Never rebuild UI to refresh
   values (`key(revision)`): it destroys the focused row and focus jumps away.
+  Likewise, `AnimatedVisibility` keeps exiting content focusable until its
+  animation ends: a D-pad press during a fold-away landed on a row that then
+  vanished, and focus fell back to the top of the page. `CollapsibleCard`
+  therefore closes instantly (`ExitTransition.None`) and only animates open.
+  Verified on the Thor: Down or Up with no pause after closing lands on the
+  next or previous card every time.
 - **Controller scrolling.** Compose brings a focused item into view with the
   least scrolling, so focusing the first or last control left the page's
   padding out of sight. `ScrollingColumn` (ui/EdgeScroll.kt) provides a

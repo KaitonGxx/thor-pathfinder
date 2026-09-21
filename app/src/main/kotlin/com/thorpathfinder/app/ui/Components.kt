@@ -2,10 +2,9 @@ package com.thorpathfinder.app.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -270,10 +269,13 @@ fun CollapsibleCard(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            // Opening animates; closing is instant. While a fold-away animation
+            // runs, the rows are still there and can take focus, so a D-pad press
+            // landed on one, which then vanished and threw focus to the top.
             AnimatedVisibility(
                 visible = expanded,
                 enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut(),
+                exit = ExitTransition.None,
             ) {
                 Column(Modifier.padding(horizontal = 8.dp)) {
                     HorizontalDivider(
