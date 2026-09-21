@@ -15,6 +15,9 @@ import java.util.Locale
 object KeyReplay {
 
     private const val DEVICES = "/proc/bus/input/devices"
+
+    /** Device name to its node, so a busy button like Back doesn't read the device list each time. */
+    private val paths = java.util.concurrent.ConcurrentHashMap<String, String>()
     private const val EV_KEY = 1
     private const val EV_SYN = 0
 
@@ -41,12 +44,16 @@ object KeyReplay {
      */
     fun press(deviceName: String, scanCode: Int, holdMs: Long): Boolean {
         if (!Shell.ready) return false
-        val devices = Shell.run("cat", DEVICES)
-        val path = if (devices.ok) devicePath(devices.out, deviceName) else null
-        if (path == null) return false
+        val path = paths[deviceName] ?: run {
+            val devices = Shell.run("cat", DEVICES)
+            (if (devices.ok) devicePath(devices.out, deviceName) else null)?.also { paths[deviceName] = it }
+        } ?: return false
         val hold = String.format(Locale.US, "%.2f", holdMs / 1000.0)
         val script = "sendevent \"\$1\" $EV_KEY $scanCode 1; sendevent \"\$1\" $EV_SYN 0 0; sleep $hold; " +
             "sendevent \"\$1\" $EV_KEY $scanCode 0; sendevent \"\$1\" $EV_SYN 0 0"
-        return Shell.sh(script, path).ok
+        val pressed = Shell.sh(script, path).ok
+        // Nodes are renumbered when a device reconnects: look it up again next time.
+        if (!pressed) paths.remove(deviceName)
+        return pressed
     }
 }

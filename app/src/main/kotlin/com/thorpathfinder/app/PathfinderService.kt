@@ -11,6 +11,7 @@ import android.os.VibratorManager
 import android.view.Display
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
+import com.thorpathfinder.app.ui.ScreenChoiceActivity
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -63,8 +64,10 @@ class PathfinderService : AccessibilityService() {
         val resolved = when {
             action != ButtonAction.NORMAL -> action
             button.kind != ButtonKind.SYSTEM -> return
-            // No global action does what this button does: press the real key.
-            button.normalAction == null -> return replay(button, long = gesture == Gesture.HOLD)
+            // The real key where there is one (see PhysicalButton): the AYN button always,
+            // Back and Home whenever Shizuku can press them.
+            button.device != null && (button.normalAction == null || Shell.ready) ->
+                return replay(button, long = gesture == Gesture.HOLD)
             else -> button.normalAction!!
         }
         // Buzz for shortcuts only, not for a long press left on Normal.
@@ -73,7 +76,7 @@ class PathfinderService : AccessibilityService() {
         when (resolved) {
             ButtonAction.NORMAL, ButtonAction.NOTHING -> Unit
             ButtonAction.BACK -> performGlobalAction(GLOBAL_ACTION_BACK)
-            ButtonAction.HOME -> performGlobalAction(GLOBAL_ACTION_HOME)
+            ButtonAction.HOME -> goHome(shortcuts.home(button, gesture))
             ButtonAction.RECENTS -> performGlobalAction(GLOBAL_ACTION_RECENTS)
             ButtonAction.NOTIFICATIONS -> performGlobalAction(GLOBAL_ACTION_NOTIFICATIONS)
             ButtonAction.QUICK_SETTINGS -> performGlobalAction(GLOBAL_ACTION_QUICK_SETTINGS)
@@ -92,68 +95,75 @@ class PathfinderService : AccessibilityService() {
                     }
                 )
             }
-            ButtonAction.LAUNCH_APP -> launch(shortcuts.app(button, gesture), shortcuts.screen(button, gesture))
+            ButtonAction.LAUNCH_APP -> openApps(button, gesture)
         }
     }
 
     /**
-     * Presses [button]'s real key again, through its input device, so the
-     * system does what the button itself does (the AYN button's menu, or its
-     * long-press panel). The engine lets that one press through untouched.
+     * Presses [button]'s real key again, through its input device, so apps and
+     * the system see exactly what the button itself sends. The engine lets that
+     * one press through untouched. Back and Home fall back to Android's own
+     * global action whenever the key can't be pressed.
      */
     private fun replay(button: PhysicalButton, long: Boolean) {
         val device = button.device ?: return
         val scanCode = button.scanCode ?: return
+        val fallback = button.normalAction
         if (!Shell.ready) {
-            toast("The ${button.label}'s own menu needs Shizuku")
+            if (fallback != null) global(fallback) else toast("The ${button.label}'s own menu needs Shizuku")
             return
         }
         engine.letThrough(button, SystemClock.uptimeMillis() + REPLAY_WINDOW_MS)
         worker.execute {
             if (!KeyReplay.press(device, scanCode, if (long) LONG_PRESS_MS else SHORT_PRESS_MS)) {
-                handler.post { engine.letThrough(button, Long.MIN_VALUE) }
-                toast("Couldn't press the ${button.label}")
+                handler.post {
+                    engine.letThrough(button, Long.MIN_VALUE)
+                    if (fallback != null) global(fallback) else toast("Couldn't press the ${button.label}")
+                }
             }
         }
     }
 
-    /**
-     * Opens [pkg] on the [screen] the shortcut chose. Both of the Thor's
-     * screens are ordinary public displays, so an app may launch on either;
-     * `setLaunchDisplayId` needs no extra permission for that.
-     */
-    private fun launch(pkg: String?, screen: LaunchScreen) {
-        val intent = pkg?.let { packageManager.getLaunchIntentForPackage(it) }
-        if (intent == null) {
+    /** Android's own version of Back or Home. */
+    private fun global(action: ButtonAction) {
+        when (action) {
+            ButtonAction.BACK -> performGlobalAction(GLOBAL_ACTION_BACK)
+            ButtonAction.HOME -> performGlobalAction(GLOBAL_ACTION_HOME)
+            else -> Unit
+        }
+    }
+
+    /** A "Home" shortcut: the screens it names, or Android's own Home if it names none. */
+    private fun goHome(target: HomeTarget?) {
+        if (target == null) {
+            performGlobalAction(GLOBAL_ACTION_HOME)
+        } else {
+            worker.execute { Launcher.goHome(this, target)?.let(::toast) }
+        }
+    }
+
+    /** "Open an app": one app on its screen, one on each screen, or ask which. */
+    private fun openApps(button: PhysicalButton, gesture: Gesture) {
+        val app = shortcuts.app(button, gesture) ?: run {
             toast("That app isn't installed")
             return
         }
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        val display = when (screen) {
-            LaunchScreen.TOP -> Display.DEFAULT_DISPLAY
-            LaunchScreen.BOTTOM -> {
-                val other = ScreenSwap.otherDisplay(this)
-                if (other == null) {
-                    toast("No second screen found")
-                    return
-                }
-                // It still opens there; this just says why nothing shows up.
-                if (other.state == Display.STATE_OFF) toast("The other screen is off")
-                other.displayId
-            }
+        val second = shortcuts.second(button, gesture)
+        val screen = shortcuts.screen(button, gesture)
+        when {
+            second != null -> worker.execute { Launcher.openPair(this, app, second)?.let(::toast) }
+            screen == LaunchScreen.ASK -> ask(app)
+            else -> worker.execute { Launcher.open(this, app, screen)?.let(::toast) }
         }
-        val options = ActivityOptions.makeBasic().setLaunchDisplayId(display).toBundle()
-        if (runCatching { startActivity(intent, options) }.isSuccess) return
-        // Shizuku can start it as the shell instead, the way a swap moves one.
-        val component = intent.component?.flattenToShortString()
-        if (!Shell.ready || component == null) {
-            toast("Couldn't open that app")
-            return
-        }
-        worker.execute {
-            val started = Shell.run("am", "start", "--display", display.toString(), "-n", component)
-            if (!started.ok) toast("Couldn't open that app")
-        }
+    }
+
+    /** Puts "top or bottom?" on the top screen, for a shortcut set to ask. */
+    private fun ask(pkg: String) {
+        val question = Intent(this, ScreenChoiceActivity::class.java)
+            .putExtra(ScreenChoiceActivity.EXTRA_PACKAGE, pkg)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val options = ActivityOptions.makeBasic().setLaunchDisplayId(Display.DEFAULT_DISPLAY).toBundle()
+        if (runCatching { startActivity(question, options) }.isFailure) toast("Couldn't ask which screen")
     }
 
     private fun buzz() {

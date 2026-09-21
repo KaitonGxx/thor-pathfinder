@@ -30,22 +30,37 @@ class Shortcuts(context: Context) : GestureConfig {
             ?.let { name -> LaunchScreen.entries.firstOrNull { it.name == name } }
             ?: LaunchScreen.TOP
 
+    /** With two apps, the one for the bottom screen; [app] is then the top one. */
+    fun second(button: PhysicalButton, gesture: Gesture): String? =
+        prefs.getString(key(button, gesture) + ".app2", null)
+
+    /** The screens a HOME gesture sends home; null for the old way, Android's own Home. */
+    fun home(button: PhysicalButton, gesture: Gesture): HomeTarget? =
+        prefs.getString(key(button, gesture) + ".home", null)
+            ?.let { name -> HomeTarget.entries.firstOrNull { it.name == name } }
+
     fun set(
         button: PhysicalButton,
         gesture: Gesture,
         action: ButtonAction,
         app: String? = null,
         screen: LaunchScreen = LaunchScreen.TOP,
+        second: String? = null,
+        home: HomeTarget? = null,
     ) {
+        val key = key(button, gesture)
         prefs.edit {
-            putString(key(button, gesture), action.name)
+            putString(key, action.name)
             if (action == ButtonAction.LAUNCH_APP) {
-                putString(key(button, gesture) + ".app", app)
-                putString(key(button, gesture) + ".screen", screen.name)
+                putString("$key.app", app)
+                putString("$key.screen", screen.name)
+                if (second != null) putString("$key.app2", second) else remove("$key.app2")
             } else {
-                remove(key(button, gesture) + ".app")
-                remove(key(button, gesture) + ".screen")
+                remove("$key.app")
+                remove("$key.screen")
+                remove("$key.app2")
             }
+            if (action == ButtonAction.HOME && home != null) putString("$key.home", home.name) else remove("$key.home")
         }
     }
 

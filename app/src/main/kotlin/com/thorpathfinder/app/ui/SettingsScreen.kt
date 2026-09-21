@@ -46,11 +46,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import com.thorpathfinder.app.ButtonAction
 import com.thorpathfinder.app.ButtonKind
 import com.thorpathfinder.app.Gesture
+import com.thorpathfinder.app.HomeTarget
 import com.thorpathfinder.app.LaunchScreen
 import com.thorpathfinder.app.PhysicalButton
 import com.thorpathfinder.app.Shell
@@ -71,9 +78,7 @@ fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit, onOpenSetting
     // Every time the screen comes back, not only the first time it is built:
     // leaving Pathfinder and returning is exactly when a release may be out.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { updates.checkOnOpen() }
-    var editing by remember { mutableStateOf<Pair<PhysicalButton, Gesture>?>(null) }
-    var choosingApp by remember { mutableStateOf<Pair<PhysicalButton, Gesture>?>(null) }
-    var choosingScreen by remember { mutableStateOf<Triple<PhysicalButton, Gesture, String>?>(null) }
+    var flow by remember { mutableStateOf<EditFlow?>(null) }
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         ScrollingColumn(
@@ -87,8 +92,6 @@ fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit, onOpenSetting
             updates.notice?.let { release ->
                 UpdateCard(updates, release, onOpenPage = { runCatching { context.openUrl(it) } })
             }
-            AboutCard()
-
             Text(
                 "Tap a gesture to change what it does. On Back, Home and the AYN button, Pathfinder " +
                     "handles the button once any gesture is changed, and Normal still does its usual job.",
@@ -96,50 +99,122 @@ fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit, onOpenSetting
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             PhysicalButton.entries.forEach { button ->
-                ButtonCard(context, button, shortcuts) { gesture -> editing = button to gesture }
+                ButtonCard(context, button, shortcuts) { gesture -> flow = EditFlow.Action(button, gesture) }
             }
+            AboutCard()
         }
     }
 
-    editing?.let { (button, gesture) ->
-        ChoiceDialog(
+    flow?.let { current -> EditDialogs(current, context, state, shortcuts, onFlow = { flow = it }) }
+}
+
+/**
+ * Where the edit of one gesture has got to. "Open an app" and "Home" ask
+ * further questions after the action; nothing is saved until the last one,
+ * so Cancel at any step leaves the gesture as it was.
+ */
+private sealed interface EditFlow {
+    val button: PhysicalButton
+    val gesture: Gesture
+
+    data class Action(override val button: PhysicalButton, override val gesture: Gesture) : EditFlow
+
+    /** One app, or one on each screen? */
+    data class HowMany(override val button: PhysicalButton, override val gesture: Gesture) : EditFlow
+
+    data class OneApp(override val button: PhysicalButton, override val gesture: Gesture) : EditFlow
+
+    data class OneScreen(override val button: PhysicalButton, override val gesture: Gesture, val pkg: String) : EditFlow
+
+    data class TopApp(override val button: PhysicalButton, override val gesture: Gesture) : EditFlow
+
+    data class BottomApp(override val button: PhysicalButton, override val gesture: Gesture, val top: String) : EditFlow
+
+    /** Which screens a Home shortcut sends home. */
+    data class HomeWhere(override val button: PhysicalButton, override val gesture: Gesture) : EditFlow
+}
+
+@Composable
+private fun EditDialogs(
+    flow: EditFlow,
+    context: Context,
+    state: SystemState,
+    shortcuts: ObservedShortcuts,
+    onFlow: (EditFlow?) -> Unit,
+) {
+    val button = flow.button
+    val gesture = flow.gesture
+    val done = { onFlow(null) }
+    when (flow) {
+        is EditFlow.Action -> ChoiceDialog(
             title = "${button.label}: ${gesture.label}",
             options = ButtonAction.choicesFor(button),
             selected = shortcuts.action(button, gesture),
             label = { if (it == ButtonAction.NORMAL) normalLabel(button, gesture) else it.label },
             detail = { if (it.needsShizuku && state.shizuku != Shell.Status.READY) "Needs Shizuku" else null },
             onPick = { action ->
-                editing = null
-                if (action == ButtonAction.LAUNCH_APP) {
-                    choosingApp = button to gesture
-                } else {
-                    shortcuts.set(button, gesture, action)
+                when (action) {
+                    ButtonAction.LAUNCH_APP -> onFlow(EditFlow.HowMany(button, gesture))
+                    ButtonAction.HOME -> onFlow(EditFlow.HomeWhere(button, gesture))
+                    else -> {
+                        shortcuts.set(button, gesture, action)
+                        done()
+                    }
                 }
             },
-            onDismiss = { editing = null },
+            onDismiss = done,
         )
-    }
-    choosingApp?.let { (button, gesture) ->
-        AppPickerDialog(
-            onPick = { pkg ->
-                choosingApp = null
-                choosingScreen = Triple(button, gesture, pkg)
+        is EditFlow.HowMany -> PickDialog(
+            title = "Open an app",
+            choices = listOf(
+                "Open 1 App" to "On the top screen, the bottom one, or ask each time",
+                "Open 2 Apps" to "One on each screen, both at once",
+            ),
+            onPick = { choice ->
+                onFlow(if (choice == 0) EditFlow.OneApp(button, gesture) else EditFlow.TopApp(button, gesture))
             },
-            onDismiss = { choosingApp = null },
+            onDismiss = done,
         )
-    }
-    // Nothing is saved until the screen is picked, so Cancel leaves the gesture as it was.
-    choosingScreen?.let { (button, gesture, pkg) ->
-        ChoiceDialog(
-            title = "Open ${appLabel(context, pkg)} on",
+        is EditFlow.OneApp -> AppPickerDialog(
+            onPick = { pkg -> onFlow(EditFlow.OneScreen(button, gesture, pkg)) },
+            onDismiss = done,
+        )
+        is EditFlow.OneScreen -> ChoiceDialog(
+            title = "Open ${appLabel(context, flow.pkg)} on",
             options = LaunchScreen.entries,
             selected = shortcuts.screen(button, gesture),
             label = { it.label },
+            detail = { if (it == LaunchScreen.ASK) "Choose top or bottom each time the shortcut runs" else null },
             onPick = { screen ->
-                shortcuts.set(button, gesture, ButtonAction.LAUNCH_APP, pkg, screen)
-                choosingScreen = null
+                shortcuts.set(button, gesture, ButtonAction.LAUNCH_APP, flow.pkg, screen)
+                done()
             },
-            onDismiss = { choosingScreen = null },
+            onDismiss = done,
+        )
+        is EditFlow.TopApp -> AppPickerDialog(
+            title = "App for the top screen",
+            onPick = { pkg -> onFlow(EditFlow.BottomApp(button, gesture, pkg)) },
+            onDismiss = done,
+        )
+        is EditFlow.BottomApp -> AppPickerDialog(
+            title = "App for the bottom screen",
+            exclude = flow.top,
+            onPick = { pkg ->
+                shortcuts.set(button, gesture, ButtonAction.LAUNCH_APP, flow.top, LaunchScreen.TOP, second = pkg)
+                done()
+            },
+            onDismiss = done,
+        )
+        is EditFlow.HomeWhere -> ChoiceDialog(
+            title = "Send home on",
+            options = HomeTarget.entries,
+            selected = shortcuts.home(button, gesture),
+            label = { it.label },
+            onPick = { target ->
+                shortcuts.set(button, gesture, ButtonAction.HOME, home = target)
+                done()
+            },
+            onDismiss = done,
         )
     }
 }
@@ -147,7 +222,7 @@ fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit, onOpenSetting
 @Composable
 private fun Header(context: Context, updates: UpdateUi, onOpenSettings: () -> Unit) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text("Thor Pathfinder", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
+        AppTitle()
         if (updates.installed.isNotEmpty()) {
             Spacer(Modifier.width(12.dp))
             VersionBadge(updates.installed)
@@ -175,6 +250,22 @@ private fun Header(context: Context, updates: UpdateUi, onOpenSettings: () -> Un
             onDismiss = { updates.answer = null },
         )
     }
+}
+
+/** The name, with "Pathfinder" in a gentle sweep of the theme's own accent colours. */
+@Composable
+private fun AppTitle() {
+    val sweep = Brush.linearGradient(
+        listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.tertiary),
+    )
+    Text(
+        buildAnnotatedString {
+            append("Thor ")
+            withStyle(SpanStyle(brush = sweep, fontWeight = FontWeight.Bold)) { append("Pathfinder") }
+        },
+        style = MaterialTheme.typography.headlineSmall.copy(letterSpacing = 0.4.sp),
+        fontWeight = FontWeight.SemiBold,
+    )
 }
 
 /** Says where updates stand, with a mark to match, and checks again when pressed. */
@@ -374,14 +465,20 @@ internal class ObservedShortcuts(private val store: Shortcuts) {
 
     fun screen(button: PhysicalButton, gesture: Gesture) = observe { store.screen(button, gesture) }
 
+    fun second(button: PhysicalButton, gesture: Gesture) = observe { store.second(button, gesture) }
+
+    fun home(button: PhysicalButton, gesture: Gesture) = observe { store.home(button, gesture) }
+
     fun set(
         button: PhysicalButton,
         gesture: Gesture,
         action: ButtonAction,
         app: String? = null,
         screen: LaunchScreen = LaunchScreen.TOP,
+        second: String? = null,
+        home: HomeTarget? = null,
     ) {
-        store.set(button, gesture, action, app, screen)
+        store.set(button, gesture, action, app, screen, second, home)
         changed()
     }
 
@@ -407,23 +504,45 @@ internal class ObservedShortcuts(private val store: Shortcuts) {
         }
 }
 
+/**
+ * One button's gestures, folded away until opened. Closed, it lists whatever
+ * isn't left on Normal, so the page still reads at a glance. Every card starts
+ * closed when the screen opens.
+ */
 @Composable
 private fun ButtonCard(context: Context, button: PhysicalButton, shortcuts: ObservedShortcuts, onEdit: (Gesture) -> Unit) {
-    SectionCard(
-        button.label,
-        if (button.kind == ButtonKind.GAMEPAD) "Games still get every press, so a plain press can't be changed." else null,
+    var open by rememberSaveable { mutableStateOf(false) }
+    val values = button.gestures.associateWith { valueText(context, button, it, shortcuts) }
+    val changed = button.gestures.filter { shortcuts.action(button, it) != ButtonAction.NORMAL }
+    CollapsibleCard(
+        title = button.label,
+        summary = if (changed.isEmpty()) "Works as usual" else changed.joinToString("  \u00b7  ") { "${it.label}: ${values.getValue(it)}" },
+        subtitle = if (button.kind == ButtonKind.GAMEPAD) "Games still get every press, so a plain press can't be changed." else null,
+        expanded = open,
+        onToggle = { open = !open },
     ) {
         button.gestures.forEach { gesture ->
-            val action = shortcuts.action(button, gesture)
-            val value = when (action) {
-                ButtonAction.NORMAL -> normalLabel(button, gesture)
-                ButtonAction.LAUNCH_APP ->
-                    "Open ${appLabel(context, shortcuts.app(button, gesture))} " +
-                        "(${shortcuts.screen(button, gesture).short})"
-                else -> action.label
-            }
-            ValueRow(gesture.label, value) { onEdit(gesture) }
+            ValueRow(gesture.label, values.getValue(gesture)) { onEdit(gesture) }
         }
+    }
+}
+
+/** What a gesture does, in words: its action, and for some actions where or what. */
+private fun valueText(context: Context, button: PhysicalButton, gesture: Gesture, shortcuts: ObservedShortcuts): String {
+    val action = shortcuts.action(button, gesture)
+    return when (action) {
+                ButtonAction.NORMAL -> normalLabel(button, gesture)
+                ButtonAction.LAUNCH_APP -> {
+                    val app = appLabel(context, shortcuts.app(button, gesture))
+                    val second = shortcuts.second(button, gesture)
+                    if (second != null) {
+                        "Open $app top, ${appLabel(context, second)} bottom"
+                    } else {
+                        "Open $app (${shortcuts.screen(button, gesture).short})"
+                    }
+                }
+                ButtonAction.HOME -> shortcuts.home(button, gesture)?.let { "Home (${it.short})" } ?: action.label
+                else -> action.label
     }
 }
 

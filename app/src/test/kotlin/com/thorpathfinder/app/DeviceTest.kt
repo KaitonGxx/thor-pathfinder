@@ -35,6 +35,19 @@ class DeviceTest {
     }
 
     @Test
+    fun theThorLiteIsWelcomedOnItsOwnFirmware() {
+        // Its firmware is numbered on its own line, so the Thor's minimum doesn't apply.
+        assertEquals(
+            Support.Supported("1.0.0.52", "AYN Thor Lite"),
+            Device.check("AYN", "AYN Thor Lite", "ThorLite_V1.0.0.52_20260601_101010_user", 0),
+        )
+        assertEquals(
+            Support.Supported("ThorLite_2026_R1", "AYN Thor Lite"),
+            Device.check("AYN", "AYN Thor Lite", "ThorLite_2026_R1", 0),
+        )
+    }
+
+    @Test
     fun otherDevicesAreNot() {
         assertEquals(Support.NotAThor("AYN Odin2"), Device.check("AYN", "AYN Odin2", verified, verifiedTime))
         assertEquals(Support.NotAThor("Pixel 8"), Device.check("Google", "Pixel 8", verified, verifiedTime))

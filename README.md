@@ -46,10 +46,13 @@ independent project, not affiliated with Wayfinder or AYN.
   press of these buttons, so a plain press stays with the game.
 - Actions: swap screens, mouse mode on/off, back, home, recent apps, close all
   apps, notifications, quick settings, screenshot, screen record (testing),
-  power menu, lock screen, or open any app.
+  power menu, lock screen, or open an app.
+- Open an app on the top screen, the bottom one, or ask each time. Or open two
+  at once, one on each screen.
+- Home can go to the top screen, the bottom one, or both at once.
 - Close all apps can spare the apps you choose: their window closes with the
   rest, but they aren't force-stopped, so music or a download carries on.
-  Background helpers like OdinTools and ClusterTune are offered first.
+  Background helpers like OdinTools, ClusterTune and Pulse are offered first.
 
 **🖱️ Mouse mode**
 
@@ -107,7 +110,9 @@ their normal behaviour, with no delay, until you give them a shortcut.
 ## ✅ Requirements
 
 - An **AYN Thor** on firmware **1.0.0.377 or newer** (Android 13). Setup checks
-  this, and offers the system update screen if the Thor needs updating.
+  this, and offers the system update screen if the Thor needs updating. The
+  **AYN Thor Lite** is accepted too; it hasn't been tested yet, so reports are
+  welcome.
 - **Shizuku**, from [Google Play](https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api)
   or its [GitHub releases](https://github.com/RikkaApps/Shizuku/releases), for
   swapping screens and for anything to do with mouse mode. Shizuku grants the
@@ -165,6 +170,12 @@ catches it and opens AYN's menu on a press, or another panel on a long press.
 Nothing else can open those, so when a gesture on the AYN button is left on
 *Normal*, Pathfinder presses the real button again, through Shizuku, and lets
 that one press through to the Thor.
+
+Back and Home work the same way when Shizuku is running. Android can perform
+a Back or a Home itself, but that stand-in comes from no real button, and apps
+that bind to the button itself, RetroArch for one, don't accept it. Pressing
+the real key means they see exactly what the button sends. Without Shizuku,
+Pathfinder uses Android's own Back and Home instead.
 
 **Moving apps between screens.** Android keeps each open app in a *task*, and
 every task belongs to one screen. Pathfinder asks Android to hand the app's

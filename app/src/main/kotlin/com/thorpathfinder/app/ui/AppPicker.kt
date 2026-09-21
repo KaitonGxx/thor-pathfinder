@@ -45,12 +45,17 @@ internal class AppEntry(val pkg: String, val label: String, val icon: ImageBitma
 
 /** Pick an app for a shortcut to open. */
 @Composable
-fun AppPickerDialog(onPick: (String) -> Unit, onDismiss: () -> Unit) {
+fun AppPickerDialog(
+    title: String = "Choose an app",
+    exclude: String? = null,
+    onPick: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
     val context = LocalContext.current
     var apps by remember { mutableStateOf<List<AppEntry>?>(null) }
     val first = remember { FocusRequester() }
     LaunchedEffect(Unit) {
-        apps = withContext(Dispatchers.IO) { loadApps(context) }
+        apps = withContext(Dispatchers.IO) { loadApps(context).filter { it.pkg != exclude } }
     }
     val inputMode = LocalInputModeManager.current.inputMode
     LaunchedEffect(apps, inputMode) {
@@ -61,7 +66,7 @@ fun AppPickerDialog(onPick: (String) -> Unit, onDismiss: () -> Unit) {
         Card {
             Column(Modifier.padding(vertical = 16.dp)) {
                 Text(
-                    "Choose an app",
+                    title,
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                 )

@@ -5,6 +5,14 @@
         <item name="android:windowBackground">@color/window_background</item>
     </style>
 
+    <!-- A question over whatever is on screen: see-through, with Compose drawing the card. -->
+    <style name="Theme.Pathfinder.Question" parent="Theme.Pathfinder">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation.Dialog</item>
+    </style>
+
     <color name="window_background">#FF121212</color>
     <color name="ic_launcher_background">#FF1B2B45</color>
 </resources>

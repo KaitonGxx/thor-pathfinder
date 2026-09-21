@@ -21,7 +21,7 @@ object Device {
     sealed interface Support {
         val ok: Boolean get() = this is Supported
 
-        data class Supported(val firmware: String) : Support
+        data class Supported(val firmware: String, val model: String = THOR) : Support
         data class NotAThor(val model: String) : Support
         data class OldFirmware(val firmware: String) : Support
         data object UnknownFirmware : Support
@@ -30,14 +30,23 @@ object Device {
     val current: Support by lazy { check(Build.MANUFACTURER, Build.MODEL, Build.DISPLAY, Build.TIME) }
 
     fun check(manufacturer: String, model: String, display: String, buildTime: Long): Support {
-        if (!manufacturer.equals("AYN", ignoreCase = true) || !model.equals("AYN Thor", ignoreCase = true)) {
-            return Support.NotAThor(model)
+        if (!manufacturer.equals("AYN", ignoreCase = true) || !isThor(model)) return Support.NotAThor(model)
+        // The firmware minimum is the Thor's own numbering. Other members of the
+        // family (the Thor Lite) have their own, so they aren't held to it.
+        if (!model.equals(THOR, ignoreCase = true)) {
+            return Support.Supported(firmware(display)?.joinToString(".") ?: display, model)
         }
         val version = firmware(display)
             ?: return if (buildTime >= MIN_BUILD_TIME) Support.Supported(display) else Support.UnknownFirmware
         val text = version.joinToString(".")
         return if (compare(version, MIN_FIRMWARE) >= 0) Support.Supported(text) else Support.OldFirmware(text)
     }
+
+    const val THOR = "AYN Thor"
+
+    /** "AYN Thor" itself, and variants such as the "AYN Thor Lite". */
+    private fun isThor(model: String) =
+        model.equals(THOR, ignoreCase = true) || model.startsWith("$THOR ", ignoreCase = true)
 
     /** "Thor_V1.0.0.377_20260206_165408_user" → [1, 0, 0, 377]. */
     fun firmware(display: String): List<Int>? =

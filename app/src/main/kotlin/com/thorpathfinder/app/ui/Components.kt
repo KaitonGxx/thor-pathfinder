@@ -1,6 +1,11 @@
 package com.thorpathfinder.app.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,6 +31,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Card
@@ -60,6 +67,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -217,6 +225,68 @@ fun ListHeading(title: String, detail: String? = null) {
     }
 }
 
+/**
+ * A card that folds its content away behind its title, one focus stop that
+ * opens and closes it. Closed, it shows [summary] under the title; open, it
+ * shows [subtitle] and the content.
+ */
+@Composable
+fun CollapsibleCard(
+    title: String,
+    summary: String,
+    subtitle: String?,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(8.dp)) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .focusOutline()
+                    .clip(RowShape)
+                    .clickable(onClickLabel = if (expanded) "Close" else "Open", onClick = onToggle)
+                    .padding(horizontal = 8.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    val line = if (expanded) subtitle else summary
+                    if (line != null) {
+                        Text(
+                            line,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = if (expanded) Int.MAX_VALUE else 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+                Spacer(Modifier.width(12.dp))
+                Icon(
+                    if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            AnimatedVisibility(
+                visible = expanded,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut(),
+            ) {
+                Column(Modifier.padding(horizontal = 8.dp)) {
+                    HorizontalDivider(
+                        Modifier.padding(top = 2.dp, bottom = 6.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                    )
+                    content()
+                }
+            }
+        }
+    }
+}
+
 /** A titled card; a rule separates the title from what's under it. */
 @Composable
 fun SectionCard(title: String, subtitle: String? = null, content: @Composable ColumnScope.() -> Unit) {
@@ -300,6 +370,39 @@ fun SwitchRow(
         Spacer(Modifier.width(12.dp))
         Switch(checked = checked, onCheckedChange = null, enabled = enabled)
     }
+}
+
+/** A few choices that each lead somewhere else, as rows with an arrow. Focus starts on the first. */
+@Composable
+fun PickDialog(title: String, choices: List<Pair<String, String>>, onPick: (Int) -> Unit, onDismiss: () -> Unit) {
+    val first = remember { FocusRequester() }
+    Dialog(onDismissRequest = onDismiss) {
+        Card {
+            Column(Modifier.padding(vertical = 16.dp)) {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                )
+                Column(Modifier.padding(horizontal = 12.dp)) {
+                    choices.forEachIndexed { index, (name, detail) ->
+                        NavRow(
+                            name,
+                            detail,
+                            modifier = if (index == 0) Modifier.focusRequester(first) else Modifier,
+                            onClick = { onPick(index) },
+                        )
+                    }
+                }
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.align(Alignment.End).padding(horizontal = 16.dp).focusOutline(PillShape),
+                ) { Text("Cancel") }
+            }
+        }
+    }
+    val inputMode = LocalInputModeManager.current.inputMode
+    LaunchedEffect(inputMode) { runCatching { first.requestFocus() } }
 }
 
 /** Pick one of [options]; focus starts on the current choice. */

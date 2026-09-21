@@ -24,10 +24,13 @@ enum class ButtonKind { SYSTEM, GAMEPAD }
  * Back of an on-screen gesture or a global action, carry scan code 0 and must
  * pass through untouched.
  *
- * The AYN button is not a Home button, though: AYN's key handler consumes it
- * and opens AYN's own menu on a press and another panel on a long press. No
- * global action does either, so its "Normal" is the real key, replayed on
- * [device] (see [KeyReplay]).
+ * A "Normal" press is the real key, replayed on [device] (see [KeyReplay]).
+ * The AYN button needs it: AYN's key handler consumes it and opens AYN's own
+ * menu on a press and another panel on a long press, and no global action
+ * does either. Back and Home have global actions, but those arrive with no
+ * input device and no scan code, and apps that bind to the button itself
+ * (RetroArch, for one) don't accept them. So with Shizuku they are replayed
+ * too, and fall back to [normalAction] without it.
  */
 enum class PhysicalButton(
     val label: String,
@@ -37,15 +40,15 @@ enum class PhysicalButton(
     /** The kernel input device a "Normal" press is replayed on, when no global action matches it. */
     val device: String? = null,
 ) {
-    BACK("Back", ButtonKind.SYSTEM, KeyEvent.KEYCODE_BACK, scanCode = 158),
-    HOME("Home", ButtonKind.SYSTEM, KeyEvent.KEYCODE_HOME, scanCode = 102),
+    BACK("Back", ButtonKind.SYSTEM, KeyEvent.KEYCODE_BACK, scanCode = 158, device = CONTROLLER),
+    HOME("Home", ButtonKind.SYSTEM, KeyEvent.KEYCODE_HOME, scanCode = 102, device = CONTROLLER),
     AYN("AYN button", ButtonKind.SYSTEM, KeyEvent.KEYCODE_HOME, scanCode = 194, device = "gpio-keys"),
     SELECT("Select", ButtonKind.GAMEPAD, KeyEvent.KEYCODE_BUTTON_SELECT),
     START("Start", ButtonKind.GAMEPAD, KeyEvent.KEYCODE_BUTTON_START),
     L3("L3 (click left stick)", ButtonKind.GAMEPAD, KeyEvent.KEYCODE_BUTTON_THUMBL),
     R3("R3 (click right stick)", ButtonKind.GAMEPAD, KeyEvent.KEYCODE_BUTTON_THUMBR);
 
-    /** What "Normal" does for a system button's press, or null when the real key is replayed. */
+    /** Android's own stand-in for the button, when the real key can't be replayed; null when there is none. */
     val normalAction: ButtonAction?
         get() = when (this) {
             BACK -> ButtonAction.BACK
@@ -81,7 +84,19 @@ enum class Gesture(val label: String) {
 enum class LaunchScreen(val label: String, val short: String) {
     TOP("Top screen", "top"),
     BOTTOM("Bottom screen", "bottom"),
+    /** Put the question each time the shortcut runs. */
+    ASK("Ask", "ask"),
 }
+
+/** The screens a "Home" shortcut sends home. */
+enum class HomeTarget(val label: String, val short: String) {
+    TOP("Top screen only", "top"),
+    BOTTOM("Bottom screen only", "bottom"),
+    BOTH("Both screens", "both"),
+}
+
+/** The kernel input device of the Thor's Back and Home buttons. */
+private const val CONTROLLER = "Odin Controller"
 
 enum class ButtonAction(val label: String, val needsShizuku: Boolean = false) {
     /** The button's own behaviour (system) or nothing on top of the game (gamepad). */

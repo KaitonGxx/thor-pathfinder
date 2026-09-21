@@ -33,6 +33,16 @@ class KeyReplayTest {
     }
 
     @Test
+    fun backAndHomeAreReplayedOnTheController() {
+        // RetroArch binds to the real button, so a Normal Back must be the real key.
+        assertEquals("Odin Controller", PhysicalButton.BACK.device)
+        assertEquals("Odin Controller", PhysicalButton.HOME.device)
+        // ...with Android's own action to fall back on.
+        assertEquals(ButtonAction.BACK, PhysicalButton.BACK.normalAction)
+        assertEquals(ButtonAction.HOME, PhysicalButton.HOME.normalAction)
+    }
+
+    @Test
     fun labelsSayWhatNormalDoes() {
         assertEquals("Normal (AYN menu)", normalLabel(PhysicalButton.AYN, Gesture.PRESS))
         assertEquals("Normal (long press)", normalLabel(PhysicalButton.AYN, Gesture.HOLD))

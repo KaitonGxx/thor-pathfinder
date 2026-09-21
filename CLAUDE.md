@@ -8,8 +8,15 @@ Kotlin + Jetpack Compose, package `com.thorpathfinder.app`, minSdk 33
 Machine-specific notes (toolchain paths, the test Thor's serial, git
 identity) live in `CLAUDE.local.md`, which is gitignored.
 
-## Status (2026-09-20)
+## Status (2026-09-21)
 
+- v0.6.0 (versionCode 12), released 2026-09-21: Back and Home replay the
+  real key when left on Normal (the RetroArch fix), the Thor Lite passes the
+  device check, "Open an app" takes one app (top, bottom or ask) or two (one
+  per screen), "Home" names its screens (top, bottom or both), the button
+  cards fold away (closed by default, with a summary), About moved to the
+  bottom, the title's "Pathfinder" is in the theme's accent, and Pulse joined
+  the recommended keep-running apps.
 - v0.5.1 (versionCode 11), released 2026-09-20: the update check runs on
   every return to the settings, so coming back from Home refreshes the button
   instead of showing what the last check found.
@@ -81,7 +88,8 @@ app/src/main/kotlin/com/thorpathfinder/app/
   PathfinderService.kt  accessibility service: key events -> engine -> actions
   ScreenSwap.kt         parse `am stack list`, plan, script, covered-app fix-up
   RecentTasks.kt        Close all apps: parse `dumpsys activity recents`, `am stack remove`
-  KeyReplay.kt          replay a real key with `sendevent` (the AYN button's own menu)
+  KeyReplay.kt          replay a real key with `sendevent` (AYN button; Back and Home too)
+  Launcher.kt           open apps and home screens on a chosen screen, Shizuku or not
   ScreenRecord.kt       Screen record: expand QS, `uiautomator dump`, find the tile, tap
   MouseMode.kt          mouse mode toggle, reverse scrolling (AYN config edit)
   UpdateCheck.kt        GitHub's latest release: version compare, page and APK links
@@ -97,6 +105,7 @@ app/src/main/kotlin/com/thorpathfinder/app/
   ui/EdgeScroll.kt      ScrollingColumn: controller focus reaches the true ends
   ui/AppPicker.kt       launcher apps for "Open an app" (loadApps is shared)
   ui/MoreSettings.kt    the cog's menu: Mouse mode, Timing, Update settings, Setup
+  ui/ScreenChoiceActivity.kt  an "Ask" shortcut's top-or-bottom question
   ui/Updates.kt         update state for the screen: button wording, notice card
   ui/KeepRunning.kt     the cog's Close all apps page: what not to force-stop
   ui/Licenses.kt        About → Open-source licenses (texts in assets/licenses)
@@ -151,9 +160,10 @@ app/src/test/           JVM tests; resources are real captures from the Thor
   `ui/KeepRunning.kt`) are left out of the force-stop only: their task is
   removed like any other, so Recents still ends up empty, but their background
   work survives. SharedPreferences hands out its own Set instance, so the
-  getter copies it. OdinTools (`de.langerhans.odintools`) and ClusterTune
-  (`com.aure.clustertune`) head that page under "Highly recommended": both
-  watch the foreground app from a service, which a force-stop ends. They are
+  getter copies it. OdinTools (`de.langerhans.odintools`), ClusterTune
+  (`com.aure.clustertune`) and Pulse (`com.kei.pulse`) head that page under
+  "Highly recommended", when installed: they work from the background, which a
+  force-stop ends. They are
   named in the manifest's `queries`, or Android would hide them from
   `getApplicationInfo`.
 - **AYN button.** AYN's PhoneWindowManager.interceptKeyBeforeDispatching
@@ -234,8 +244,31 @@ app/src/test/           JVM tests; resources are real captures from the Thor
   multiplies both swipe axes by -1. `reverseJoystick1` is ignored for this type.
 - **Firmware gate.** `Build.DISPLAY` is `Thor_V1.0.0.377_20260206_165408_user`;
   `Device.check` parses the version (newer accepted) and falls back to the
-  build time when the name doesn't parse. The update screen is the non-public
+  build time when the name doesn't parse. Any other "AYN Thor ..." model (the
+  Thor Lite reports "AYN Thor Lite") passes without the gate, since its
+  firmware has its own numbering; untested on real hardware. The update screen is the non-public
   intent `android.settings.SYSTEM_UPDATE_SETTINGS` (com.odin.fota).
+- **Back and Home replay.** Android's global Back and Home arrive with no
+  input device and scan code 0; RetroArch binds to the device and scan code,
+  so it ignored Pathfinder's Back. With Shizuku, a Normal press is replayed on
+  "Odin Controller" (Back 158, Home 102; event9 on the test Thor, while
+  gpio-keys moved between event1 and event3 across boots, hence lookup by
+  name, cached, and dropped when a press fails). Verified with `getevent`:
+  a kernel-level press is followed about 330 ms later (the double-press gap)
+  by exactly one replayed press. Without Shizuku, or if the replay fails,
+  the global action is used.
+- **Home screens on a chosen display, no Shizuku** (`Launcher.homeIntent`).
+  Tested on the Thor: CATEGORY_HOME with `setLaunchDisplayId(4)` is accepted
+  but ignored (the main home belongs to display 0). CATEGORY_SECONDARY_HOME
+  lands on display 4 but opens Android's chooser, since Cocoon, Launcher3 and
+  others all claim it. Starting one component works: the candidate from the
+  default home's package (`resolveActivity` on CATEGORY_HOME gives Cocoon),
+  else Launcher3's, else the first. With Shizuku, `input -d N keyevent
+  KEYCODE_HOME` is used instead, as for a swap.
+- **Accessibility events carry the display.** `AccessibilityEvent.getDisplayId()`
+  (from AccessibilityRecord) is filled in on this firmware (0 top, 4 bottom)
+  for window-state events, with no window-content capability; window ids come
+  back as -1. Worth knowing for any Shizuku-free swap.
 - **Compose focus.** Since Compose 1.7, clickables take focus only in keyboard
   input mode, so focus requests are retried when
   `LocalInputModeManager.inputMode` changes. Never rebuild UI to refresh

@@ -28,8 +28,8 @@ android {
         // The AYN Thor ships Android 13.
         minSdk = 33
         targetSdk = 35
-        versionCode = 11
-        versionName = "0.5.1"
+        versionCode = 12
+        versionName = "0.6.0"
     }
 
     signingConfigs {

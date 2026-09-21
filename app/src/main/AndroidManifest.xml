@@ -15,6 +15,7 @@
         <!-- Offered first in the keep-running list: they work in the background -->
         <package android:name="de.langerhans.odintools" />
         <package android:name="com.aure.clustertune" />
+        <package android:name="com.kei.pulse" />
         <!-- Apps a shortcut can open -->
         <intent>
             <action android:name="android.intent.action.MAIN" />
@@ -49,6 +50,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- An "Ask" shortcut's question: open the app on the top screen or the bottom one -->
+        <activity
+            android:name=".ui.ScreenChoiceActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Pathfinder.Question" />
 
         <service
             android:name=".PathfinderService"

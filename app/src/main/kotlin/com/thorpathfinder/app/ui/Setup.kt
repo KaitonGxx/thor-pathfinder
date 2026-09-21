@@ -217,8 +217,13 @@ private fun DeviceStep(device: Device.Support, context: Context, focus: FocusReq
     Title("Check your Thor")
     when (device) {
         is Device.Support.Supported -> {
-            Check(true, "AYN Thor, firmware ${device.firmware}")
-            if (device.firmware != Device.MIN_FIRMWARE_TEXT) {
+            Check(true, "${device.model}, firmware ${device.firmware}")
+            if (device.model != Device.THOR) {
+                Body(
+                    "Pathfinder was made and tested on the AYN Thor. The ${device.model} should work the " +
+                        "same way; if something doesn't, please report it."
+                )
+            } else if (device.firmware != Device.MIN_FIRMWARE_TEXT) {
                 Body(
                     "That's newer than the firmware Pathfinder was tested on (${Device.MIN_FIRMWARE_TEXT}). " +
                         "It should work; if something doesn't, please report it."

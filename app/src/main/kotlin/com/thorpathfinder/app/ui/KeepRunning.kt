@@ -41,11 +41,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Thor companions that do their work in the background. Force-stopping one
- * stops it watching for the app you open next, so they are offered first.
- * Both are declared in the manifest's `queries`, or Android would hide them.
+ * Thor companions that do their work in the background: OdinTools,
+ * ClusterTune and Pulse. Force-stopping one stops it watching for the app you
+ * open next, so they are offered first. Each is declared in the manifest's
+ * `queries`, or Android would hide it.
  */
-private val RECOMMENDED = listOf("de.langerhans.odintools", "com.aure.clustertune")
+private val RECOMMENDED = listOf("de.langerhans.odintools", "com.aure.clustertune", "com.kei.pulse")
 
 private class KeepRunningApps(val recommended: List<AppEntry>, val rest: List<AppEntry>) {
     val size get() = recommended.size + rest.size
