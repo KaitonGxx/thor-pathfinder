@@ -114,8 +114,7 @@ their normal behaviour, with no delay, until you give them a shortcut.
 
 - An **AYN Thor** on firmware **1.0.0.377 or newer** (Android 13). Setup checks
   this, and offers the system update screen if the Thor needs updating. The
-  **AYN Thor Lite** is accepted too; it hasn't been tested yet, so reports are
-  welcome.
+  **AYN Thor Lite** is supported too, and has been tested on one.
 - **Shizuku**, from [Google Play](https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api)
   or its [GitHub releases](https://github.com/RikkaApps/Shizuku/releases), for
   swapping screens and for anything to do with mouse mode. Shizuku grants the

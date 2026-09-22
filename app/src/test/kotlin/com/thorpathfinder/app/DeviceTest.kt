@@ -48,6 +48,18 @@ class DeviceTest {
     }
 
     @Test
+    fun theThorAndThorLiteCountAsTested() {
+        assertEquals(true, Device.tested("AYN Thor"))
+        assertEquals(true, Device.tested("AYN Thor Lite"))
+        // A future family member is let in, but setup still asks for reports.
+        assertEquals(false, Device.tested("AYN Thor Max"))
+        assertEquals(
+            Support.Supported("1.0.0.9", "AYN Thor Max"),
+            Device.check("AYN", "AYN Thor Max", "ThorMax_V1.0.0.9_20270101_101010_user", 0),
+        )
+    }
+
+    @Test
     fun otherDevicesAreNot() {
         assertEquals(Support.NotAThor("AYN Odin2"), Device.check("AYN", "AYN Odin2", verified, verifiedTime))
         assertEquals(Support.NotAThor("Pixel 8"), Device.check("Google", "Pixel 8", verified, verifiedTime))

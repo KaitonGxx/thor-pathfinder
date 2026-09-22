@@ -10,6 +10,8 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
 
 ## Status (2026-09-22)
 
+- Unreleased since 0.7.0: setup and the README call the Thor Lite tested
+  (reported working by an owner) rather than untested.
 - v0.7.0 (versionCode 14), released 2026-09-22: the "Close all apps" action
   is now "Close app(s)", closing all apps, the focused one, the top screen's,
   the bottom screen's, or apps picked by name (counting only those that were
@@ -267,7 +269,9 @@ app/src/test/           JVM tests; resources are real captures from the Thor
   `Device.check` parses the version (newer accepted) and falls back to the
   build time when the name doesn't parse. Any other "AYN Thor ..." model (the
   Thor Lite reports "AYN Thor Lite") passes without the gate, since its
-  firmware has its own numbering; untested on real hardware. The update screen is the non-public
+  firmware has its own numbering. A Thor Lite owner reported 0.6.1 tested and
+  working, so `Device.tested` counts it with the Thor and setup shows no
+  caveat for it; any other variant still gets "please report it". The update screen is the non-public
   intent `android.settings.SYSTEM_UPDATE_SETTINGS` (com.odin.fota).
 - **Back and Home replay.** Android's global Back and Home arrive with no
   input device and scan code 0; RetroArch binds to the device and scan code,

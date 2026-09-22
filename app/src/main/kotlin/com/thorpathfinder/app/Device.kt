@@ -43,6 +43,10 @@ object Device {
     }
 
     const val THOR = "AYN Thor"
+    const val THOR_LITE = "AYN Thor Lite"
+
+    /** Models Pathfinder has been run on: the Thor, and the Thor Lite (reported working by an owner). */
+    fun tested(model: String) = model.equals(THOR, ignoreCase = true) || model.equals(THOR_LITE, ignoreCase = true)
 
     /** "AYN Thor" itself, and variants such as the "AYN Thor Lite". */
     private fun isThor(model: String) =
