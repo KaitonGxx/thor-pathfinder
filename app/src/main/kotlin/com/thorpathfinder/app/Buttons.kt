@@ -88,6 +88,15 @@ enum class LaunchScreen(val label: String, val short: String) {
     ASK("Ask", "ask"),
 }
 
+/** What a "Close app(s)" shortcut closes. */
+enum class CloseTarget(val label: String) {
+    ALL("Close all apps"),
+    FOCUSED("Close focused app"),
+    TOP("Close top app"),
+    BOTTOM("Close bottom app"),
+    SPECIFIC("Close specific apps"),
+}
+
 /** The screens a "Home" shortcut sends home. */
 enum class HomeTarget(val label: String, val short: String) {
     TOP("Top screen only", "top"),
@@ -105,7 +114,8 @@ enum class ButtonAction(val label: String, val needsShizuku: Boolean = false) {
     BACK("Back"),
     HOME("Home"),
     RECENTS("Recent apps"),
-    CLOSE_ALL("Close all apps", needsShizuku = true),
+    // Named CLOSE_ALL for the mappings already stored; which apps it closes is a CloseTarget.
+    CLOSE_ALL("Close app(s)", needsShizuku = true),
     SWAP_SCREENS("Swap screens", needsShizuku = true),
     MOUSE_MODE("Mouse mode on/off", needsShizuku = true),
     NOTIFICATIONS("Notifications"),

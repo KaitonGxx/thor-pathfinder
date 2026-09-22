@@ -27,7 +27,7 @@ independent project, not affiliated with Wayfinder or AYN.
 | **Button shortcuts** | **Choosing a shortcut** |
 | <img src="docs/screenshots/button-shortcuts.png" alt="The Back button's press, double-press and hold shortcuts"> | <img src="docs/screenshots/shortcut-picker.png" alt="Choosing what holding Back does"> |
 | **Settings** | **Open-source licenses** |
-| <img src="docs/screenshots/settings-menu.png" alt="The settings menu: close all apps, mouse mode, timing, update settings, run setup again"> | <img src="docs/screenshots/licenses.png" alt="The licenses of Pathfinder and everything it ships"> |
+| <img src="docs/screenshots/settings-menu.png" alt="The settings menu: close app(s), mouse mode, timing, update settings, run setup again"> | <img src="docs/screenshots/licenses.png" alt="The licenses of Pathfinder and everything it ships"> |
 
 ## ✨ Features
 
@@ -44,14 +44,17 @@ independent project, not affiliated with Wayfinder or AYN.
 - Back, Home and the AYN button: press, double-press and hold.
 - Select, Start, L3 and R3: double-press and hold. Games still receive every
   press of these buttons, so a plain press stays with the game.
-- Actions: swap screens, mouse mode on/off, back, home, recent apps, close all
-  apps, notifications, quick settings, screenshot, screen record (testing),
+- Actions: swap screens, mouse mode on/off, back, home, recent apps, close
+  app(s), notifications, quick settings, screenshot, screen record (testing),
   power menu, lock screen, or open an app.
+- Close app(s) closes every app, like Recents' Clear all, or just some: the
+  focused app (on the screen you last used), the top screen's app, the bottom
+  screen's app, or apps you pick by name.
 - Open an app on the top screen, the bottom one, or ask each time. Or open two
   at once, one on each screen.
 - Home can go to the top screen, the bottom one, or both at once.
-- Close all apps can spare the apps you choose: their window closes with the
-  rest, but they aren't force-stopped, so music or a download carries on.
+- Close app(s) can spare the apps you choose: their window closes like any
+  other, but they aren't force-stopped, so music or a download carries on.
   Background helpers like OdinTools, ClusterTune and Pulse are offered first.
 
 **🖱️ Mouse mode**
@@ -192,8 +195,14 @@ each app), so the Recents screen never has to open. Home screens stay; even
 Pathfinder's own window is closed, so Recents ends up empty. Both screens then
 return to their home screens, as after Clear all.
 
-Apps on your keep-running list lose their window with the rest, but skip the
-force-stop. Removing a window ends what's on screen; force-stopping also ends
+*Close focused app* does the same for one app: the one on the screen you
+last touched, which is the app Android itself treats as in front. *Close top
+app* and *Close bottom app* pick the app showing on that screen, the same way
+a swap decides what to move. *Close specific apps* closes the apps you chose,
+wherever they are, even with no window open. Home screens are never closed.
+
+Apps on your keep-running list lose their window like any other, but skip the
+force-stop, whichever way they're closed. Removing a window ends what's on screen; force-stopping also ends
 an app's background work, which is what would cut off music, a download or a
 sync.
 

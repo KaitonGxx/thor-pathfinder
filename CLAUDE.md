@@ -8,8 +8,13 @@ Kotlin + Jetpack Compose, package `com.thorpathfinder.app`, minSdk 33
 Machine-specific notes (toolchain paths, the test Thor's serial, git
 identity) live in `CLAUDE.local.md`, which is gitignored.
 
-## Status (2026-09-21)
+## Status (2026-09-22)
 
+- v0.7.0 (versionCode 14), released 2026-09-22: the "Close all apps" action
+  is now "Close app(s)", closing all apps, the focused one, the top screen's,
+  the bottom screen's, or apps picked by name (counting only those that were
+  open); all share the keep-running list. The settings page is "Close app(s)"
+  too.
 - v0.6.1 (versionCode 13), released 2026-09-21: button cards close instantly,
   so a D-pad press right after closing one no longer throws focus to the top.
 - v0.6.0 (versionCode 12), released 2026-09-21: Back and Home replay the
@@ -162,7 +167,21 @@ app/src/test/           JVM tests; resources are real captures from the Thor
   `ui/KeepRunning.kt`) are left out of the force-stop only: their task is
   removed like any other, so Recents still ends up empty, but their background
   work survives. SharedPreferences hands out its own Set instance, so the
-  getter copies it. OdinTools (`de.langerhans.odintools`), ClusterTune
+  getter copies it. The action keeps its enum name CLOSE_ALL, because stored
+  mappings use it, though it's labelled "Close app(s)"; `.close` (ALL or
+  FOCUSED, absent means ALL) picks the mode. **Close focused app** reads the
+  one `ResumedActivity:` line of `dumpsys activity activities` (per-display
+  `topResumedActivity` lines are ignored): on the Thor it follows the screen
+  last touched, and `mTopFocusedDisplayId` in `dumpsys window` agrees. Its task
+  goes with `am stack remove`, then `am force-stop` unless the app is on the
+  keep-running list or is Pathfinder; home screens and System UI are left.
+  **Close top / bottom app** use `ScreenSwap.visibleApp` on `am stack list`
+  for that display (the swap's own rule: top visible task, homes excluded)
+  and remove its root task. **Close specific apps** stores a StringSet
+  (`.closeApps`); it removes every closable Recents task of those packages,
+  then force-stops each one even with no task (keep-running and Pathfinder
+  excepted). `RecentTasks.targets` never lets a home package or System UI
+  through, and only names matching the package pattern reach the script. OdinTools (`de.langerhans.odintools`), ClusterTune
   (`com.aure.clustertune`) and Pulse (`com.kei.pulse`) head that page under
   "Highly recommended", when installed: they work from the background, which a
   force-stop ends. They are

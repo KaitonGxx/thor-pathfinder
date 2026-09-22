@@ -84,7 +84,25 @@ class PathfinderService : AccessibilityService() {
             ButtonAction.POWER_MENU -> performGlobalAction(GLOBAL_ACTION_POWER_DIALOG)
             ButtonAction.LOCK_SCREEN -> performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
             ButtonAction.SWAP_SCREENS -> worker.execute { swapOutcomeMessage(ScreenSwap.swap(this))?.let(::toast) }
-            ButtonAction.CLOSE_ALL -> worker.execute { toast(closeAllOutcomeMessage(RecentTasks.closeAll(this, shortcuts.keepRunning))) }
+            ButtonAction.CLOSE_ALL -> worker.execute {
+                // Every way of closing shares the keep-running list: closed, never force-stopped.
+                val keep = shortcuts.keepRunning
+                toast(
+                    when (shortcuts.close(button, gesture)) {
+                        CloseTarget.ALL -> closeAllOutcomeMessage(RecentTasks.closeAll(this, keep))
+                        CloseTarget.FOCUSED -> closeAppsOutcomeMessage(RecentTasks.closeFocused(this, keep))
+                        CloseTarget.TOP -> closeAppsOutcomeMessage(
+                            RecentTasks.closeOnScreen(this, Display.DEFAULT_DISPLAY, "the top screen", keep)
+                        )
+                        CloseTarget.BOTTOM -> closeAppsOutcomeMessage(
+                            RecentTasks.closeOnScreen(this, ScreenSwap.otherDisplay(this)?.displayId, "the bottom screen", keep)
+                        )
+                        CloseTarget.SPECIFIC -> closeAppsOutcomeMessage(
+                            RecentTasks.closeApps(this, shortcuts.closeApps(button, gesture), keep)
+                        )
+                    }
+                )
+            }
             ButtonAction.SCREEN_RECORD -> worker.execute { screenRecordOutcomeMessage(ScreenRecord.open(this))?.let(::toast) }
             ButtonAction.MOUSE_MODE -> worker.execute {
                 toast(

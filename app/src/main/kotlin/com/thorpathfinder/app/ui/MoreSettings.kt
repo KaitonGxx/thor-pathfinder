@@ -38,7 +38,7 @@ import kotlinx.coroutines.withContext
 
 /** The pages behind the cog, each opened from the settings menu. */
 private enum class SettingsPage(val title: String, val detail: String) {
-    CLOSE_ALL("Close all apps", "Which apps keep running when tasks are closed"),
+    CLOSE_ALL("Close app(s)", "Which apps keep running when tasks are closed"),
     MOUSE("Mouse mode", "Which way the right stick scrolls"),
     TIMING("Timing", "How long a hold takes, and the double-press gap"),
     UPDATES("Update settings", "Checking for updates, and installing them by itself"),

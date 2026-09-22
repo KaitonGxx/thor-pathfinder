@@ -56,10 +56,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import com.thorpathfinder.app.ButtonAction
 import com.thorpathfinder.app.ButtonKind
+import com.thorpathfinder.app.CloseTarget
 import com.thorpathfinder.app.Gesture
 import com.thorpathfinder.app.HomeTarget
 import com.thorpathfinder.app.LaunchScreen
 import com.thorpathfinder.app.PhysicalButton
+import com.thorpathfinder.app.RecentTasks
 import com.thorpathfinder.app.Shell
 import com.thorpathfinder.app.Shortcuts
 import com.thorpathfinder.app.SystemState
@@ -132,6 +134,12 @@ private sealed interface EditFlow {
 
     /** Which screens a Home shortcut sends home. */
     data class HomeWhere(override val button: PhysicalButton, override val gesture: Gesture) : EditFlow
+
+    /** Which apps a Close app(s) shortcut closes. */
+    data class CloseWhich(override val button: PhysicalButton, override val gesture: Gesture) : EditFlow
+
+    /** The apps a "Close specific apps" shortcut closes. */
+    data class CloseApps(override val button: PhysicalButton, override val gesture: Gesture) : EditFlow
 }
 
 @Composable
@@ -156,6 +164,7 @@ private fun EditDialogs(
                 when (action) {
                     ButtonAction.LAUNCH_APP -> onFlow(EditFlow.HowMany(button, gesture))
                     ButtonAction.HOME -> onFlow(EditFlow.HomeWhere(button, gesture))
+                    ButtonAction.CLOSE_ALL -> onFlow(EditFlow.CloseWhich(button, gesture))
                     else -> {
                         shortcuts.set(button, gesture, action)
                         done()
@@ -201,6 +210,29 @@ private fun EditDialogs(
             exclude = flow.top,
             onPick = { pkg ->
                 shortcuts.set(button, gesture, ButtonAction.LAUNCH_APP, flow.top, LaunchScreen.TOP, second = pkg)
+                done()
+            },
+            onDismiss = done,
+        )
+        is EditFlow.CloseWhich -> PickDialog(
+            title = ButtonAction.CLOSE_ALL.label,
+            choices = CloseTarget.entries.map { it.label to null },
+            onPick = { choice ->
+                val target = CloseTarget.entries[choice]
+                if (target == CloseTarget.SPECIFIC) {
+                    onFlow(EditFlow.CloseApps(button, gesture))
+                } else {
+                    shortcuts.set(button, gesture, ButtonAction.CLOSE_ALL, close = target)
+                    done()
+                }
+            },
+            onDismiss = done,
+        )
+        is EditFlow.CloseApps -> AppMultiPickerDialog(
+            title = "Apps to close",
+            initial = shortcuts.closeApps(button, gesture),
+            onDone = { apps ->
+                shortcuts.set(button, gesture, ButtonAction.CLOSE_ALL, close = CloseTarget.SPECIFIC, closeApps = apps)
                 done()
             },
             onDismiss = done,
@@ -469,6 +501,10 @@ internal class ObservedShortcuts(private val store: Shortcuts) {
 
     fun home(button: PhysicalButton, gesture: Gesture) = observe { store.home(button, gesture) }
 
+    fun close(button: PhysicalButton, gesture: Gesture) = observe { store.close(button, gesture) }
+
+    fun closeApps(button: PhysicalButton, gesture: Gesture) = observe { store.closeApps(button, gesture) }
+
     fun set(
         button: PhysicalButton,
         gesture: Gesture,
@@ -477,8 +513,10 @@ internal class ObservedShortcuts(private val store: Shortcuts) {
         screen: LaunchScreen = LaunchScreen.TOP,
         second: String? = null,
         home: HomeTarget? = null,
+        close: CloseTarget = CloseTarget.ALL,
+        closeApps: Set<String> = emptySet(),
     ) {
-        store.set(button, gesture, action, app, screen, second, home)
+        store.set(button, gesture, action, app, screen, second, home, close, closeApps)
         changed()
     }
 
@@ -542,6 +580,11 @@ private fun valueText(context: Context, button: PhysicalButton, gesture: Gesture
                     }
                 }
                 ButtonAction.HOME -> shortcuts.home(button, gesture)?.let { "Home (${it.short})" } ?: action.label
+                ButtonAction.CLOSE_ALL -> when (val target = shortcuts.close(button, gesture)) {
+                    CloseTarget.SPECIFIC ->
+                        "Close " + RecentTasks.names(shortcuts.closeApps(button, gesture).map { appLabel(context, it) }.sorted())
+                    else -> target.label
+                }
                 else -> action.label
     }
 }

@@ -34,6 +34,16 @@ class Shortcuts(context: Context) : GestureConfig {
     fun second(button: PhysicalButton, gesture: Gesture): String? =
         prefs.getString(key(button, gesture) + ".app2", null)
 
+    /** What a CLOSE_ALL gesture closes; mappings from before the choice existed close all. */
+    fun close(button: PhysicalButton, gesture: Gesture): CloseTarget =
+        prefs.getString(key(button, gesture) + ".close", null)
+            ?.let { name -> CloseTarget.entries.firstOrNull { it.name == name } }
+            ?: CloseTarget.ALL
+
+    /** The apps a CLOSE_ALL gesture set to [CloseTarget.SPECIFIC] closes. */
+    fun closeApps(button: PhysicalButton, gesture: Gesture): Set<String> =
+        prefs.getStringSet(key(button, gesture) + ".closeApps", null)?.toSet() ?: emptySet()
+
     /** The screens a HOME gesture sends home; null for the old way, Android's own Home. */
     fun home(button: PhysicalButton, gesture: Gesture): HomeTarget? =
         prefs.getString(key(button, gesture) + ".home", null)
@@ -47,6 +57,8 @@ class Shortcuts(context: Context) : GestureConfig {
         screen: LaunchScreen = LaunchScreen.TOP,
         second: String? = null,
         home: HomeTarget? = null,
+        close: CloseTarget = CloseTarget.ALL,
+        closeApps: Set<String> = emptySet(),
     ) {
         val key = key(button, gesture)
         prefs.edit {
@@ -61,6 +73,12 @@ class Shortcuts(context: Context) : GestureConfig {
                 remove("$key.app2")
             }
             if (action == ButtonAction.HOME && home != null) putString("$key.home", home.name) else remove("$key.home")
+            if (action == ButtonAction.CLOSE_ALL) putString("$key.close", close.name) else remove("$key.close")
+            if (action == ButtonAction.CLOSE_ALL && close == CloseTarget.SPECIFIC) {
+                putStringSet("$key.closeApps", closeApps.toSet())
+            } else {
+                remove("$key.closeApps")
+            }
         }
     }
 

@@ -177,7 +177,7 @@ fun PageScaffold(
 
 /** A row that opens a page of its own. One focus stop. */
 @Composable
-fun NavRow(title: String, detail: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun NavRow(title: String, detail: String?, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Row(
         modifier
             .fillMaxWidth()
@@ -189,11 +189,13 @@ fun NavRow(title: String, detail: String, modifier: Modifier = Modifier, onClick
     ) {
         Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                detail,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            if (detail != null) {
+                Text(
+                    detail,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
         Spacer(Modifier.width(12.dp))
         Icon(
@@ -376,7 +378,7 @@ fun SwitchRow(
 
 /** A few choices that each lead somewhere else, as rows with an arrow. Focus starts on the first. */
 @Composable
-fun PickDialog(title: String, choices: List<Pair<String, String>>, onPick: (Int) -> Unit, onDismiss: () -> Unit) {
+fun PickDialog(title: String, choices: List<Pair<String, String?>>, onPick: (Int) -> Unit, onDismiss: () -> Unit) {
     val first = remember { FocusRequester() }
     Dialog(onDismissRequest = onDismiss) {
         Card {

@@ -79,6 +79,51 @@ class RecentTasksTest {
     }
 
     @Test
+    fun theFocusedAppIsTheOneOnTheScreenLastTouched() {
+        // activity_focus.txt: the clock on the bottom screen was touched last,
+        // Pathfinder is on the top screen. Only the global ResumedActivity counts.
+        val dump = javaClass.classLoader!!.getResource("activity_focus.txt")!!.readText()
+        val focused = RecentTasks.focused(dump)
+        assertEquals(RecentTasks.FocusedTask("com.android.deskclock/com.android.deskclock.DeskClock", 166), focused)
+        assertEquals("com.android.deskclock", focused!!.packageName)
+        assertEquals(null, RecentTasks.focused("  Recent tasks:\n"))
+    }
+
+    @Test
+    fun theKeepRunningListSparesTheFocusedAppToo() {
+        val keep = setOf("org.example.music")
+        assertEquals(false, RecentTasks.shouldStop("org.example.music", "com.thorpathfinder.app", keep))
+        assertEquals(false, RecentTasks.shouldStop("com.thorpathfinder.app", "com.thorpathfinder.app", keep))
+        assertEquals(true, RecentTasks.shouldStop("com.android.deskclock", "com.thorpathfinder.app", keep))
+    }
+
+    @Test
+    fun closedAppsAreNamedLikeASentence() {
+        assertEquals("Discord", RecentTasks.names(listOf("Discord")))
+        assertEquals("Discord and Firefox", RecentTasks.names(listOf("Discord", "Firefox")))
+        assertEquals("3 apps", RecentTasks.names(listOf("Discord", "Firefox", "Cemu")))
+        assertEquals("Discord and Firefox closed", closeAppsOutcomeMessage(RecentTasks.AppsOutcome.Closed("Discord and Firefox")))
+        assertEquals("No app on the bottom screen", closeAppsOutcomeMessage(RecentTasks.AppsOutcome.NothingToClose("the bottom screen")))
+        assertEquals("No app to close", closeAppsOutcomeMessage(RecentTasks.AppsOutcome.NothingToClose()))
+    }
+
+    @Test
+    fun onlyTheChosenAppsThatAreOpenCount() {
+        // YouTube and Settings are open in the capture; Discord isn't.
+        val chosen = RecentTasks.targets(setOf("com.google.android.youtube", "com.android.settings", "com.discord"), thor)
+        val tasks = RecentTasks.closable(RecentTasks.parse(captured), thor).filter { it.packageName in chosen }
+        assertEquals(listOf("com.android.settings", "com.google.android.youtube"), RecentTasks.running(tasks, chosen))
+        assertEquals(emptyList<String>(), RecentTasks.running(tasks, listOf("com.discord")))
+        assertEquals("No selected task(s) running", closeAppsOutcomeMessage(RecentTasks.AppsOutcome.NoneRunning))
+    }
+
+    @Test
+    fun chosenAppsNeverIncludeAHomeScreen() {
+        val chosen = setOf("com.google.android.youtube", "rip.moth.cocoonshell", "com.android.systemui", "not a package")
+        assertEquals(listOf("com.google.android.youtube"), RecentTasks.targets(chosen, thor))
+    }
+
+    @Test
     fun aTaskHiddenFromRecentsIsLeftAloneEvenIfNotALauncher() {
         val hidden = listOf(
             RecentTask(50, "standard", "org.example.app/org.example.app.Main", 0x10800000, inRecents = true),

@@ -1,0 +1,11 @@
+Display #4 (activities from top to bottom):
+    topResumedActivity=ActivityRecord{51112b4 u0 com.android.deskclock/.DeskClock} t166}
+    * Hist  #0: ActivityRecord{51112b4 u0 com.android.deskclock/.DeskClock} t166}
+      * Hist  #0: ActivityRecord{65b56ed u0 rip.moth.cocoonshell/.ExternalDisplayActivity} t163}
+Display #0 (activities from top to bottom):
+    topResumedActivity=ActivityRecord{11069fb u0 com.thorpathfinder.app/.ui.MainActivity} t165}
+    * Hist  #0: ActivityRecord{11069fb u0 com.thorpathfinder.app/.ui.MainActivity} t165}
+      * Hist  #0: ActivityRecord{6bf38d5 u0 rip.moth.cocoonshell/.MainActivity} t130}
+  ResumedActivity: ActivityRecord{51112b4 u0 com.android.deskclock/.DeskClock} t166}
+  mFocusedApp=ActivityRecord{51112b4 u0 com.android.deskclock/.DeskClock} t166}
+  mFocusedApp=ActivityRecord{11069fb u0 com.thorpathfinder.app/.ui.MainActivity} t165}
