@@ -1,6 +1,7 @@
 package com.thorpathfinder.app
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.core.content.edit
 
 /**
@@ -9,9 +10,16 @@ import androidx.core.content.edit
  * SharedPreferences keeps its values in memory after the first read, so the
  * accessibility service can look actions up on every key event.
  */
-class Shortcuts(context: Context) : GestureConfig {
+class Shortcuts(private val context: Context) : GestureConfig {
 
-    private val prefs = context.getSharedPreferences("shortcuts", Context.MODE_PRIVATE)
+    /**
+     * The profile in use, looked up on each read so that switching profiles
+     * takes effect on the very next key event, with nothing to reload.
+     * SharedPreferences instances are cached per file, so this is a lookup,
+     * not a re-read of the file.
+     */
+    private val prefs: SharedPreferences
+        get() = context.getSharedPreferences(Profiles.fileName(Profiles.activeId(context)), Context.MODE_PRIVATE)
 
     override fun action(button: PhysicalButton, gesture: Gesture): ButtonAction {
         val stored = prefs.getString(key(button, gesture), null)
@@ -44,6 +52,16 @@ class Shortcuts(context: Context) : GestureConfig {
     fun closeApps(button: PhysicalButton, gesture: Gesture): Set<String> =
         prefs.getStringSet(key(button, gesture) + ".closeApps", null)?.toSet() ?: emptySet()
 
+    /** What a PROFILE gesture does; mappings from before the choice existed cycle. */
+    fun profile(button: PhysicalButton, gesture: Gesture): ProfileSwitch =
+        prefs.getString(key(button, gesture) + ".profile", null)
+            ?.let { name -> ProfileSwitch.entries.firstOrNull { it.name == name } }
+            ?: ProfileSwitch.CYCLE
+
+    /** The profile a PROFILE gesture set to [ProfileSwitch.ENABLE] turns on. */
+    fun profileId(button: PhysicalButton, gesture: Gesture): Int =
+        prefs.getInt(key(button, gesture) + ".profileId", Profiles.ORIGINAL)
+
     /** The screens a HOME gesture sends home; null for the old way, Android's own Home. */
     fun home(button: PhysicalButton, gesture: Gesture): HomeTarget? =
         prefs.getString(key(button, gesture) + ".home", null)
@@ -59,6 +77,8 @@ class Shortcuts(context: Context) : GestureConfig {
         home: HomeTarget? = null,
         close: CloseTarget = CloseTarget.ALL,
         closeApps: Set<String> = emptySet(),
+        profile: ProfileSwitch = ProfileSwitch.CYCLE,
+        profileId: Int = Profiles.ORIGINAL,
     ) {
         val key = key(button, gesture)
         prefs.edit {
@@ -78,6 +98,12 @@ class Shortcuts(context: Context) : GestureConfig {
                 putStringSet("$key.closeApps", closeApps.toSet())
             } else {
                 remove("$key.closeApps")
+            }
+            if (action == ButtonAction.PROFILE) putString("$key.profile", profile.name) else remove("$key.profile")
+            if (action == ButtonAction.PROFILE && profile == ProfileSwitch.ENABLE) {
+                putInt("$key.profileId", profileId)
+            } else {
+                remove("$key.profileId")
             }
         }
     }
@@ -102,9 +128,14 @@ class Shortcuts(context: Context) : GestureConfig {
         get() = prefs.getStringSet("keepRunning", null)?.toSet() ?: emptySet()
         set(value) = prefs.edit { putStringSet("keepRunning", value.toSet()) }
 
+    /**
+     * Whether setup has been walked through. About the device rather than any
+     * one profile, so [Profiles] keeps it beside the list of profiles and no
+     * new or deleted profile can make setup run again.
+     */
     var setupDone: Boolean
-        get() = prefs.getBoolean("setupDone", false)
-        set(value) = prefs.edit { putBoolean("setupDone", value) }
+        get() = Profiles.setupDone(context)
+        set(value) = Profiles.setSetupDone(context, value)
 
     private fun key(button: PhysicalButton, gesture: Gesture) = "map.${button.name}.${gesture.name}"
 

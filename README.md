@@ -48,11 +48,17 @@ independent project, not affiliated with Wayfinder or AYN.
   app(s), notifications, quick settings, screenshot, screen record (testing),
   power menu, lock screen, or open an app.
 - Close app(s) closes every app, like Recents' Clear all, or just some: the
-  focused app (on the screen you last used), the top screen's app, the bottom
-  screen's app, or apps you pick by name.
+  background ones (all but what the two screens are showing), the focused app
+  (on the screen you last used), the top screen's app, the bottom screen's
+  app, or apps you pick by name.
+- Profiles: keep more than one set of shortcuts and switch between them from
+  the oval under the title, or with a shortcut of its own.
 - Open an app on the top screen, the bottom one, or ask each time. Or open two
   at once, one on each screen.
-- Home can go to the top screen, the bottom one, or both at once.
+- Home can go to the top screen, the bottom one, or both at once. Pathfinder
+  starts each screen's own home screen there rather than pressing Home, so
+  AYN's "Enable Home and Back focus lock" setting cannot send the wrong
+  screen home.
 - Close app(s) can spare the apps you choose: their window closes like any
   other, but they aren't force-stopped, so music or a download carries on.
   Background helpers like OdinTools, ClusterTune and Pulse are offered first.
@@ -173,6 +179,13 @@ Nothing else can open those, so when a gesture on the AYN button is left on
 *Normal*, Pathfinder presses the real button again, through Shizuku, and lets
 that one press through to the Thor.
 
+Only the real key opens those panels, so with Shizuku not running Pathfinder
+leaves the AYN button alone altogether: spotting a hold or a double-press
+means swallowing every press, and a plain press it swallowed could not be
+given back. The AYN menu keeps working, and shortcuts on the button start
+working again the moment Shizuku does. A press set to a shortcut of its own
+never has to be given back, so that one always works.
+
 Back and Home work the same way when Shizuku is running. Android can perform
 a Back or a Home itself, but that stand-in comes from no real button, and apps
 that bind to the button itself, RetroArch for one, don't accept it. Pressing
@@ -187,12 +200,48 @@ takes more access than an app normally has, and that's what Shizuku provides:
 it runs the command with the same rights as a USB debugging connection, with
 no root needed.
 
+**Profiles.** A profile is a whole set of shortcuts: every button and
+gesture, the keep-running list, the hold and double-press timings, and
+vibration. Whatever you had before profiles existed becomes your **Main
+profile**, untouched. The oval under the title says which profile is in use
+and switches between them; *Create profile* starts one with every shortcut at
+its default, and offers to copy the keep-running list across so you don't
+have to pick those apps again. *Manage profiles*, behind the cog, renames,
+adds and removes them.
+
+Which profile is the main one is yours to choose, in *Manage profiles*. The
+main profile is the one an *Enable* shortcut goes back to on a second press,
+the one Pathfinder falls back to if the profile in use is deleted, and the one
+that can't be deleted itself. It starts out as the profile you already had,
+and moving it moves all three of those.
+
+Mouse mode is deliberately not part of a profile. It isn't Pathfinder's to
+keep: mouse mode is the Thor's own setting and its own config file, shared by
+everything on the device, so it stays as it is whichever profile is in use.
+
+Switching profiles draws the Thor on the top screen with a box beside every
+button that carries a shortcut in the profile you have just moved to, so you
+can see what you are holding without opening anything. It stays until you
+press **Dismiss**; a tap anywhere on it, or any button press, does the same.
+Turn it off with *Show the buttons on switching* in Manage profiles, and a
+switch just names the profile instead.
+
+The *Profile switcher* action puts profiles on a button. It can **cycle**
+through them, **enable** one by name (pressing it again goes back to the main
+profile), or **ask**, which puts a list on the top screen to choose from. A
+shortcut set to enable a profile that has since been deleted cycles instead.
+
 **Closing all apps.** Recents' "Clear all" button removes every task shown in
 Recents and stops those apps. Pathfinder's *Close all apps* does the same
 through Shizuku (`am stack remove` for each task, then `am force-stop` for
 each app), so the Recents screen never has to open. Home screens stay; even
 Pathfinder's own window is closed, so Recents ends up empty. Both screens then
 return to their home screens, as after Clear all.
+
+*Close background apps* clears everything the two screens aren't showing.
+What's in front is the point of it, so neither screen is sent home and the
+apps on them keep running, other windows of theirs included; every task
+behind them goes, force-stop and all.
 
 *Close focused app* does the same for one app: the one on the screen you
 last touched, which is the app Android itself treats as in front. *Close top

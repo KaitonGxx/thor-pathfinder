@@ -8,10 +8,19 @@ Kotlin + Jetpack Compose, package `com.thorpathfinder.app`, minSdk 33
 Machine-specific notes (toolchain paths, the test Thor's serial, git
 identity) live in `CLAUDE.local.md`, which is gitignored.
 
-## Status (2026-09-22)
+## Status (2026-09-23)
 
-- Unreleased since 0.7.0: setup and the README call the Thor Lite tested
-  (reported working by an owner) rather than untested.
+- v0.8.0 (versionCode 15), released 2026-09-23: **profiles**, several named
+  sets of shortcuts with one in use at a time, chosen from the oval under the
+  title, from a Profile switcher shortcut (cycle, enable one by name, or ask)
+  or from Manage profiles, where they are renamed, added, removed and where
+  any of them can be made the main one. Switching draws the Thor with the new
+  profile's shortcuts beside it until dismissed. Also: "Home" reaches a screen
+  by starting its home screen rather than pressing the Home key, which AYN's
+  "Enable Home and Back focus lock" re-aimed at the focused screen; a button
+  whose plain press Pathfinder could not give back is no longer intercepted,
+  so the AYN button keeps its own menu with Shizuku down; Close app(s) gains
+  "Close background apps"; and setup and the README call the Thor Lite tested.
 - v0.7.0 (versionCode 14), released 2026-09-22: the "Close all apps" action
   is now "Close app(s)", closing all apps, the focused one, the top screen's,
   the bottom screen's, or apps picked by name (counting only those that were
@@ -288,8 +297,67 @@ app/src/test/           JVM tests; resources are real captures from the Thor
   lands on display 4 but opens Android's chooser, since Cocoon, Launcher3 and
   others all claim it. Starting one component works: the candidate from the
   default home's package (`resolveActivity` on CATEGORY_HOME gives Cocoon),
-  else Launcher3's, else the first. With Shizuku, `input -d N keyevent
-  KEYCODE_HOME` is used instead, as for a swap.
+  else Launcher3's, else the first. This is now the way "Home" reaches every
+  screen; the key press below is only a last resort for a screen with no home
+  activity to start.
+- **AYN's two focus settings, and why Home stopped using the Home key.** The
+  Thor has "Focus Mode" (DualScreenAssistant) with Auto-lock / Top screen /
+  Bottom screen, stored in `Settings.System.screen_focus_lock` as 0 / 1 / 2,
+  and a separate switch in OdinSettings called "Enable Home and Back focus
+  lock", stored as `enable_system_key_focus_lock`. The Focus Mode menu never
+  writes the second one. With both on, an injected `input -d 4 keyevent
+  KEYCODE_HOME` is re-aimed at the locked screen: the **top** screen goes
+  home and the bottom one is untouched, so "Home (bottom)" and "Home (both)"
+  both send the wrong screen home. Measured on firmware 1.0.0.377 with the
+  lock off (all three modes, before and after a reboot, Shizuku up and down:
+  every combination correct) and then with it on (top correct, bottom and
+  both wrong). A launch display is addressed directly and routes no key, so
+  it obeys the target whatever the setting says. Reported by a user as
+  "only home (top) is working" in top focus; the trigger is the OdinSettings
+  switch, not Focus Mode, which only chooses the screen the lock points at.
+- **The button map** (`ButtonMap` and `ThorMapView`) is Pathfinder's own
+  drawing, not AYN artwork: a lid, a control deck, the staggered sticks, a
+  D-pad, four face buttons and the five small ones. Button positions are
+  fractions of the picture in `ButtonMap.SPOTS`, taken from the device itself
+  rather than from AYN's key test screen, which lays the buttons out in a row
+  of its own making. Each mapped button gets a box on the nearer side, boxes
+  are stacked by the button's height down the device, and a line leaves each
+  box level with its own button so two on a side don't cross; the AYN button
+  sits dead centre, so its box goes on the left where its line doesn't have to
+  cross Back's. The overlay is a `TYPE_ACCESSIBILITY_OVERLAY` like the toast,
+  so it needs no permission and draws over games, but unlike the toast it
+  takes touches (it has a Dismiss button) and stays up until dismissed. A tap
+  anywhere closes it, and so does any key press after a 900 ms grace period,
+  which stops the release of the hold that opened it from closing it at once
+  and means a busy touchscreen can never strand the user behind it.
+- **Profiles are one SharedPreferences file each** (`Profiles`). The main
+  profile keeps the original `shortcuts` file, so an update needs no
+  migration; the others are `shortcuts.<id>`. A separate `profiles` file holds
+  the order, the names, which is active, and a `next` counter so that deleting
+  the newest profile and making another cannot hand the new one the deleted
+  one's file. `Shortcuts` resolves its file on every read, so a switch takes
+  effect on the next key event with nothing to reload. Which profile is the
+  *main* one is the user's choice (`main` in the profiles file, `ORIGINAL`
+  until they move it), and it decides three things: where an "Enable" shortcut
+  returns to on a second press, what a deleted active profile falls back to,
+  and which profile cannot be deleted. That is deliberately separate from
+  `ORIGINAL`, which is only about which file the shortcuts sit in, so
+  `ORIGINAL` itself is deletable once another profile is the main one; hence
+  `parseIds` never forces it back into the list. `setupDone` lives in the
+  profiles file, not in a profile, so deleting one cannot make setup run
+  again; it is carried over once from where it used to be kept. Mouse
+  mode is not in a profile at all: it is AYN's own system setting and JSON
+  config (see `MouseMode`), shared device-wide, so there is nothing to copy or
+  switch. Creating a profile offers to carry the keep-running list over.
+- **Nothing is swallowed that cannot be given back** (`GestureEngine`'s
+  `canRestore`). Intercepting a system button means swallowing its down, and
+  a plain press can then only be returned by replaying the real key (Shizuku)
+  or by a stand-in global action (Back and Home have one; the AYN button does
+  not). So a button with a shortcut on some other gesture is left alone while
+  it could not be given back, and the AYN menu keeps working with Shizuku
+  down; a gesture mapped on that button simply waits for Shizuku. A press
+  mapped to a shortcut of its own never needs giving back, so it is still
+  intercepted.
 - **Accessibility events carry the display.** `AccessibilityEvent.getDisplayId()`
   (from AccessibilityRecord) is filled in on this firmware (0 top, 4 bottom)
   for window-state events, with no window-content capability; window ids come

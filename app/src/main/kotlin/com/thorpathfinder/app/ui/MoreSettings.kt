@@ -38,6 +38,7 @@ import kotlinx.coroutines.withContext
 
 /** The pages behind the cog, each opened from the settings menu. */
 private enum class SettingsPage(val title: String, val detail: String) {
+    PROFILES("Manage profiles", "Rename, add or remove your sets of shortcuts"),
     CLOSE_ALL("Close app(s)", "Which apps keep running when tasks are closed"),
     MOUSE("Mouse mode", "Which way the right stick scrolls"),
     TIMING("Timing", "How long a hold takes, and the double-press gap"),
@@ -58,6 +59,7 @@ fun MoreSettingsScreen(state: SystemState, onBack: () -> Unit, onRunSetup: () ->
     }
     when (page) {
         null -> SettingsMenu(focusOn = last, onOpen = { page = it }, onBack = onBack)
+        SettingsPage.PROFILES -> ManageProfilesPage(onBack = ::close)
         SettingsPage.CLOSE_ALL -> KeepRunningPage(onBack = ::close)
         SettingsPage.MOUSE -> MouseModePage(state, onBack = ::close)
         SettingsPage.TIMING -> TimingPage(onBack = ::close)

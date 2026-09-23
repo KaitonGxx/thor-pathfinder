@@ -6,8 +6,10 @@ import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
 
@@ -28,6 +30,8 @@ class Overlay(private val context: Context) {
     private val windowManager = context.getSystemService(WindowManager::class.java)
     private var view: TextView? = null
     private val hide = Runnable { dismiss() }
+    private var map: View? = null
+    private var mapShownAt = 0L
 
     /** Shows [message] for about two seconds; a newer message replaces it. */
     fun show(message: String) {
@@ -45,6 +49,45 @@ class Overlay(private val context: Context) {
         handler.removeCallbacks(hide)
         view?.let { runCatching { windowManager.removeView(it) } }
         view = null
+        dismissMap()
+    }
+
+    /**
+     * Shows the Thor with this profile's shortcuts beside it, and leaves it
+     * there until it is dismissed. Unlike the message it takes touches, since
+     * it has a button; it stays out of the way of keys, which still reach
+     * whatever is underneath.
+     */
+    fun showMap(title: String, callouts: List<ButtonMap.Callout>) {
+        dismissMap()
+        val metrics = context.resources.displayMetrics
+        val params = layoutParams().apply {
+            width = (metrics.widthPixels * 0.92f).toInt()
+            height = (metrics.heightPixels * 0.86f).toInt()
+            gravity = Gravity.CENTER
+            y = 0
+            flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+        }
+        val view = ThorMapView(context, title, callouts, onDismiss = ::dismissMap)
+        if (runCatching { windowManager.addView(view, params) }.isFailure) return
+        map = view
+        mapShownAt = SystemClock.uptimeMillis()
+    }
+
+    /**
+     * A button press puts the map away too, so a Thor whose touchscreen is
+     * busy elsewhere is never stuck behind it. The press that opened it does
+     * not count: a hold fires while the button is still down, and its release
+     * would arrive the moment the map appeared.
+     */
+    fun dismissMapOnKey() {
+        if (map != null && SystemClock.uptimeMillis() - mapShownAt > KEY_GRACE_MS) dismissMap()
+    }
+
+    fun dismissMap() {
+        map?.let { runCatching { windowManager.removeView(it) } }
+        map = null
     }
 
     private fun create(): TextView = TextView(context).apply {
@@ -77,5 +120,8 @@ class Overlay(private val context: Context) {
 
     private companion object {
         const val DURATION_MS = 2000L
+
+        /** Long enough for the press that opened the map to finish arriving. */
+        const val KEY_GRACE_MS = 900L
     }
 }

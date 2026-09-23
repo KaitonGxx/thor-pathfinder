@@ -91,10 +91,19 @@ enum class LaunchScreen(val label: String, val short: String) {
 /** What a "Close app(s)" shortcut closes. */
 enum class CloseTarget(val label: String) {
     ALL("Close all apps"),
+    BACKGROUND("Close background apps"),
     FOCUSED("Close focused app"),
     TOP("Close top app"),
     BOTTOM("Close bottom app"),
     SPECIFIC("Close specific apps"),
+}
+
+/** What a "Profile switcher" shortcut does when pressed. */
+enum class ProfileSwitch(val label: String) {
+    CYCLE("Cycle profiles"),
+    /** Turn one named profile on, or go back to the main one when it already is. */
+    ENABLE("Enable a profile"),
+    ASK("Ask each time"),
 }
 
 /** The screens a "Home" shortcut sends home. */
@@ -124,7 +133,8 @@ enum class ButtonAction(val label: String, val needsShizuku: Boolean = false) {
     SCREEN_RECORD("Screen record (Testing)", needsShizuku = true),
     POWER_MENU("Power menu"),
     LOCK_SCREEN("Lock screen"),
-    LAUNCH_APP("Open an app");
+    LAUNCH_APP("Open an app"),
+    PROFILE("Profile switcher");
 
     companion object {
         /** The choices offered for a button; "Do nothing" only matters where Pathfinder can block. */

@@ -61,6 +61,8 @@ import com.thorpathfinder.app.Gesture
 import com.thorpathfinder.app.HomeTarget
 import com.thorpathfinder.app.LaunchScreen
 import com.thorpathfinder.app.PhysicalButton
+import com.thorpathfinder.app.ProfileSwitch
+import com.thorpathfinder.app.Profiles
 import com.thorpathfinder.app.RecentTasks
 import com.thorpathfinder.app.Shell
 import com.thorpathfinder.app.Shortcuts
@@ -76,6 +78,8 @@ fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit, onOpenSetting
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val shortcuts = remember { ObservedShortcuts(Shortcuts(context)) }
+    // A different profile means different shortcuts, so every card is redrawn.
+    val profiles = remember { ProfileUi(context, onSwitched = shortcuts::reloaded) }
     val updates = remember { UpdateUi(context, scope) }
     // Every time the screen comes back, not only the first time it is built:
     // leaving Pathfinder and returning is exactly when a release may be out.
@@ -90,6 +94,7 @@ fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit, onOpenSetting
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Header(context, updates, onOpenSettings)
+            ProfileBar(profiles)
             if (!state.allGood) NeedsAttention(state, onFix)
             updates.notice?.let { release ->
                 UpdateCard(updates, release, onOpenPage = { runCatching { context.openUrl(it) } })
@@ -140,6 +145,9 @@ private sealed interface EditFlow {
 
     /** The apps a "Close specific apps" shortcut closes. */
     data class CloseApps(override val button: PhysicalButton, override val gesture: Gesture) : EditFlow
+
+    /** Which profile a Profile switcher shortcut turns on, or whether it cycles or asks. */
+    data class ProfileWhich(override val button: PhysicalButton, override val gesture: Gesture) : EditFlow
 }
 
 @Composable
@@ -165,6 +173,7 @@ private fun EditDialogs(
                     ButtonAction.LAUNCH_APP -> onFlow(EditFlow.HowMany(button, gesture))
                     ButtonAction.HOME -> onFlow(EditFlow.HomeWhere(button, gesture))
                     ButtonAction.CLOSE_ALL -> onFlow(EditFlow.CloseWhich(button, gesture))
+                    ButtonAction.PROFILE -> onFlow(EditFlow.ProfileWhich(button, gesture))
                     else -> {
                         shortcuts.set(button, gesture, action)
                         done()
@@ -237,6 +246,32 @@ private fun EditDialogs(
             },
             onDismiss = done,
         )
+        is EditFlow.ProfileWhich -> {
+            // Cycle and Ask, then one row per profile, so the whole choice is one dialog.
+            val profiles = remember { Profiles.all(context) }
+            PickDialog(
+                title = ButtonAction.PROFILE.label,
+                choices = listOf(
+                    ProfileSwitch.CYCLE.label to "Move to the next profile each press",
+                    ProfileSwitch.ASK.label to "Choose from a list when the shortcut runs",
+                ) + profiles.map { "Enable ${it.name}" to "Press again to go back to the main profile" },
+                onPick = { choice ->
+                    when (choice) {
+                        0 -> shortcuts.set(button, gesture, ButtonAction.PROFILE, profile = ProfileSwitch.CYCLE)
+                        1 -> shortcuts.set(button, gesture, ButtonAction.PROFILE, profile = ProfileSwitch.ASK)
+                        else -> shortcuts.set(
+                            button,
+                            gesture,
+                            ButtonAction.PROFILE,
+                            profile = ProfileSwitch.ENABLE,
+                            profileId = profiles[choice - 2].id,
+                        )
+                    }
+                    done()
+                },
+                onDismiss = done,
+            )
+        }
         is EditFlow.HomeWhere -> ChoiceDialog(
             title = "Send home on",
             options = HomeTarget.entries,
@@ -505,6 +540,13 @@ internal class ObservedShortcuts(private val store: Shortcuts) {
 
     fun closeApps(button: PhysicalButton, gesture: Gesture) = observe { store.closeApps(button, gesture) }
 
+    fun profile(button: PhysicalButton, gesture: Gesture) = observe { store.profile(button, gesture) }
+
+    fun profileId(button: PhysicalButton, gesture: Gesture) = observe { store.profileId(button, gesture) }
+
+    /** Another profile is in use, so every shortcut on the screen may have changed. */
+    fun reloaded() = changed()
+
     fun set(
         button: PhysicalButton,
         gesture: Gesture,
@@ -515,8 +557,10 @@ internal class ObservedShortcuts(private val store: Shortcuts) {
         home: HomeTarget? = null,
         close: CloseTarget = CloseTarget.ALL,
         closeApps: Set<String> = emptySet(),
+        profile: ProfileSwitch = ProfileSwitch.CYCLE,
+        profileId: Int = Profiles.ORIGINAL,
     ) {
-        store.set(button, gesture, action, app, screen, second, home, close, closeApps)
+        store.set(button, gesture, action, app, screen, second, home, close, closeApps, profile, profileId)
         changed()
     }
 
@@ -580,6 +624,11 @@ private fun valueText(context: Context, button: PhysicalButton, gesture: Gesture
                     }
                 }
                 ButtonAction.HOME -> shortcuts.home(button, gesture)?.let { "Home (${it.short})" } ?: action.label
+                ButtonAction.PROFILE -> when (shortcuts.profile(button, gesture)) {
+                    ProfileSwitch.CYCLE -> ProfileSwitch.CYCLE.label
+                    ProfileSwitch.ASK -> "Switch profile (ask)"
+                    ProfileSwitch.ENABLE -> "Enable " + Profiles.name(context, shortcuts.profileId(button, gesture))
+                }
                 ButtonAction.CLOSE_ALL -> when (val target = shortcuts.close(button, gesture)) {
                     CloseTarget.SPECIFIC ->
                         "Close " + RecentTasks.names(shortcuts.closeApps(button, gesture).map { appLabel(context, it) }.sorted())

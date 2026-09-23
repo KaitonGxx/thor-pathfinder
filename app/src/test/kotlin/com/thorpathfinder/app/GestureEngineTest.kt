@@ -8,6 +8,7 @@ import com.thorpathfinder.app.ButtonAction.SWAP_SCREENS
 import com.thorpathfinder.app.Gesture.DOUBLE
 import com.thorpathfinder.app.Gesture.HOLD
 import com.thorpathfinder.app.Gesture.PRESS
+import com.thorpathfinder.app.PhysicalButton.AYN
 import com.thorpathfinder.app.PhysicalButton.BACK
 import com.thorpathfinder.app.PhysicalButton.HOME
 import com.thorpathfinder.app.PhysicalButton.SELECT
@@ -67,6 +68,40 @@ class GestureEngineTest {
         clock.advance(heldMs)
         val up = onKey(button, down = false, repeat = 0, time = clock.now)
         return down to up
+    }
+
+    /**
+     * An engine that can only hand a press back when the button has a stand-in
+     * action, which is what the service does with no Shizuku to replay keys.
+     */
+    private fun engineWithNoReplay(vararg map: Pair<Pair<PhysicalButton, Gesture>, ButtonAction>) =
+        GestureEngine(Config(map.toMap()), clock, canRestore = { it.normalAction != null }) { b, g, a ->
+            fired += Triple(b, g, a)
+        }
+
+    @Test
+    fun withNoReplayTheAynButtonKeepsItsOwnMenu() {
+        // A hold shortcut used to swallow every AYN press, and a plain press
+        // could then only be given back by pressing the real key again.
+        val e = engineWithNoReplay((AYN to HOLD) to SWAP_SCREENS)
+        assertEquals(false to false, e.tap(AYN, heldMs = 900))
+        clock.advance(1000)
+        assertTrue(fired.isEmpty())
+    }
+
+    @Test
+    fun withNoReplayBackKeepsItsShortcutsBecauseItHasAStandIn() {
+        val e = engineWithNoReplay(*wayfinderLike)
+        assertEquals(true to true, e.tap(BACK, heldMs = 900))
+        assertEquals(listOf(Triple(BACK, HOLD, SWAP_SCREENS)), fired)
+    }
+
+    @Test
+    fun withNoReplayAnAynPressThatIsItselfAShortcutIsStillSwallowed() {
+        // Nothing has to be given back, so the shortcut still works.
+        val e = engineWithNoReplay((AYN to PRESS) to SCREENSHOT, (AYN to HOLD) to SWAP_SCREENS)
+        assertEquals(true to true, e.tap(AYN))
+        assertEquals(listOf(Triple(AYN, PRESS, SCREENSHOT)), fired)
     }
 
     @Test

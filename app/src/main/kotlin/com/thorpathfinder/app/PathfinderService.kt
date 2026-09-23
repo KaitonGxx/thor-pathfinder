@@ -2,6 +2,7 @@ package com.thorpathfinder.app
 
 import android.accessibilityservice.AccessibilityService
 import android.app.ActivityOptions
+import android.content.Context
 import android.content.Intent
 import android.os.Handler
 import android.os.Looper
@@ -11,6 +12,7 @@ import android.os.VibratorManager
 import android.view.Display
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
+import com.thorpathfinder.app.ui.ProfileChoiceActivity
 import com.thorpathfinder.app.ui.ScreenChoiceActivity
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -42,13 +44,20 @@ class PathfinderService : AccessibilityService() {
                 handler.postDelayed(runnable, delay)
                 Cancellable { handler.removeCallbacks(runnable) }
             },
+            // Back and Home have Android's own action to fall back on; the AYN
+            // button has only its real key, which takes Shizuku to press.
+            canRestore = { it.normalAction != null || Shell.ready },
             fire = ::perform,
         )
         running = true
+        current = this
     }
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
         if (!::engine.isInitialized) return false
+        // The map waits for a dismissal, and a press is one. The key still
+        // does its own job, so nothing is swallowed to close a window.
+        overlay.dismissMapOnKey()
         if (event.action != KeyEvent.ACTION_DOWN && event.action != KeyEvent.ACTION_UP) return false
         val button = PhysicalButton.of(event.keyCode, event.scanCode) ?: return false
         return engine.onKey(
@@ -90,6 +99,8 @@ class PathfinderService : AccessibilityService() {
                 toast(
                     when (shortcuts.close(button, gesture)) {
                         CloseTarget.ALL -> closeAllOutcomeMessage(RecentTasks.closeAll(this, keep))
+                        CloseTarget.BACKGROUND ->
+                            closeBackgroundOutcomeMessage(RecentTasks.closeBackground(this, keep))
                         CloseTarget.FOCUSED -> closeAppsOutcomeMessage(RecentTasks.closeFocused(this, keep))
                         CloseTarget.TOP -> closeAppsOutcomeMessage(
                             RecentTasks.closeOnScreen(this, Display.DEFAULT_DISPLAY, "the top screen", keep)
@@ -114,6 +125,7 @@ class PathfinderService : AccessibilityService() {
                 )
             }
             ButtonAction.LAUNCH_APP -> openApps(button, gesture)
+            ButtonAction.PROFILE -> switchProfile(button, gesture)
         }
     }
 
@@ -175,13 +187,41 @@ class PathfinderService : AccessibilityService() {
         }
     }
 
+    /**
+     * A "Profile switcher" shortcut: the next profile, one named profile (which
+     * goes back to the main one when it is already on), or ask. A named profile
+     * that has since been deleted falls back to cycling.
+     */
+    private fun switchProfile(button: PhysicalButton, gesture: Gesture) {
+        val id = shortcuts.profileId(button, gesture)
+        val mode = shortcuts.profile(button, gesture)
+        when {
+            mode == ProfileSwitch.ASK -> ask(Intent(this, ProfileChoiceActivity::class.java), "Couldn't ask which profile")
+            mode == ProfileSwitch.ENABLE && Profiles.has(this, id) -> announce(Profiles.enable(this, id))
+            else -> announce(Profiles.cycle(this))
+        }
+    }
+
+    /** What a switch looks like: the profile's button map, or just its name. */
+    private fun announce(profile: Profiles.Profile) {
+        if (Profiles.showMap(this)) {
+            overlay.showMap(profile.name, ButtonMap.callouts(this, shortcuts))
+        } else {
+            toast(profile.name)
+        }
+    }
+
     /** Puts "top or bottom?" on the top screen, for a shortcut set to ask. */
-    private fun ask(pkg: String) {
-        val question = Intent(this, ScreenChoiceActivity::class.java)
-            .putExtra(ScreenChoiceActivity.EXTRA_PACKAGE, pkg)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    private fun ask(pkg: String) = ask(
+        Intent(this, ScreenChoiceActivity::class.java).putExtra(ScreenChoiceActivity.EXTRA_PACKAGE, pkg),
+        "Couldn't ask which screen",
+    )
+
+    /** Puts one of Pathfinder's questions on the top screen. */
+    private fun ask(question: Intent, problem: String) {
+        question.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         val options = ActivityOptions.makeBasic().setLaunchDisplayId(Display.DEFAULT_DISPLAY).toBundle()
-        if (runCatching { startActivity(question, options) }.isFailure) toast("Couldn't ask which screen")
+        if (runCatching { startActivity(question, options) }.isFailure) toast(problem)
     }
 
     private fun buzz() {
@@ -198,6 +238,7 @@ class PathfinderService : AccessibilityService() {
 
     override fun onUnbind(intent: Intent?): Boolean {
         running = false
+        current = null
         if (::engine.isInitialized) engine.reset()
         if (::overlay.isInitialized) overlay.dismiss()
         handler.removeCallbacksAndMessages(null)
@@ -210,6 +251,19 @@ class PathfinderService : AccessibilityService() {
         @Volatile
         var running = false
             private set
+
+        /** The connected service, so a switch made in the app can be shown too. */
+        @Volatile
+        private var current: PathfinderService? = null
+
+        /**
+         * Says a profile was switched to somewhere other than a shortcut: the
+         * settings screen, or the question an "Ask" shortcut puts up.
+         */
+        fun profileSwitched(context: Context) {
+            val service = current ?: return
+            service.handler.post { service.announce(Profiles.active(context)) }
+        }
 
         /** How long a replayed press may take to arrive and still be let through. */
         private const val REPLAY_WINDOW_MS = 3000L

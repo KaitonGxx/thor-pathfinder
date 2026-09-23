@@ -27,6 +27,11 @@ fun interface Cancellable {
 class GestureEngine(
     private val config: GestureConfig,
     private val scheduler: Scheduler,
+    /**
+     * Whether a plain press of the button can be handed back to the system
+     * afterwards, by replaying the real key or by a stand-in action.
+     */
+    private val canRestore: (PhysicalButton) -> Boolean = { true },
     private val fire: (PhysicalButton, Gesture, ButtonAction) -> Unit,
 ) {
     private class State {
@@ -101,7 +106,12 @@ class GestureEngine(
         if (down) {
             if (repeat > 0) return s.intercepting
             // Untouched buttons keep their own behaviour, with no delay at all.
-            s.intercepting = button.gestures.any { mapped(button, it) }
+            // So do buttons whose plain press Pathfinder could not give back: the
+            // AYN button has no stand-in action, so without Shizuku swallowing it
+            // would cost the user the AYN menu itself. A press that is a shortcut
+            // never needs giving back, so that button is still swallowed.
+            s.intercepting = button.gestures.any { mapped(button, it) } &&
+                (mapped(button, Gesture.PRESS) || canRestore(button))
             if (!s.intercepting) return false
             s.downTime = time
             s.holdFired = false

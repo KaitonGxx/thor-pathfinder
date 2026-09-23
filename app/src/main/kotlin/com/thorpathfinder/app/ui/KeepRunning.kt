@@ -78,7 +78,8 @@ fun KeepRunningPage(onBack: () -> Unit) {
 
     PageScaffold(
         "Keep apps running",
-        "However Close app(s) closes them, all at once, one screen's, or picked by name, these " +
+        "However Close app(s) closes them, all at once, all but what's on screen, one screen's, " +
+            "or picked by name, these " +
             "leave the task view like any other but are never force-stopped, so music, a download " +
             "or a sync keeps going.",
         onBack = onBack,

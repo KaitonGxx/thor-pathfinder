@@ -55,9 +55,17 @@ object Launcher {
     }
 
     /**
-     * Sends the [target] screens home. With Shizuku this presses Home on each
-     * screen, exactly as the button would. Without it, Pathfinder starts the
-     * home screen there itself (see [homeIntent]).
+     * Sends the [target] screens home, by starting each screen's own home
+     * screen there (see [homeIntent]).
+     *
+     * Pressing the real Home key would be the truer imitation of the button,
+     * but it cannot be aimed reliably: AYN's "Enable Home and Back focus lock"
+     * setting re-points Home and Back at whichever screen Focus Mode holds, so
+     * an injected Home meant for the bottom screen sends the top one home
+     * instead. A launch display is addressed directly and no key is routed, so
+     * it obeys the target whatever that setting says. The key press is kept for
+     * the one case the intent cannot cover: a screen with no home activity to
+     * start.
      */
     fun goHome(context: Context, target: HomeTarget): String? {
         val other = ScreenSwap.otherDisplay(context)?.displayId
@@ -68,17 +76,21 @@ object Launcher {
         }
         val missing = if (target != HomeTarget.TOP && other == null) "No second screen found" else null
         if (displays.isEmpty()) return missing
-        if (Shell.ready) {
-            // Injected keys carry scan code 0, so Pathfinder's own service ignores them.
-            val pressed = Shell.sh(displays.joinToString("; ") { "input -d $it keyevent KEYCODE_HOME" })
-            if (pressed.ok) return missing
-        }
-        for (display in displays) {
-            val home = homeIntent(context, display) ?: return "Couldn't find a home screen for that screen"
+        // Every screen is tried, so one bad screen cannot strand the other.
+        val failed = displays.mapNotNull { home(context, it) }
+        return failed.firstOrNull() ?: missing
+    }
+
+    /** Sends one screen home; null when it went. */
+    private fun home(context: Context, display: Int): String? {
+        val home = homeIntent(context, display)
+        if (home != null) {
             val options = ActivityOptions.makeBasic().setLaunchDisplayId(display).toBundle()
-            if (runCatching { context.startActivity(home, options) }.isFailure) return "Couldn't go home"
+            if (runCatching { context.startActivity(home, options) }.isSuccess) return null
         }
-        return missing
+        // Injected keys carry scan code 0, so Pathfinder's own service ignores them.
+        if (Shell.ready && Shell.run("input", "-d", display.toString(), "keyevent", "KEYCODE_HOME").ok) return null
+        return if (home == null) "Couldn't find a home screen for that screen" else "Couldn't go home"
     }
 
     /**

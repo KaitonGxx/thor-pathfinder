@@ -59,6 +59,14 @@
             android:taskAffinity=""
             android:theme="@style/Theme.Pathfinder.Question" />
 
+        <!-- The same, for a "Profile switcher" shortcut set to ask -->
+        <activity
+            android:name=".ui.ProfileChoiceActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Pathfinder.Question" />
+
         <service
             android:name=".PathfinderService"
             android:exported="false"

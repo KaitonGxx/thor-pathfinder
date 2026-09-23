@@ -250,6 +250,43 @@ object RecentTasks {
         data class Failed(val message: String) : Outcome
     }
 
+    /**
+     * The closable tasks of apps that are on neither screen. An app showing
+     * anywhere is kept whole, other tasks of its own included, so going back
+     * to it finds it as it was.
+     */
+    fun background(tasks: List<RecentTask>, onScreen: Set<String>): List<RecentTask> =
+        tasks.filter { it.packageName != null && it.packageName !in onScreen }
+
+    /**
+     * Closes every app in Recents except the ones on screen. Both screens are
+     * left as they are: what is on them is the point of the shortcut, so
+     * unlike [closeAll] nothing is sent home.
+     */
+    fun closeBackground(context: Context, keepRunning: Set<String> = emptySet()): Outcome {
+        if (!Shell.ready) return Outcome.NeedsShizuku
+        // What is on screen comes from the same list a swap reads, so "on
+        // screen" means there whichever screen it is, and however it got there.
+        val list = Shell.run("am", "stack", "list")
+        if (!list.ok) return Outcome.Failed(list.err.ifBlank { "am stack list failed" })
+        val onScreen = ScreenSwap.parse(list.out).filter { it.visible }.mapNotNull { it.topPackage }.toSet()
+        val dump = Shell.run("dumpsys", "activity", "recents")
+        if (!dump.ok) return Outcome.Failed(dump.err.ifBlank { "dumpsys failed" })
+        val tasks = background(closable(parse(dump.out), ScreenSwap.exclusions(context)), onScreen)
+        val ids = tasks.map { it.id }
+        val packages = stoppable(tasks, context.packageName, keepRunning)
+        Log.i(TAG, "closing background tasks $ids, on screen $onScreen, stopping $packages")
+        if (ids.isEmpty()) return Outcome.NothingToClose
+        val stop = packages.joinToString("") { "; am force-stop $it" }
+        // One task failing must not stop the rest, so no && between steps.
+        val result = Shell.sh(
+            "for t in \"\$@\"; do am stack remove \"\$t\"; done$stop",
+            *ids.map(Int::toString).toTypedArray(),
+        )
+        if (!result.ok) return Outcome.Failed(result.err.lineSequence().firstOrNull { it.isNotBlank() } ?: "remove failed")
+        return Outcome.Closed(ids.size)
+    }
+
     /** Closes every app in Recents. Blocking: run off the main thread. */
     fun closeAll(context: Context, keepRunning: Set<String> = emptySet()): Outcome {
         if (!Shell.ready) return Outcome.NeedsShizuku
@@ -285,6 +322,13 @@ fun closeAppsOutcomeMessage(outcome: RecentTasks.AppsOutcome): String = when (ou
     RecentTasks.AppsOutcome.NoneRunning -> "No selected task(s) running"
     RecentTasks.AppsOutcome.NeedsShizuku -> "Closing apps needs Shizuku"
     is RecentTasks.AppsOutcome.Failed -> "Couldn't close it: ${outcome.message}"
+}
+
+/** A message after closing everything but what is on screen. */
+fun closeBackgroundOutcomeMessage(outcome: RecentTasks.Outcome): String = when (outcome) {
+    is RecentTasks.Outcome.Closed -> "Background tasks closed"
+    RecentTasks.Outcome.NothingToClose -> "No background tasks"
+    else -> closeAllOutcomeMessage(outcome)
 }
 
 /** A message for the user, worded like Recents' own. */

@@ -65,6 +65,33 @@ class RecentTasksTest {
     }
 
     @Test
+    fun closingBackgroundAppsKeepsWhateverIsOnScreen() {
+        val closing = RecentTasks.closable(RecentTasks.parse(captured), thor)
+        // YouTube is the app on a screen; Settings and Pathfinder's own window are not.
+        val background = RecentTasks.background(closing, setOf("com.google.android.youtube"))
+        assertEquals(listOf(270, 268), background.map { it.id })
+        // The app left on screen is never force-stopped, since its task never closes.
+        assertEquals(listOf("com.android.settings"), RecentTasks.stoppable(background, "com.thorpathfinder.app"))
+        assertEquals("Background tasks closed", closeBackgroundOutcomeMessage(RecentTasks.Outcome.Closed(2)))
+    }
+
+    @Test
+    fun withBothScreensOnTheirHomeScreensEverythingIsBackground() {
+        val closing = RecentTasks.closable(RecentTasks.parse(captured), thor)
+        assertEquals(closing.map { it.id }, RecentTasks.background(closing, emptySet()).map { it.id })
+    }
+
+    @Test
+    fun closingBackgroundAppsWithNothingBehindSaysSo() {
+        val closing = RecentTasks.closable(RecentTasks.parse(captured), thor)
+        val onScreen = closing.mapNotNull { it.packageName }.toSet()
+        assertTrue(RecentTasks.background(closing, onScreen).isEmpty())
+        assertEquals("No background tasks", closeBackgroundOutcomeMessage(RecentTasks.Outcome.NothingToClose))
+        // The wording for everything else is shared with Close all apps.
+        assertEquals("Closing tasks needs Shizuku", closeBackgroundOutcomeMessage(RecentTasks.Outcome.NeedsShizuku))
+    }
+
+    @Test
     fun anAppOnTheKeepRunningListLosesItsTaskButIsNotStopped() {
         val closing = RecentTasks.closable(RecentTasks.parse(captured), thor)
         val stopping = RecentTasks.stoppable(
