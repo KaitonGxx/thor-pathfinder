@@ -568,6 +568,11 @@ Escape sequences written through Python or heredocs can land as real line
 breaks or control bytes. Write Kotlin escapes with the Edit/Write tools and
 check sources for bytes below 0x20 (other than tab/newline) and 0x7F.
 
+`.gitattributes` pins `*.sh` and `gradlew` to LF. The build machine has
+`core.autocrlf=true`, so without it a fresh checkout turns `watchdog.sh`
+into CRLF, the APK carries it as it is, and the Thor's `sh` reads each
+carriage return as part of the command (`x=1\r` does not set `x` to `1`).
+
 ## Possible next steps
 
 - A GitHub Actions build (it would need the key as repository secrets).

@@ -3,3 +3,7 @@ app/src/test/resources/** -text
 
 gradlew text eol=lf
 *.bat text eol=crlf
+
+# Shell scripts run on the Thor (watchdog.sh goes into the APK as it is), and
+# its sh reads a carriage return as part of the command
+*.sh text eol=lf
