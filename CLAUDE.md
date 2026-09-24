@@ -8,8 +8,16 @@ Kotlin + Jetpack Compose, package `com.thorpathfinder.app`, minSdk 33
 Machine-specific notes (toolchain paths, the test Thor's serial, git
 identity) live in `CLAUDE.local.md`, which is gitignored.
 
-## Status (2026-09-23)
+## Status (2026-09-24)
 
+- v0.8.2 (versionCode 17), released 2026-09-24: the watchdog starts again by
+  itself once Shizuku is running, at boot or when started by hand later, if it
+  was left switched on. `Watchdog.alive()` ran `pgrep` inside `sh -c`, whose
+  own command line carries the pattern, so it always answered yes: the page
+  never showed "On, but not running", the report always said running, and a
+  resume would never have fired. `pgrep` and `pkill` now run directly (through
+  `sh -c`, `pkill` also killed its own shell). The mouse mode shortcut no
+  longer shows its own "on/off" message, since the Thor shows one.
 - v0.8.1 (versionCode 16), released 2026-09-23: everything about the
   accessibility service going quiet. `SystemState.serviceOn` now means Android
   has actually *started* the service (from
@@ -349,6 +357,35 @@ app/src/test/           JVM tests; resources are real captures from the Thor
   anywhere closes it, and so does any key press after a 900 ms grace period,
   which stops the release of the hold that opened it from closing it at once
   and means a busy touchscreen can never strand the user behind it.
+- **A real scroll wheel for mouse mode is shelved** (local branch
+  `shelved/mouse-wheel`). A true wheel works on the Thor: Android's own
+  `/system/bin/uinput` tool, run as the shell user, makes a virtual mouse
+  whose `REL_WHEEL` scrolls lists as `ACTION_SCROLL`, and the driver runs from
+  the APK through `app_process` (R8 needs a -keep rule for it). What stops it
+  is the stick data. "Odin Controller" (`event9`) is a virtual device fed by
+  `com.odin.mapping`; in AYN's mouse mode that service stops sending the sticks
+  to it and turns the right stick into synthetic touches written into the
+  touchscreen (`event6`), so nothing readable carries the stick. Outside their
+  mouse mode the sticks reach apps through that device, which an app cannot
+  stop. There is no EVIOCGRAB in play (a second reader gets injected events
+  either way). AYN reads its mouse mode config only at start-up and its
+  service runs as system, so the shell cannot make it reload; setting the
+  right stick's `sensitivity` to 0 turned the swipe into stationary taps, not
+  nothing. AYN's behaviour list has no wheel and no right click (their English
+  "mouse wheel" description is wrong; their UI says the right stick simulates
+  a finger turning pages). Untried: removing `RIGHT_JOYSTICK` from their config
+  to see if the stick is then passed through, or grabbing the controller in
+  native code, which would also take Back, Home and the AYN button.
+- **The watchdog comes back after a restart.** Its marker file in
+  /data/local/tmp survives a reboot but the script doesn't, since Shizuku
+  starts afresh. `PathfinderService` registers a sticky Shizuku
+  binder-received listener, so whenever Shizuku becomes available (already up
+  at boot, or started by hand later) `Watchdog.resume` starts the script again
+  if the marker says it was switched on and no copy is running. Switched off,
+  the marker is gone and nothing restarts.
+- **Mouse mode shows only the Thor's message.** AYN posts its own toast when
+  mouse mode changes, so Pathfinder's shortcut says nothing on success and
+  only reports "needs Shizuku".
 - **Profiles are one SharedPreferences file each** (`Profiles`). The main
   profile keeps the original `shortcuts` file, so an update needs no
   migration; the others are `shortcuts.<id>`. A separate `profiles` file holds

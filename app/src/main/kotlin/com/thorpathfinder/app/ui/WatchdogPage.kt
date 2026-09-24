@@ -125,7 +125,8 @@ fun WatchdogPage(state: SystemState, onBack: () -> Unit) {
                     "service off yourself still works.",
             )
             Para(
-                "It stops at a restart, since Shizuku does too, and it stops the moment you turn " +
+                "A restart stops it along with Shizuku, and it starts again by itself once Shizuku " +
+                    "is running. It stops the moment you turn " +
                     "this off. The script is watchdog.sh in Pathfinder's source, and it is short.",
             )
 

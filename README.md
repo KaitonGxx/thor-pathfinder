@@ -214,7 +214,9 @@ Pathfinder, it carries on when something stops Pathfinder itself, and it puts
 the service back within a few seconds. It is off unless you turn it on, it only
 ever adds Pathfinder's own service, and it leaves the switch alone while
 Android's settings are open, so switching the service off yourself still works.
-It stops at a restart, since Shizuku does. The script is `watchdog.sh` in the
+A restart stops it along with Shizuku, and it starts again by itself as soon
+as Shizuku is running, whether Shizuku comes up at boot or you start it later.
+The script is `watchdog.sh` in the
 source and it is worth reading.
 
 The cog's **Diagnostics** page gathers everything that matters when reporting

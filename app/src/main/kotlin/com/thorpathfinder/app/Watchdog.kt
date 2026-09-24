@@ -33,6 +33,9 @@ object Watchdog {
     private const val MARKER = "$DIR/thorpathfinder-watchdog.on"
     private const val LOG = "$DIR/thorpathfinder-watchdog.log"
 
+    /** What the running script's command line contains, for pgrep and pkill. */
+    private const val PATTERN = "thorpathfinder-watchdog.sh"
+
     sealed interface Outcome {
         data object Started : Outcome
         data object Stopped : Outcome
@@ -59,7 +62,10 @@ object Watchdog {
     /** Whether a copy really is running, which is not the same as being meant to. */
     fun alive(): Boolean {
         if (!Shell.ready) return false
-        return Shell.run("sh", "-c", "pgrep -f thorpathfinder-watchdog.sh | head -n 1").out.isNotBlank()
+        // Run directly, not through sh -c: a wrapping shell carries the pattern
+        // in its own command line, so pgrep would find the shell asking and
+        // always answer yes.
+        return Shell.run("pgrep", "-f", PATTERN).out.isNotBlank()
     }
 
     fun start(context: Context): Outcome {
@@ -84,6 +90,19 @@ object Watchdog {
         return Outcome.Started
     }
 
+    /**
+     * Starts it again if it was left switched on but isn't running, which is
+     * how every restart leaves it: it runs under Shizuku, and Shizuku starts
+     * afresh. The service calls this whenever Shizuku becomes available,
+     * whether that is at boot or later by hand. Switched off, the marker is
+     * gone and this does nothing, so it never overrides the user's choice.
+     * True when it started one.
+     */
+    fun resume(context: Context): Boolean {
+        if (!Shell.ready || !on(context) || alive()) return false
+        return start(context) == Outcome.Started
+    }
+
     fun stop(): Outcome {
         if (!Shell.ready) return Outcome.NeedsShizuku
         // The marker going is what tells the loop to finish; the kill is for
@@ -102,7 +121,8 @@ object Watchdog {
     }
 
     private fun stopProcesses() {
-        Shell.run("sh", "-c", "pkill -f thorpathfinder-watchdog.sh")
+        // Directly for the same reason: through sh -c, pkill kills its own shell.
+        Shell.run("pkill", "-f", PATTERN)
     }
 }
 

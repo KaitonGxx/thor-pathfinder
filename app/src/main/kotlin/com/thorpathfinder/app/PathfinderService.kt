@@ -15,6 +15,7 @@ import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import com.thorpathfinder.app.ui.ProfileChoiceActivity
 import com.thorpathfinder.app.ui.ScreenChoiceActivity
+import rikka.shizuku.Shizuku
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -28,6 +29,19 @@ class PathfinderService : AccessibilityService() {
 
     private val handler = Handler(Looper.getMainLooper())
     private var watcher: ContentObserver? = null
+
+    /**
+     * Shizuku arriving, at boot or when started by hand later, is the moment a
+     * watchdog left switched on can run again. Sticky, so a Shizuku that was
+     * already up when the service started counts too.
+     */
+    private val shizukuUp = Shizuku.OnBinderReceivedListener {
+        runCatching {
+            worker.execute {
+                if (Watchdog.resume(this)) ServiceLog.add(this, "watchdog started again, now that Shizuku is running")
+            }
+        }
+    }
     private lateinit var shortcuts: Shortcuts
     private lateinit var engine: GestureEngine
     private lateinit var worker: ExecutorService
@@ -43,6 +57,7 @@ class PathfinderService : AccessibilityService() {
         ServiceLog.noteStart(this)
         shortcuts = Shortcuts(this)
         worker = Executors.newSingleThreadExecutor()
+        Shizuku.addBinderReceivedListenerSticky(shizukuUp)
         overlay = Overlay(this)
         // If the last stop went unexplained, the log still holds what happened.
         worker.execute { ServiceLog.captureIfPending(this) }
@@ -125,13 +140,9 @@ class PathfinderService : AccessibilityService() {
             }
             ButtonAction.SCREEN_RECORD -> worker.execute { screenRecordOutcomeMessage(ScreenRecord.open(this))?.let(::toast) }
             ButtonAction.MOUSE_MODE -> worker.execute {
-                toast(
-                    when (MouseMode.toggle()) {
-                        true -> "Mouse mode on"
-                        false -> "Mouse mode off"
-                        null -> "Mouse mode needs Shizuku"
-                    }
-                )
+                // The Thor puts up its own message when mouse mode changes, so
+                // Pathfinder only speaks when it couldn't change it.
+                if (MouseMode.toggle() == null) toast("Mouse mode needs Shizuku")
             }
             ButtonAction.LAUNCH_APP -> openApps(button, gesture)
             ButtonAction.PROFILE -> switchProfile(button, gesture)
@@ -254,6 +265,7 @@ class PathfinderService : AccessibilityService() {
         if (::engine.isInitialized) engine.reset()
         if (::overlay.isInitialized) overlay.dismiss()
         handler.removeCallbacksAndMessages(null)
+        Shizuku.removeBinderReceivedListener(shizukuUp)
         if (::worker.isInitialized) worker.shutdown()
         return super.onUnbind(intent)
     }
