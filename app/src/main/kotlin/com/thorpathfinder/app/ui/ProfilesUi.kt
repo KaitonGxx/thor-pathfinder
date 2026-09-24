@@ -1,6 +1,7 @@
 package com.thorpathfinder.app.ui
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -42,13 +44,21 @@ import com.thorpathfinder.app.Profiles
 /**
  * The profiles as Compose sees them.
  *
- * Every screen that shows profiles builds its own, and each one is thrown
- * away when its screen leaves, so coming back always reads what is stored.
+ * Every screen that shows profiles builds its own through [rememberProfileUi],
+ * which also follows switches made elsewhere while the screen is up: a
+ * Profile switcher shortcut, or the question an "Ask" one puts up.
  * [onSwitched] lets the settings screen redraw its shortcut cards, since a
  * different profile means different shortcuts.
  */
 @Stable
 internal class ProfileUi(private val context: Context, private val onSwitched: () -> Unit = {}) {
+
+    // Kept here, since Android only holds a preference listener weakly.
+    private val changed = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> refresh() }
+
+    fun watch() = Profiles.watch(context, changed)
+
+    fun unwatch() = Profiles.unwatch(context, changed)
 
     var profiles by mutableStateOf(Profiles.all(context))
         private set
@@ -124,6 +134,18 @@ internal class ProfileUi(private val context: Context, private val onSwitched: (
     }
 }
 
+/** The profiles for one screen, kept up to date for as long as it is showing. */
+@Composable
+internal fun rememberProfileUi(onSwitched: () -> Unit = {}): ProfileUi {
+    val context = LocalContext.current
+    val ui = remember { ProfileUi(context, onSwitched) }
+    DisposableEffect(ui) {
+        ui.watch()
+        onDispose { ui.unwatch() }
+    }
+    return ui
+}
+
 /** What a row on the Manage profiles page offers for one profile. */
 private enum class ProfileRowAction { ENABLE, BACK_TO_MAIN, MAKE_MAIN, RENAME, DELETE }
 
@@ -139,7 +161,7 @@ internal fun ProfileBar(ui: ProfileUi) {
 
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(
-            "Profiles",
+            "Active Profile:",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(start = 2.dp, end = 8.dp),
@@ -267,7 +289,7 @@ private fun RenameProfileDialog(profile: Profiles.Profile, onRename: (String) ->
 @Composable
 internal fun ManageProfilesPage(onBack: () -> Unit) {
     val context = LocalContext.current
-    val ui = remember { ProfileUi(context) }
+    val ui = rememberProfileUi()
     var acting by remember { mutableStateOf<Profiles.Profile?>(null) }
     var renaming by remember { mutableStateOf<Profiles.Profile?>(null) }
     var deleting by remember { mutableStateOf<Profiles.Profile?>(null) }

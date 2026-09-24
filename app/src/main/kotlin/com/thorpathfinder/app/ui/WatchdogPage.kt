@@ -116,13 +116,20 @@ fun WatchdogPage(state: SystemState, onBack: () -> Unit) {
                 "Shizuku starts a small script that belongs to Shizuku rather than to Pathfinder, " +
                     "so force-stopping or killing Pathfinder doesn't stop it. Every few seconds it " +
                     "checks whether Pathfinder is still in Android's accessibility list, and puts it " +
-                    "back if it has gone. A check costs about 12 milliseconds, so even the quickest " +
-                    "setting is a fraction of a percent of one processor core.",
+                    "back if it has gone. A check costs about 22 milliseconds, so even the quickest " +
+                    "setting is under half a percent of one processor core.",
             )
             Para(
                 "It only ever adds Pathfinder's own service. It never removes anyone else's, and it " +
                     "leaves the switch alone while Android's settings are open, so switching the " +
                     "service off yourself still works.",
+            )
+            Para(
+                "It also takes Pathfinder, and nothing else, off the list in the Thor's APP Auto " +
+                    "Launch Manage page. Despite the name, the apps switched on there can't have " +
+                    "anything started in the background, so on that list Pathfinder's service never " +
+                    "starts after a restart. It leaves that list alone while the Thor's settings are " +
+                    "open.",
             )
             Para(
                 "A restart stops it along with Shizuku, and it starts again by itself once Shizuku " +

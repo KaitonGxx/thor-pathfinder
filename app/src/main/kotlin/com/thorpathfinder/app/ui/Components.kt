@@ -9,13 +9,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -34,6 +38,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -62,6 +67,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.semantics.Role
@@ -70,6 +78,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 
 @Composable
 fun PathfinderTheme(content: @Composable () -> Unit) {
@@ -105,6 +114,23 @@ fun OkDot(size: Dp = 18.dp) {
             tint = Color.White,
             modifier = Modifier.size(size * 0.7f),
         )
+    }
+}
+
+/** A white dot with a dash: nothing to report, because nothing has been checked. */
+@Composable
+fun NeutralDot(size: Dp = 18.dp) {
+    Box(
+        Modifier
+            .size(size)
+            .background(Color.White, CircleShape)
+            // White on a light screen needs an edge to be seen at all.
+            .then(
+                if (isSystemInDarkTheme()) Modifier else Modifier.border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(Modifier.size(width = size * 0.5f, height = 2.dp).background(Color(0xFF424242), RoundedCornerShape(1.dp)))
     }
 }
 
@@ -409,7 +435,21 @@ fun PickDialog(title: String, choices: List<Pair<String, String?>>, onPick: (Int
     LaunchedEffect(inputMode) { runCatching { first.requestFocus() } }
 }
 
-/** Pick one of [options]; focus starts on the current choice. */
+/** The two ways [ChoiceDialog] can lay out a long list: one column, or a wide grid. */
+object ChoiceLayout {
+    const val LIST = 1
+    const val WIDE = 3
+}
+
+/**
+ * Pick one of [options]; focus starts on the current choice. An option that
+ * [leadsOn] asks more before anything is saved, and carries the same arrow
+ * as a row that opens a page; those come last, together, after a small gap.
+ * With more than one of [columns], the options sit in a grid read across, in
+ * a dialog wide enough for it, so a long list fits the Thor's short screens.
+ * Given [onColumnsChange], the title row offers both layouts to switch
+ * between.
+ */
 @Composable
 fun <T> ChoiceDialog(
     title: String,
@@ -417,61 +457,165 @@ fun <T> ChoiceDialog(
     selected: T?,
     label: (T) -> String,
     detail: (T) -> String? = { null },
+    leadsOn: (T) -> Boolean = { false },
+    columns: Int = 1,
+    onColumnsChange: ((Int) -> Unit)? = null,
     onPick: (T) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val initial = remember { FocusRequester() }
-    Dialog(onDismissRequest = onDismiss) {
-        Card {
-            Column(Modifier.padding(vertical = 16.dp)) {
-                Text(
-                    title,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+    val grid = columns > 1
+    // Sized by hand when it can be a grid, so switching layouts never changes
+    // how Android sizes the window.
+    val sized = grid || onColumnsChange != null
+    val groups = listOf(options.filterNot(leadsOn), options.filter(leadsOn)).filter { it.isNotEmpty() }
+    val shown = groups.flatten()
+
+    @Composable
+    fun Choice(index: Int, option: T, modifier: Modifier) {
+        val isSelected = option == selected
+        val focusFirst = isSelected || (selected == null && index == 0)
+        Row(
+            modifier
+                .then(if (focusFirst) Modifier.focusRequester(initial) else Modifier)
+                .focusOutline()
+                .clip(RowShape)
+                .selectable(selected = isSelected, role = Role.RadioButton) { onPick(option) }
+                .padding(horizontal = 8.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            RadioButton(selected = isSelected, onClick = null)
+            Spacer(Modifier.width(if (grid) 8.dp else 12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(label(option), style = MaterialTheme.typography.bodyLarge)
+                detail(option)?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            if (leadsOn(option)) {
+                Spacer(Modifier.width(if (grid) 4.dp else 12.dp))
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                // Shrinks to fit a short screen, so Cancel stays in sight below it.
-                Column(
-                    Modifier
-                        .weight(1f, fill = false)
-                        .heightIn(max = 420.dp)
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 12.dp),
-                ) {
-                    options.forEachIndexed { index, option ->
-                        val isSelected = option == selected
-                        val focusFirst = isSelected || (selected == null && index == 0)
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .then(if (focusFirst) Modifier.focusRequester(initial) else Modifier)
-                                .focusOutline()
-                                .clip(RowShape)
-                                .selectable(selected = isSelected, role = Role.RadioButton) { onPick(option) }
-                                .padding(horizontal = 8.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            RadioButton(selected = isSelected, onClick = null)
+            }
+        }
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        // Android's own dialog width is for one column; a grid sizes itself.
+        properties = DialogProperties(usePlatformDefaultWidth = !sized),
+    ) {
+        Box(
+            if (sized) Modifier.fillMaxWidth().padding(horizontal = 16.dp) else Modifier,
+            contentAlignment = Alignment.Center,
+        ) {
+            Card(if (sized) Modifier.widthIn(max = if (grid) 760.dp else 560.dp) else Modifier) {
+                Column(Modifier.padding(vertical = 16.dp)) {
+                    Row(
+                        Modifier.padding(start = 24.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                        if (onColumnsChange != null) {
                             Spacer(Modifier.width(12.dp))
-                            Column {
-                                Text(label(option), style = MaterialTheme.typography.bodyLarge)
-                                detail(option)?.let {
-                                    Text(
-                                        it,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
+                            LayoutSwitch(Icons.AutoMirrored.Filled.List, "List view", !grid) {
+                                onColumnsChange(ChoiceLayout.LIST)
+                            }
+                            Spacer(Modifier.width(4.dp))
+                            LayoutSwitch(WideIcon, "Wide view", grid) { onColumnsChange(ChoiceLayout.WIDE) }
+                        }
+                    }
+                    // Shrinks to fit a short screen, so Cancel stays in sight below it.
+                    Column(
+                        Modifier
+                            .weight(1f, fill = false)
+                            .heightIn(max = 420.dp)
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 12.dp),
+                    ) {
+                        groups.forEachIndexed { group, members ->
+                            if (group > 0) Spacer(Modifier.height(8.dp))
+                            if (grid) {
+                                // Each group starts a row of its own.
+                                members.chunked(columns).forEach { cells ->
+                                    // Each cell as tall as the tallest beside it, so the outlines line up.
+                                    Row(
+                                        Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    ) {
+                                        cells.forEach { option ->
+                                            Choice(shown.indexOf(option), option, Modifier.weight(1f).fillMaxHeight())
+                                        }
+                                        repeat(columns - cells.size) { Spacer(Modifier.weight(1f)) }
+                                    }
                                 }
+                            } else {
+                                members.forEach { option -> Choice(shown.indexOf(option), option, Modifier.fillMaxWidth()) }
                             }
                         }
                     }
+                    TextButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.align(Alignment.End).padding(horizontal = 16.dp).focusOutline(PillShape),
+                    ) { Text("Cancel") }
                 }
-                TextButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.align(Alignment.End).padding(horizontal = 16.dp).focusOutline(PillShape),
-                ) { Text("Cancel") }
             }
         }
     }
     val inputMode = LocalInputModeManager.current.inputMode
     LaunchedEffect(inputMode) { runCatching { initial.requestFocus() } }
 }
+
+/** One of the two layout icons on a [ChoiceDialog]'s title row; the one in use is filled in. */
+@Composable
+private fun LayoutSwitch(icon: ImageVector, description: String, selected: Boolean, onClick: () -> Unit) {
+    Box(
+        Modifier
+            .size(40.dp)
+            .focusOutline(CircleShape)
+            .clip(CircleShape)
+            .background(if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            icon,
+            contentDescription = description,
+            tint = if (selected) {
+                MaterialTheme.colorScheme.onSecondaryContainer
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
+        )
+    }
+}
+
+/** Three columns of two: the wide view, drawn as itself. Material's core icons have no grid. */
+private val WideIcon: ImageVector = ImageVector.Builder(
+    name = "WideView",
+    defaultWidth = 24.dp,
+    defaultHeight = 24.dp,
+    viewportWidth = 24f,
+    viewportHeight = 24f,
+).apply {
+    path(fill = SolidColor(Color.Black)) {
+        for (column in 0..2) {
+            for (row in 0..1) {
+                val x = 3f + column * 6.5f
+                val y = 5f + row * 7.5f
+                moveTo(x, y)
+                lineTo(x + 5f, y)
+                lineTo(x + 5f, y + 6f)
+                lineTo(x, y + 6f)
+                close()
+            }
+        }
+    }
+}.build()

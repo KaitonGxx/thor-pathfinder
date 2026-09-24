@@ -10,6 +10,42 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
 
 ## Status (2026-09-24)
 
+- v0.8.3 (versionCode 18), released 2026-09-24. Also in it, described in
+  their own sections below: the profile map keeps the buttons and its
+  Dismiss shows an A, What's New on the update card, and the neutral update
+  button when Check on open is off. `fix-accessibility.sh` is no longer a
+  release asset. The label beside the profile
+  oval reads "Active Profile:", and screens showing profiles follow switches
+  made elsewhere (a Profile switcher shortcut, or its Ask question) instead of
+  keeping what they read when built. In the shortcut list, the actions that
+  ask more before saving (Open an app, Home, Close app(s), Profile switcher)
+  carry the same arrow as a row that opens a page, and come last, together,
+  after a small gap (`ChoiceDialog` groups by `leadsOn`; in a grid the group
+  starts its own row). The shortcut list is a 3-column grid read across by
+  default (`ChoiceLayout.WIDE`): both screens are landscape and only about
+  468 dp tall (top 1920x1080, bottom 1240x1080, both 369 dpi), so 17 choices
+  in one column always scrolled. Two icons on its title row switch between
+  list and wide (the grid icon is drawn by hand, since Material's core icons
+  have none); the pick is kept in the `ui` prefs (`shortcutListColumns`). A
+  dialog that can be a grid drops Android's default dialog width and caps
+  itself (760 dp wide, 560 dp as a list), so switching never changes how
+  Android sizes the window.
+  **AYN's auto launch list** (issue #1, see "Facts learned on the Thor"):
+  `AutoLaunchList` reads `boot_auto_launch_list` directly (no Shizuku
+  needed to read it); `SystemState.autoLaunchBlocked` puts it in the
+  attention card and the setup step, and the Diagnostics report prints the
+  list. `ServiceSwitch.turnOn` (the setup button, "Fix it" in this case)
+  takes Pathfinder off the list through Shizuku, keeping the other entries
+  and deleting the setting when nobody is left, before its off-and-on.
+  `watchdog.sh` and `tools/fix-accessibility.sh` do the same, and the
+  watchdog then switches the service off and on because Android never
+  retries on its own (reproduced on the test Thor: listed, a toggle leaves
+  it enabled and unbound with the stale `ServiceRecord`; unlisting alone
+  changes nothing; unlisting plus an off-and-on binds at once, no restart).
+  The watchdog leaves the list alone while `com.odin.settings` is in front.
+  Watchdog resume moved from `PathfinderService` to `PathfinderApp` (new
+  Application class), because a listed Pathfinder's service never starts,
+  while Shizuku still starts the process through `ShizukuProvider`.
 - v0.8.2 (versionCode 17), released 2026-09-24: the watchdog starts again by
   itself once Shizuku is running, at boot or when started by hand later, if it
   was left switched on. `Watchdog.alive()` ran `pgrep` inside `sh -c`, whose
@@ -31,10 +67,13 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
   N` for another app; nothing anywhere names who wrote the setting). A
   `Diagnostics` page gathers the lot for a bug report. Setup offers a
   Shizuku-backed off-and-on, and `tools/fix-accessibility.sh` does the same
-  from the Thor's own "Run script as Root" for when Shizuku isn't up. An
+  from the Thor's own "Run script as Root" for when Shizuku isn't up (attached
+  to the 0.8.0 to 0.8.2 releases; from 0.8.3 on it is in the repo only, not
+  a release asset). An
   opt-in `Watchdog` runs `assets/watchdog.sh` through Shizuku with `setsid`,
   so it belongs to Shizuku and survives Pathfinder being killed; it checks
-  every 5 seconds by default (12 ms a check, measured), only ever adds
+  every 5 seconds by default (12 ms a check, measured; 22 ms since 0.8.3
+  reads AYN's auto launch list too), only ever adds
   Pathfinder's own component, and leaves the switch alone while Android's
   settings are open so a deliberate switch-off stands.
 - v0.8.0 (versionCode 15), released 2026-09-23: **profiles**, several named
@@ -160,6 +199,29 @@ app/src/test/           JVM tests; resources are real captures from the Thor
 
 ## Facts learned on the Thor (firmware 1.0.0.377)
 
+- **AYN's auto-launch list blocks the accessibility bind** (read from this
+  firmware's `services.jar` and `OdinSettings.apk`; found through issue #1).
+  `ActiveServices.bindServiceLocked` and `startServiceLocked` call
+  `com.android.server.StartupManager.isBlockServiceLaunch(pkg, …)` right after
+  `retrieveServiceLocked` and return 0 when it says yes, with no log line.
+  `StartupManager` is built fresh on every call and reads
+  `Settings.System boot_auto_launch_list` (comma-separated packages); it
+  blocks a listed package unless one of its processes is at importance 100
+  (foreground) or 125 (foreground service). `BroadcastQueue` does the same
+  for broadcasts through `isBlockBroadcastLaunch`, and always blocks
+  BOOT_COMPLETED for listed packages. So a listed Pathfinder is enabled but
+  never bound: at boot, and at a toggle in Android's Settings, its process
+  is not in front. Symptoms: `ServiceRecord` with `app=null`, no Bindings,
+  `lastActivity` equal to `createTime`; `Binding` and `Crashed` empty. The
+  list is written only by OdinSettings' "APP Auto Launch Manage" page
+  (on screen: Settings → Thor settings → Advanced Settings; the labels are
+  OdinSettings' `app_name_for_thor` and `title_advanced`)
+  (`AppAutoLaunchManagerActivity`, opened from
+  `preference.advanced.AppAutoLaunchManagerPreference`): switching an app
+  on adds it, off removes it. Its own tip says selecting an app turns off
+  its startup services. GameAssistant and OdinLauncher only carry the key
+  in a shared constants class and never read it. Unset (`null`) on the test
+  Thor.
 - **Buttons.** Controller is "Odin Controller" (`/dev/input/event9`):
   KEY_BACK 158 -> BACK, KEY_HOME 102 -> HOME, plus Select, Start, L3 and R3.
   The AYN button is KEY_F24 (194) on `gpio-keys`, mapped to HOME WAKE. Keys
@@ -267,9 +329,18 @@ app/src/test/           JVM tests; resources are real captures from the Thor
   returning from Home would never re-check), unless one ran in the last 15
   minutes. The button reads "Update Available", "Up to date" or "Check For
   Updates", and the last answer is kept in the `updates` preferences so the
-  button says something before the new check lands. A new version raises a yellow card
-  (`WarningContainer`) with Update now, Dismiss (until the app is reopened)
-  and Don't show again (kept per version in `hiddenVersion`).
+  button says something before the new check lands. With Check on open off
+  (since 0.8.3), a remembered "Up to date" is not repeated, since nothing
+  keeps it fresh: the button reads "Check For Updates" with `NeutralDot` (a
+  white dot with a dash; outlined in the light theme). A remembered release
+  newer than the installed version still shows, since that stays true.
+  A fresh check from the button shows its real answer. A new version raises a yellow card
+  (`WarningContainer`) with Update now, What's New (since 0.8.3: the release
+  page, which holds that version's notes; without Update now the card shows
+  Open release page instead, which is the same page), Dismiss (until the app
+  is reopened) and Don't show again (kept per version in `hiddenVersion`).
+  The Check For Updates dialog's button reads What's New when there is an
+  update and Open release page otherwise.
 - **Installing an update** (`Updates.kt`, off by default) goes through
   Shizuku: `pm install-create -r -S <size>`, then `pm install-write -S <size>
   <session> base -` with the APK on stdin (`Shell.pipe`, so no file has to be
@@ -378,11 +449,25 @@ app/src/test/           JVM tests; resources are real captures from the Thor
   native code, which would also take Back, Home and the AYN button.
 - **The watchdog comes back after a restart.** Its marker file in
   /data/local/tmp survives a reboot but the script doesn't, since Shizuku
-  starts afresh. `PathfinderService` registers a sticky Shizuku
+  starts afresh. `PathfinderApp` (the Application) registers a sticky Shizuku
   binder-received listener, so whenever Shizuku becomes available (already up
   at boot, or started by hand later) `Watchdog.resume` starts the script again
   if the marker says it was switched on and no copy is running. Switched off,
-  the marker is gone and nothing restarts.
+  the marker is gone and nothing restarts. It lived in `PathfinderService` in
+  0.8.2, which never runs when AYN's auto launch list blocks it; Shizuku
+  starts the process through its provider either way.
+- **Profile screens watch the profiles file** (`rememberProfileUi`). A
+  `ProfileUi` used to read the profiles once, when its screen was built, so a
+  switch made by a shortcut or the Ask question while the app sat behind
+  another one (or on the other screen) left the oval and the shortcut cards on
+  the old profile. It now registers a SharedPreferences listener on `profiles`
+  for as long as the screen is composed; the service and the app share one
+  process, so the listener hears the service's writes. The listener lives in
+  the `ProfileUi` because Android holds it weakly.
+- **An arrow means more to pick.** `ChoiceDialog`'s `leadsOn` puts
+  `NavRow`'s arrow on an option that asks more before saving; in the shortcut
+  list that is decided by `nextStep`, the same function that picks the next
+  dialog, so the arrow and the flow cannot disagree.
 - **Mouse mode shows only the Thor's message.** AYN posts its own toast when
   mouse mode changes, so Pathfinder's shortcut says nothing on success and
   only reports "needs Shizuku".
@@ -414,6 +499,18 @@ app/src/test/           JVM tests; resources are real captures from the Thor
   down; a gesture mapped on that button simply waits for Shizuku. A press
   mapped to a shortcut of its own never needs giving back, so it is still
   intercepted.
+- **The profile map keeps the buttons** (`PathfinderService.keptForMap`,
+  since 0.8.3; the one deliberate exception to the rule above). While the map
+  is up, a fresh real press (repeat count 0, non-zero scan code, not volume
+  or power) closes it and is consumed, and so are that key's repeats and
+  release (`closedMap`), so neither a shortcut nor the app underneath sees
+  it. A key already down when the map appeared (the hold that switched)
+  passes as usual, which is why the old 900 ms grace period is gone. The map
+  window stays `FLAG_NOT_FOCUSABLE`: taking focus would make the game lose
+  window focus (many pause) and move the top-focused display. Sticks are
+  motion events and cannot be held back on Android 13. The Odin Controller
+  declares the D-pad both as `BTN_DPAD_*` keys and as `ABS_HAT0X/Y`; only
+  the key form can be kept.
 - **Accessibility events carry the display.** `AccessibilityEvent.getDisplayId()`
   (from AccessibilityRecord) is filled in on this firmware (0 top, 4 bottom)
   for window-state events, with no window-content capability; window ids come
@@ -477,3 +574,11 @@ check sources for bytes below 0x20 (other than tab/newline) and 0x7F.
 - Per-app exclusions (for example, leave Select alone in emulators).
 - An atomic swap (WindowContainerTransaction) to remove the brief cover.
 - Button combinations; opening an app on a chosen screen; translations.
+- Faster Screen record. The recorder panel still opens only from its QS tile
+  (rechecked in this firmware's SystemUI: `ScreenRecordDialog` is built only
+  in `ScreenRecordTile.handleClick`). Skip the `uiautomator dump` reads when
+  `sysui_qs_tiles` is unchanged since the tile was last found, by keeping
+  that string with the page and box and tapping straight away (about a
+  second instead of 2 s per read), falling back to the search otherwise.
+  The alternative is Pathfinder's own MediaProjection recorder, which opens
+  Android's consent prompt directly but captures the top screen only.

@@ -89,7 +89,9 @@ there's no button for it in its menus.
   clear outline when it has focus.
 - Pathfinder looks for a newer release when it opens, and the button at the
   top says what it found. A new version brings up a notice you can dismiss,
-  for now or for good.
+  for now or for good, with **What's New** to read that version's notes.
+  With *Check when Pathfinder opens* turned off, the button simply offers a
+  check rather than repeating an old "Up to date".
 - If you turn it on, Pathfinder installs an update itself: it fetches the APK
   from the release here and installs it through Shizuku, with nothing to
   confirm. It starts off, and only ever installs a build signed with the same
@@ -202,11 +204,25 @@ Both are fixed the same way: switch Thor Pathfinder off and on again in
 Android's accessibility list. With Shizuku connected, Pathfinder's setup screen
 offers a button that does it for you. Without Shizuku it can't, since only the
 shell user may change that setting — so there is a script for that case,
-`fix-accessibility.sh`, attached to each release. Put it somewhere you can
-reach, such as Download, then open the Thor's own settings, choose **Run script
-as Root** and pick it. It adds Pathfinder back to the list, keeps every other
-accessibility service exactly as it was, and changes nothing else. It is worth
+[`tools/fix-accessibility.sh`](tools/fix-accessibility.sh) in this repository.
+Put it somewhere you can reach, such as Download, then open the Thor's own
+settings, choose **Run script
+as Root** and pick it. It takes Pathfinder off APP Auto Launch Manage's list
+(see below), adds it back to the accessibility list, keeps every other app and
+service in both exactly as they were, and changes nothing else. It is worth
 reading before running; it is deliberately short.
+
+**If it stops after every restart.** The Thor's own settings have a page
+called **APP Auto Launch Manage** (Settings → Thor settings → Advanced
+Settings). Despite the name, an app switched on there
+can't have anything started in the background: the system refuses to start
+its services unless the app is on screen, and says nothing about it. With
+Thor Pathfinder switched on in that page, Android lists the service as on
+after a restart but never starts it. Switch Thor Pathfinder off on that page,
+then switch the service off and on once; no restart is needed. Pathfinder
+spots this and says so, its setup screen's button takes it off that list
+before switching the service off and on, and `fix-accessibility.sh` and the
+watchdog take it off too. The Diagnostics report shows the list.
 
 If it keeps happening, the cog's **Watchdog** page turns on a small helper
 that Shizuku keeps running. Because it belongs to Shizuku rather than to
@@ -214,6 +230,7 @@ Pathfinder, it carries on when something stops Pathfinder itself, and it puts
 the service back within a few seconds. It is off unless you turn it on, it only
 ever adds Pathfinder's own service, and it leaves the switch alone while
 Android's settings are open, so switching the service off yourself still works.
+It also takes Pathfinder, and nothing else, off APP Auto Launch Manage's list.
 A restart stops it along with Shizuku, and it starts again by itself as soon
 as Shizuku is running, whether Shizuku comes up at boot or you start it later.
 The script is `watchdog.sh` in the
@@ -255,6 +272,11 @@ Switching profiles draws the Thor on the top screen with a box beside every
 button that carries a shortcut in the profile you have just moved to, so you
 can see what you are holding without opening anything. It stays until you
 press **Dismiss**; a tap anywhere on it, or any button press, does the same.
+Dismiss shows the A button, though any button works.
+While it is up the buttons belong to it: the press that closes it goes no
+further, so the game or app underneath never sees it. Volume still works, and
+the sticks still reach the app, since Android gives Pathfinder no way to hold
+them back.
 Turn it off with *Show the buttons on switching* in Manage profiles, and a
 switch just names the profile instead.
 

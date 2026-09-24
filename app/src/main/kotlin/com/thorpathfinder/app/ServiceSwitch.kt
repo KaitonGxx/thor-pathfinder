@@ -14,7 +14,9 @@ import android.provider.Settings
  * would also come back when someone turned it off on purpose.
  *
  * It is the same off-and-on that Android's own list does, so it fixes both
- * the switch being off and the switch being on with nothing started.
+ * the switch being off and the switch being on with nothing started. First it
+ * takes Pathfinder off AYN's auto launch list ([AutoLaunchList]), which
+ * otherwise keeps the service from starting however the switch is set.
  *
  * Blocking: run it off the main thread.
  */
@@ -30,6 +32,8 @@ object ServiceSwitch {
 
     fun turnOn(context: Context): Outcome {
         if (!Shell.ready) return Outcome.NeedsShizuku
+        // Before the off-and-on, or Android refuses the service all over again.
+        AutoLaunchList.removeUs(context)?.let { return Outcome.Failed(it) }
         val ours = ComponentName(context, PathfinderService::class.java).flattenToString()
 
         // Read what is there now, never a remembered copy: writing a stale

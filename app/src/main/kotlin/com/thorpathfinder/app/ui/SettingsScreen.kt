@@ -52,6 +52,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.core.content.edit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import com.thorpathfinder.app.ButtonAction
@@ -79,7 +80,7 @@ fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit, onOpenSetting
     val scope = rememberCoroutineScope()
     val shortcuts = remember { ObservedShortcuts(Shortcuts(context)) }
     // A different profile means different shortcuts, so every card is redrawn.
-    val profiles = remember { ProfileUi(context, onSwitched = shortcuts::reloaded) }
+    val profiles = rememberProfileUi(onSwitched = shortcuts::reloaded)
     val updates = remember { UpdateUi(context, scope) }
     // Every time the screen comes back, not only the first time it is built:
     // leaving Pathfinder and returning is exactly when a release may be out.
@@ -150,6 +151,34 @@ private sealed interface EditFlow {
     data class ProfileWhich(override val button: PhysicalButton, override val gesture: Gesture) : EditFlow
 }
 
+/**
+ * How the shortcut list is laid out, wide or as a list: the user's pick, kept
+ * for the whole device rather than per profile, since it is about the screen.
+ */
+private object ShortcutListLayout {
+    private const val PREFS = "ui"
+    private const val KEY = "shortcutListColumns"
+
+    fun columns(context: Context): Int =
+        if (prefs(context).getInt(KEY, ChoiceLayout.WIDE) == ChoiceLayout.LIST) ChoiceLayout.LIST else ChoiceLayout.WIDE
+
+    fun set(context: Context, columns: Int) {
+        prefs(context).edit { putInt(KEY, columns) }
+    }
+
+    private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+}
+
+/** What choosing [action] asks next, before anything is saved; null when choosing it is enough. */
+private fun nextStep(action: ButtonAction, button: PhysicalButton, gesture: Gesture): EditFlow? =
+    when (action) {
+        ButtonAction.LAUNCH_APP -> EditFlow.HowMany(button, gesture)
+        ButtonAction.HOME -> EditFlow.HomeWhere(button, gesture)
+        ButtonAction.CLOSE_ALL -> EditFlow.CloseWhich(button, gesture)
+        ButtonAction.PROFILE -> EditFlow.ProfileWhich(button, gesture)
+        else -> null
+    }
+
 @Composable
 private fun EditDialogs(
     flow: EditFlow,
@@ -162,26 +191,32 @@ private fun EditDialogs(
     val gesture = flow.gesture
     val done = { onFlow(null) }
     when (flow) {
-        is EditFlow.Action -> ChoiceDialog(
-            title = "${button.label}: ${gesture.label}",
-            options = ButtonAction.choicesFor(button),
-            selected = shortcuts.action(button, gesture),
-            label = { if (it == ButtonAction.NORMAL) normalLabel(button, gesture) else it.label },
-            detail = { if (it.needsShizuku && state.shizuku != Shell.Status.READY) "Needs Shizuku" else null },
-            onPick = { action ->
-                when (action) {
-                    ButtonAction.LAUNCH_APP -> onFlow(EditFlow.HowMany(button, gesture))
-                    ButtonAction.HOME -> onFlow(EditFlow.HomeWhere(button, gesture))
-                    ButtonAction.CLOSE_ALL -> onFlow(EditFlow.CloseWhich(button, gesture))
-                    ButtonAction.PROFILE -> onFlow(EditFlow.ProfileWhich(button, gesture))
-                    else -> {
+        is EditFlow.Action -> {
+            var columns by remember { mutableIntStateOf(ShortcutListLayout.columns(context)) }
+            ChoiceDialog(
+                title = "${button.label}: ${gesture.label}",
+                options = ButtonAction.choicesFor(button),
+                selected = shortcuts.action(button, gesture),
+                label = { if (it == ButtonAction.NORMAL) normalLabel(button, gesture) else it.label },
+                detail = { if (it.needsShizuku && state.shizuku != Shell.Status.READY) "Needs Shizuku" else null },
+                leadsOn = { nextStep(it, button, gesture) != null },
+                columns = columns,
+                onColumnsChange = {
+                    columns = it
+                    ShortcutListLayout.set(context, it)
+                },
+                onPick = { action ->
+                    val next = nextStep(action, button, gesture)
+                    if (next != null) {
+                        onFlow(next)
+                    } else {
                         shortcuts.set(button, gesture, action)
                         done()
                     }
-                }
-            },
-            onDismiss = done,
-        )
+                },
+                onDismiss = done,
+            )
+        }
         is EditFlow.HowMany -> PickDialog(
             title = "Open an app",
             choices = listOf(
@@ -343,10 +378,12 @@ private fun UpdateButton(label: String, state: UpdateUi.State, onClick: () -> Un
             is UpdateUi.State.Checking -> CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
             is UpdateUi.State.Available -> WarningTriangle()
             is UpdateUi.State.UpToDate -> OkDot()
+            // Nothing checked yet, or checking on open is off: no answer to give.
+            UpdateUi.State.Idle -> NeutralDot()
             else -> Unit
         }
         if (state is UpdateUi.State.Checking || state is UpdateUi.State.Available ||
-            state is UpdateUi.State.UpToDate
+            state is UpdateUi.State.UpToDate || state == UpdateUi.State.Idle
         ) {
             Spacer(Modifier.width(8.dp))
         }
@@ -418,7 +455,7 @@ private fun UpdateDialog(
             TextButton(
                 onClick = { onOpen(page) },
                 modifier = Modifier.focusRequester(open).focusOutline(PillShape),
-            ) { Text("Open release page") }
+            ) { Text(if (update) "What's New" else "Open release page") }
         },
         dismissButton = {
             TextButton(
@@ -452,7 +489,19 @@ private fun NeedsAttention(state: SystemState, onFix: (SetupStep) -> Unit) {
                 if (state.wayfinderOn) {
                     add(Problem("Thor Wayfinder is also handling the Back button", null, SetupStep.WAYFINDER))
                 }
-                if (state.serviceStuck) {
+                if (state.autoLaunchBlocked) {
+                    // Named first: it is the cause of the stuck service, not another problem.
+                    add(
+                        Problem(
+                            "AYN's APP Auto Launch Manage is blocking Pathfinder",
+                            "Thor Pathfinder is switched on in that page (Settings → Thor " +
+                                "settings → Advanced Settings), which stops Android from starting " +
+                                "its service, so after a restart no shortcut works. Switch it off " +
+                                "there, or let Pathfinder fix it.",
+                            SetupStep.ACCESSIBILITY,
+                        )
+                    )
+                } else if (state.serviceStuck) {
                     add(
                         Problem(
                             "Pathfinder is switched on but isn't running",

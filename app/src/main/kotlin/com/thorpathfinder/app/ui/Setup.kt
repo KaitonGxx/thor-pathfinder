@@ -78,7 +78,8 @@ fun SetupWizard(
         SetupStep.WELCOME, SetupStep.DONE -> true
         SetupStep.DEVICE -> state.device.ok
         SetupStep.WAYFINDER -> !state.wayfinderOn
-        SetupStep.ACCESSIBILITY -> state.serviceOn
+        // On AYN's auto launch list it may run now, but not after a restart.
+        SetupStep.ACCESSIBILITY -> state.serviceOn && !state.autoLaunchBlocked
         SetupStep.SHIZUKU -> state.shizuku == Shell.Status.READY
     }
 
@@ -303,15 +304,26 @@ private fun AccessibilityStep(state: SystemState, context: Context, focus: Focus
             "It receives button presses and nothing else: it cannot read the screen or anything you type."
     )
     Check(
-        state.serviceOn,
+        state.serviceOn && !state.autoLaunchBlocked,
         when {
+            state.autoLaunchBlocked -> "AYN's APP Auto Launch Manage is blocking Pathfinder"
             state.serviceOn -> "Pathfinder's service is on"
             state.serviceStuck -> "Pathfinder is switched on, but Android hasn't started it"
             else -> "Pathfinder's service is off"
         },
     )
-    if (!state.serviceOn) {
-        if (state.serviceStuck) {
+    if (!state.serviceOn || state.autoLaunchBlocked) {
+        if (state.autoLaunchBlocked) {
+            Body(
+                "Thor Pathfinder is switched on in APP Auto Launch Manage (Settings → Thor " +
+                    "settings → Advanced Settings). Despite the name, that page stops the apps " +
+                    "switched on in it from starting in the background, and Android can't start " +
+                    "Pathfinder's service while it's there, so after a restart no shortcut works. " +
+                    "Switch Thor Pathfinder off on that page, then switch its service off and on in " +
+                    "the list below." +
+                    if (state.shizuku == Shell.Status.READY) " Or press Fix it, which does both." else "",
+            )
+        } else if (state.serviceStuck) {
             Body(
                 "Android has the switch on but hasn't started the service, which can happen after " +
                     "a crash, an unexpected restart, or an app that stops others in the background. " +
@@ -339,7 +351,15 @@ private fun AccessibilityStep(state: SystemState, context: Context, focus: Focus
                 },
                 enabled = !busy,
                 modifier = Modifier.focusOutline(PillShape),
-            ) { Text(if (state.serviceStuck) "Switch it off and on" else "Turn it back on") }
+            ) {
+                Text(
+                    when {
+                        state.autoLaunchBlocked -> "Fix it"
+                        state.serviceStuck -> "Switch it off and on"
+                        else -> "Turn it back on"
+                    },
+                )
+            }
             said?.let {
                 Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

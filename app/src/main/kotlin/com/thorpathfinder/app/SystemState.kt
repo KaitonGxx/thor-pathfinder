@@ -16,15 +16,22 @@ data class SystemState(
     val shizuku: Shell.Status,
     val wayfinderInstalled: Boolean,
     val wayfinderOn: Boolean,
+    /**
+     * Pathfinder is switched on in AYN's APP Auto Launch Manage, which keeps
+     * its service from starting ([AutoLaunchList]). Worth fixing even while
+     * the service runs, since the next restart stops it.
+     */
+    val autoLaunchBlocked: Boolean,
 ) {
     val allGood: Boolean
-        get() = device.ok && serviceOn && shizuku == Shell.Status.READY && !wayfinderOn
+        get() = device.ok && serviceOn && !autoLaunchBlocked && shizuku == Shell.Status.READY && !wayfinderOn
 
     /**
      * Switched on but never started. Android refuses to bind a service whose
-     * app has been force-stopped, and says nothing about it; the switch stays
-     * on, so everything looks right while no shortcut works. Turning the
-     * switch off and on is what makes Android try again.
+     * app has been force-stopped, or that is on AYN's auto launch list, and
+     * says nothing about it; the switch stays on, so everything looks right
+     * while no shortcut works. Turning the switch off and on is what makes
+     * Android try again.
      */
     val serviceStuck: Boolean get() = serviceListed && !serviceOn
 
@@ -53,6 +60,7 @@ data class SystemState(
                 shizuku = Shell.status(context),
                 wayfinderInstalled = wayfinderInstalled,
                 wayfinderOn = wayfinderInstalled && enabled.any { it.packageName == WAYFINDER_PACKAGE },
+                autoLaunchBlocked = AutoLaunchList.blocksUs(context),
             )
         }
     }

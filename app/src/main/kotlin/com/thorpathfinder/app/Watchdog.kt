@@ -15,8 +15,10 @@ import androidx.core.content.edit
  * Off unless the user turns it on. It only ever adds Pathfinder's own
  * component to the accessibility list, never removes anyone else's, and it
  * leaves the switch alone while Android's settings are open so that turning
- * the service off on purpose still works. The script is `watchdog.sh` in the
- * assets, and it is the whole of what runs.
+ * the service off on purpose still works. It also takes Pathfinder, and only
+ * Pathfinder, off AYN's auto launch list ([AutoLaunchList]), which otherwise
+ * keeps the service from starting after a restart. The script is
+ * `watchdog.sh` in the assets, and it is the whole of what runs.
  *
  * Blocking: run it off the main thread.
  */

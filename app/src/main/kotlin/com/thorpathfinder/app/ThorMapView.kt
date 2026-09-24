@@ -75,6 +75,13 @@ class ThorMapView(
         isFakeBoldText = true
         textAlign = Paint.Align.CENTER
     }
+    private val glyphFill = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFD6E4D6.toInt() }
+    private val glyphText = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = 0xFF1B1F1B.toInt()
+        textSize = 13f * density
+        isFakeBoldText = true
+        textAlign = Paint.Align.CENTER
+    }
 
     /** Where Dismiss is, for the tap. */
     private val dismissBox = RectF()
@@ -116,8 +123,20 @@ class ThorMapView(
         val radius = buttonHeight / 2f
         canvas.drawRoundRect(dismissBox, radius, radius, buttonFill)
         canvas.drawRoundRect(dismissBox, radius, radius, leader)
+
+        // The A button beside the word, the way consoles show what to press.
+        // Any button closes the map, so A is right wherever the Thor puts it.
+        val label = "Dismiss"
+        val glyphRadius = 11f * density
+        val gap = 8f * density
+        val labelWidth = buttonText.measureText(label)
+        val start = centreX - (glyphRadius * 2f + gap + labelWidth) / 2f
+        val glyphX = start + glyphRadius
+        canvas.drawCircle(glyphX, dismissBox.centerY(), glyphRadius, glyphFill)
+        val glyphBaseline = dismissBox.centerY() - (glyphText.descent() + glyphText.ascent()) / 2f
+        canvas.drawText("A", glyphX, glyphBaseline, glyphText)
         val baseline = dismissBox.centerY() - (buttonText.descent() + buttonText.ascent()) / 2f
-        canvas.drawText("Dismiss", centreX, baseline, buttonText)
+        canvas.drawText(label, start + glyphRadius * 2f + gap + labelWidth / 2f, baseline, buttonText)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

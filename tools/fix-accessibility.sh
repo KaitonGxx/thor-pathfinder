@@ -7,15 +7,48 @@
 #
 # Run it from the Thor's own Settings > Run script as Root, and pick this file.
 #
-# It touches two settings and nothing else:
+# It touches three settings and nothing else:
+#   boot_auto_launch_list           — AYN's "APP Auto Launch Manage" list
 #   enabled_accessibility_services  — the list of accessibility services
 #   accessibility_enabled           — Android's master switch for them
 #
-# Every other service already in the list is kept exactly as it was. Read the
-# whole thing before running it; it is short on purpose.
+# Every other app and service already in those lists is kept exactly as it
+# was. Read the whole thing before running it; it is short on purpose.
 
-SERVICE=com.thorpathfinder.app/com.thorpathfinder.app.PathfinderService
+PKG=com.thorpathfinder.app
+SERVICE=$PKG/com.thorpathfinder.app.PathfinderService
 KEY=enabled_accessibility_services
+AUTO=boot_auto_launch_list
+
+# Take Pathfinder off AYN's "APP Auto Launch Manage" list. The apps switched
+# on in that page can't have a service started unless they are in front, so
+# on it Pathfinder's service never starts after a restart.
+auto=$(settings get system $AUTO)
+case ",$auto," in
+    *",$PKG,"*)
+        rest=""
+        OLDIFS=$IFS
+        IFS=','
+        for app in $auto; do
+            case "$app" in
+                "$PKG") continue ;;
+                "") continue ;;
+            esac
+            if [ -z "$rest" ]; then
+                rest="$app"
+            else
+                rest="$rest,$app"
+            fi
+        done
+        IFS=$OLDIFS
+        if [ -z "$rest" ]; then
+            settings delete system $AUTO > /dev/null
+        else
+            settings put system $AUTO "$rest"
+        fi
+        echo "Took Pathfinder off APP Auto Launch Manage."
+        ;;
+esac
 
 current=$(settings get secure $KEY)
 case "$current" in

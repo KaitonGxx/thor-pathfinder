@@ -77,13 +77,17 @@ class UpdateUi(private val context: Context, private val scope: CoroutineScope) 
      * What the last check found, so the button says something at once. A
      * check runs whenever the screen comes to the front, so this is never
      * more than [QUIET_MS] old by the time anyone reads it.
+     *
+     * With checking on open turned off nothing keeps it fresh, and "Up to
+     * date" could be long out of date, so the button offers a check instead.
+     * A release newer than this one stays true however old the answer is.
      */
     private fun remembered(): State {
         val known = settings.known ?: return State.Idle
-        return if (UpdateCheck.isNewer(known.version, installed)) {
-            State.Available(known)
-        } else {
-            State.UpToDate(known)
+        return when {
+            UpdateCheck.isNewer(known.version, installed) -> State.Available(known)
+            !settings.checkOnOpen -> State.Idle
+            else -> State.UpToDate(known)
         }
     }
 
@@ -210,6 +214,12 @@ fun UpdateCard(ui: UpdateUi, release: UpdateCheck.Release, onOpenPage: (String) 
                             onClick = { ui.install(release) },
                             modifier = Modifier.focusOutline(PillShape),
                         ) { Text("Update now") }
+                        // The release page holds that version's notes. Without an
+                        // install from here, the button below opens it anyway.
+                        TextButton(
+                            onClick = { onOpenPage(release.page) },
+                            modifier = Modifier.focusOutline(PillShape),
+                        ) { Text("What's New") }
                     } else {
                         TextButton(
                             onClick = { onOpenPage(release.page) },

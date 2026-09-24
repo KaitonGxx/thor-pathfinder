@@ -1,6 +1,7 @@
 package com.thorpathfinder.app
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.core.content.edit
 
 /**
@@ -129,6 +130,19 @@ object Profiles {
 
     fun setShowMap(context: Context, show: Boolean) {
         prefs(context).edit { putBoolean("showMap", show) }
+    }
+
+    /**
+     * Calls [listener] on the main thread whenever the list, a name or the
+     * profile in use changes, wherever in the app it was changed. Android
+     * only holds the listener weakly, so the caller has to keep it.
+     */
+    fun watch(context: Context, listener: SharedPreferences.OnSharedPreferenceChangeListener) {
+        prefs(context).registerOnSharedPreferenceChangeListener(listener)
+    }
+
+    fun unwatch(context: Context, listener: SharedPreferences.OnSharedPreferenceChangeListener) {
+        prefs(context).unregisterOnSharedPreferenceChangeListener(listener)
     }
 
     fun switchTo(context: Context, id: Int): Profile {

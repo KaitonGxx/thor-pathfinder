@@ -15,7 +15,6 @@ import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import com.thorpathfinder.app.ui.ProfileChoiceActivity
 import com.thorpathfinder.app.ui.ScreenChoiceActivity
-import rikka.shizuku.Shizuku
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -29,23 +28,13 @@ class PathfinderService : AccessibilityService() {
 
     private val handler = Handler(Looper.getMainLooper())
     private var watcher: ContentObserver? = null
-
-    /**
-     * Shizuku arriving, at boot or when started by hand later, is the moment a
-     * watchdog left switched on can run again. Sticky, so a Shizuku that was
-     * already up when the service started counts too.
-     */
-    private val shizukuUp = Shizuku.OnBinderReceivedListener {
-        runCatching {
-            worker.execute {
-                if (Watchdog.resume(this)) ServiceLog.add(this, "watchdog started again, now that Shizuku is running")
-            }
-        }
-    }
     private lateinit var shortcuts: Shortcuts
     private lateinit var engine: GestureEngine
     private lateinit var worker: ExecutorService
     private lateinit var overlay: Overlay
+
+    /** Keys whose press closed the map, so that their release is kept from the app as well. */
+    private val closedMap = mutableSetOf<Int>()
 
     override fun onServiceConnected() {
         watcher = ServiceLog.watch(this, handler)
@@ -57,7 +46,6 @@ class PathfinderService : AccessibilityService() {
         ServiceLog.noteStart(this)
         shortcuts = Shortcuts(this)
         worker = Executors.newSingleThreadExecutor()
-        Shizuku.addBinderReceivedListenerSticky(shizukuUp)
         overlay = Overlay(this)
         // If the last stop went unexplained, the log still holds what happened.
         worker.execute { ServiceLog.captureIfPending(this) }
@@ -79,9 +67,7 @@ class PathfinderService : AccessibilityService() {
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
         if (!::engine.isInitialized) return false
-        // The map waits for a dismissal, and a press is one. The key still
-        // does its own job, so nothing is swallowed to close a window.
-        overlay.dismissMapOnKey()
+        if (keptForMap(event)) return true
         if (event.action != KeyEvent.ACTION_DOWN && event.action != KeyEvent.ACTION_UP) return false
         val button = PhysicalButton.of(event.keyCode, event.scanCode) ?: return false
         return engine.onKey(
@@ -91,6 +77,35 @@ class PathfinderService : AccessibilityService() {
             time = event.eventTime,
             canceled = event.isCanceled,
         )
+    }
+
+    /**
+     * While the map is up, the buttons belong to it: a fresh press closes it
+     * and goes no further, not to a shortcut and not to the app underneath,
+     * and neither do that button's repeats and release. A button already down
+     * when the map appeared, such as the hold that switched profiles, carries
+     * on as usual, since its press arrived first. Volume is left alone. The
+     * sticks can't be held back: they are motion, which Android 13 gives an
+     * accessibility service no way to filter.
+     */
+    private fun keptForMap(event: KeyEvent): Boolean {
+        val code = event.keyCode
+        return when (event.action) {
+            KeyEvent.ACTION_DOWN -> when {
+                code in closedMap -> true
+                !overlay.mapShowing || event.repeatCount > 0 || code in PASSED_WITH_MAP -> false
+                // Injected keys, Pathfinder's own replays among them, carry no
+                // scan code; only a real press closes the map.
+                event.scanCode == 0 -> false
+                else -> {
+                    overlay.dismissMap()
+                    closedMap += code
+                    true
+                }
+            }
+            KeyEvent.ACTION_UP -> closedMap.remove(code)
+            else -> false
+        }
     }
 
     private fun perform(button: PhysicalButton, gesture: Gesture, action: ButtonAction) {
@@ -264,8 +279,8 @@ class PathfinderService : AccessibilityService() {
         current = null
         if (::engine.isInitialized) engine.reset()
         if (::overlay.isInitialized) overlay.dismiss()
+        closedMap.clear()
         handler.removeCallbacksAndMessages(null)
-        Shizuku.removeBinderReceivedListener(shizukuUp)
         if (::worker.isInitialized) worker.shutdown()
         return super.onUnbind(intent)
     }
@@ -295,6 +310,14 @@ class PathfinderService : AccessibilityService() {
 
         /** Past AYN's long-press point (about 400 ms, when the key starts repeating). */
         private const val LONG_PRESS_MS = 900L
+
+        /** Keys that keep doing their own job while the map is up. */
+        private val PASSED_WITH_MAP = setOf(
+            KeyEvent.KEYCODE_VOLUME_UP,
+            KeyEvent.KEYCODE_VOLUME_DOWN,
+            KeyEvent.KEYCODE_VOLUME_MUTE,
+            KeyEvent.KEYCODE_POWER,
+        )
     }
 }
 

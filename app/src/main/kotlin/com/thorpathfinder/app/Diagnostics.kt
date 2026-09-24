@@ -258,6 +258,15 @@ object Diagnostics {
         row("Home/Back focus lock", "$keys ${onOffUnknown(keys)}")
         val mouse = Settings.System.getInt(context.contentResolver, MOUSE_MODE, -1)
         row("Mouse mode", "$mouse ${onOffUnknown2(mouse)}")
+        // Pathfinder on this list is enough on its own to keep the service from starting.
+        row("Auto launch list", AutoLaunchList.stored(context) ?: "(not set)")
+        if (AutoLaunchList.blocksUs(context)) {
+            row(
+                "",
+                "PATHFINDER IS ON IT — its service can't start; switch it off in " +
+                    "Settings → Thor settings → Advanced Settings → APP Auto Launch Manage",
+            )
+        }
         appendLine()
     }
 
