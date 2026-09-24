@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService
 import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
+import android.database.ContentObserver
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -26,17 +27,25 @@ import java.util.concurrent.Executors
 class PathfinderService : AccessibilityService() {
 
     private val handler = Handler(Looper.getMainLooper())
+    private var watcher: ContentObserver? = null
     private lateinit var shortcuts: Shortcuts
     private lateinit var engine: GestureEngine
     private lateinit var worker: ExecutorService
     private lateinit var overlay: Overlay
 
     override fun onServiceConnected() {
+        watcher = ServiceLog.watch(this, handler)
         // Off a Thor, or on firmware older than the one verified, stay out of the way.
-        if (!Device.current.ok) return
+        if (!Device.current.ok) {
+            ServiceLog.add(this, "service started but this device isn't supported, so it does nothing")
+            return
+        }
+        ServiceLog.noteStart(this)
         shortcuts = Shortcuts(this)
         worker = Executors.newSingleThreadExecutor()
         overlay = Overlay(this)
+        // If the last stop went unexplained, the log still holds what happened.
+        worker.execute { ServiceLog.captureIfPending(this) }
         engine = GestureEngine(
             config = shortcuts,
             scheduler = { delay, task ->
@@ -237,6 +246,9 @@ class PathfinderService : AccessibilityService() {
     override fun onInterrupt() = Unit
 
     override fun onUnbind(intent: Intent?): Boolean {
+        ServiceLog.add(this, "service stopped")
+        ServiceLog.stop(this, watcher)
+        watcher = null
         running = false
         current = null
         if (::engine.isInitialized) engine.reset()

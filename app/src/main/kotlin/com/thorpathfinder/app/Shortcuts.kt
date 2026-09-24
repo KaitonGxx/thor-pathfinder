@@ -10,16 +10,20 @@ import androidx.core.content.edit
  * SharedPreferences keeps its values in memory after the first read, so the
  * accessibility service can look actions up on every key event.
  */
-class Shortcuts(private val context: Context) : GestureConfig {
+class Shortcuts(private val context: Context, private val profile: Int? = null) : GestureConfig {
 
     /**
      * The profile in use, looked up on each read so that switching profiles
      * takes effect on the very next key event, with nothing to reload.
      * SharedPreferences instances are cached per file, so this is a lookup,
-     * not a re-read of the file.
+     * not a re-read of the file. A [profile] pins it to one instead, which
+     * the diagnostics report uses to read every profile at once.
      */
     private val prefs: SharedPreferences
-        get() = context.getSharedPreferences(Profiles.fileName(Profiles.activeId(context)), Context.MODE_PRIVATE)
+        get() = context.getSharedPreferences(
+            Profiles.fileName(profile ?: Profiles.activeId(context)),
+            Context.MODE_PRIVATE,
+        )
 
     override fun action(button: PhysicalButton, gesture: Gesture): ButtonAction {
         val stored = prefs.getString(key(button, gesture), null)

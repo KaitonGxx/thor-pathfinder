@@ -10,6 +10,25 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
 
 ## Status (2026-09-23)
 
+- v0.8.1 (versionCode 16), released 2026-09-23: everything about the
+  accessibility service going quiet. `SystemState.serviceOn` now means Android
+  has actually *started* the service (from
+  `AccessibilityManager.getEnabledAccessibilityServiceList`, which AMS builds
+  from its bound services) rather than "the switch is on"; `serviceListed` is
+  the switch, and `serviceStuck` is the two disagreeing, which used to show as
+  everything being fine while no shortcut worked. `ServiceLog` records every
+  time the switch changes and the service starts or stops, and pulls the
+  system log at the next start when a stop went unexplained (ActivityManager
+  names a force-stop's reason, `installPackageLI` for an update or `from pid
+  N` for another app; nothing anywhere names who wrote the setting). A
+  `Diagnostics` page gathers the lot for a bug report. Setup offers a
+  Shizuku-backed off-and-on, and `tools/fix-accessibility.sh` does the same
+  from the Thor's own "Run script as Root" for when Shizuku isn't up. An
+  opt-in `Watchdog` runs `assets/watchdog.sh` through Shizuku with `setsid`,
+  so it belongs to Shizuku and survives Pathfinder being killed; it checks
+  every 5 seconds by default (12 ms a check, measured), only ever adds
+  Pathfinder's own component, and leaves the switch alone while Android's
+  settings are open so a deliberate switch-off stands.
 - v0.8.0 (versionCode 15), released 2026-09-23: **profiles**, several named
   sets of shortcuts with one in use at a time, chosen from the oval under the
   title, from a Profile switcher shortcut (cycle, enable one by name, or ask)

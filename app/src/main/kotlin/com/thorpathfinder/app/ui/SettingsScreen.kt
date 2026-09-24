@@ -452,7 +452,18 @@ private fun NeedsAttention(state: SystemState, onFix: (SetupStep) -> Unit) {
                 if (state.wayfinderOn) {
                     add(Problem("Thor Wayfinder is also handling the Back button", null, SetupStep.WAYFINDER))
                 }
-                if (!state.serviceOn) {
+                if (state.serviceStuck) {
+                    add(
+                        Problem(
+                            "Pathfinder is switched on but isn't running",
+                            "Android has the switch on but hasn't started the service, so no " +
+                                "shortcut works. It can happen after a crash, an unexpected " +
+                                "restart, or an app that stops others in the background. Switch " +
+                                "it off and on again to fix it.",
+                            SetupStep.ACCESSIBILITY,
+                        )
+                    )
+                } else if (!state.serviceOn) {
                     add(
                         Problem(
                             "Pathfinder's accessibility service is off",

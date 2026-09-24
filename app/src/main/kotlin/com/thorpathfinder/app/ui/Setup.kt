@@ -29,7 +29,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,8 +43,13 @@ import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.thorpathfinder.app.Device
+import com.thorpathfinder.app.ServiceSwitch
 import com.thorpathfinder.app.Shell
 import com.thorpathfinder.app.SystemState
+import com.thorpathfinder.app.serviceSwitchMessage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 enum class SetupStep { WELCOME, DEVICE, WAYFINDER, ACCESSIBILITY, SHIZUKU, DONE }
 
@@ -295,10 +302,48 @@ private fun AccessibilityStep(state: SystemState, context: Context, focus: Focus
         "Android only shares button presses with accessibility services, so Pathfinder has one. " +
             "It receives button presses and nothing else: it cannot read the screen or anything you type."
     )
-    Check(state.serviceOn, if (state.serviceOn) "Pathfinder's service is on" else "Pathfinder's service is off")
+    Check(
+        state.serviceOn,
+        when {
+            state.serviceOn -> "Pathfinder's service is on"
+            state.serviceStuck -> "Pathfinder is switched on, but Android hasn't started it"
+            else -> "Pathfinder's service is off"
+        },
+    )
     if (!state.serviceOn) {
-        Body("In the list, open Thor Pathfinder and turn it on.")
+        if (state.serviceStuck) {
+            Body(
+                "Android has the switch on but hasn't started the service, which can happen after " +
+                    "a crash, an unexpected restart, or an app that stops others in the background. " +
+                    "Open the list, switch Thor Pathfinder off, then on again — that makes Android " +
+                    "start it.",
+            )
+        } else {
+            Body("In the list, open Thor Pathfinder and turn it on.")
+        }
         ActionButton("Open accessibility settings", focus) { context.openAccessibilitySettings() }
+        // Shizuku is the shell user, which is the only one allowed to write this
+        // setting, so with it connected the off-and-on can happen right here.
+        if (state.shizuku == Shell.Status.READY) {
+            var busy by remember { mutableStateOf(false) }
+            var said by remember { mutableStateOf<String?>(null) }
+            val scope = rememberCoroutineScope()
+            OutlinedButton(
+                onClick = {
+                    busy = true
+                    scope.launch {
+                        val outcome = withContext(Dispatchers.IO) { ServiceSwitch.turnOn(context) }
+                        said = serviceSwitchMessage(outcome)
+                        busy = false
+                    }
+                },
+                enabled = !busy,
+                modifier = Modifier.focusOutline(PillShape),
+            ) { Text(if (state.serviceStuck) "Switch it off and on" else "Turn it back on") }
+            said?.let {
+                Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
         Text(
             "If Android says “Restricted setting”: open Pathfinder's app info, tap ⋮ in the corner, " +
                 "choose “Allow restricted settings”, then try again. Android asks this of apps " +

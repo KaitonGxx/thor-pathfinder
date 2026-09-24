@@ -1,6 +1,9 @@
 package com.thorpathfinder.app.ui
 
+import android.database.ContentObserver
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -13,6 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.thorpathfinder.app.ServiceLog
 import com.thorpathfinder.app.Shortcuts
 import com.thorpathfinder.app.SystemState
 import rikka.shizuku.Shizuku
@@ -21,6 +25,7 @@ class MainActivity : ComponentActivity() {
 
     private var state by mutableStateOf<SystemState?>(null)
     private var preview: Preview? = null
+    private var watcher: ContentObserver? = null
 
     // Shizuku calls these on its own threads.
     private val binderReceived = Shizuku.OnBinderReceivedListener { refreshOnUiThread() }
@@ -82,6 +87,16 @@ class MainActivity : ComponentActivity() {
     // Coming back from Android's settings or from Shizuku is when things change.
     override fun onResume() {
         super.onResume()
+        // Watched here as well as in the service: when the switch goes off the
+        // service stops, and only the app is left to notice it come back.
+        if (watcher == null) {
+            val handler = Handler(Looper.getMainLooper())
+            watcher = ServiceLog.watch(this, handler) {
+                refresh()
+                // Android binds a moment after the setting changes, so look again.
+                handler.postDelayed({ refresh() }, REBIND_MS)
+            }
+        }
         refresh()
     }
 
@@ -89,6 +104,8 @@ class MainActivity : ComponentActivity() {
         Shizuku.removeBinderReceivedListener(binderReceived)
         Shizuku.removeBinderDeadListener(binderDead)
         Shizuku.removeRequestPermissionResultListener(permissionResult)
+        ServiceLog.stop(this, watcher)
+        watcher = null
         super.onDestroy()
     }
 
@@ -105,5 +122,8 @@ class MainActivity : ComponentActivity() {
 
     private companion object {
         const val REQUEST_SHIZUKU = 1
+
+        /** Long enough for Android to have started the service after the switch moved. */
+        const val REBIND_MS = 1500L
     }
 }

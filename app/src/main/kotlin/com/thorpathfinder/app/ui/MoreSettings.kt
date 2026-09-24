@@ -43,6 +43,8 @@ private enum class SettingsPage(val title: String, val detail: String) {
     MOUSE("Mouse mode", "Which way the right stick scrolls"),
     TIMING("Timing", "How long a hold takes, and the double-press gap"),
     UPDATES("Update settings", "Checking for updates, and installing them by itself"),
+    WATCHDOG("Watchdog", "Keep the accessibility service on when something stops it"),
+    DIAGNOSTICS("Diagnostics", "A report about this Thor, to paste into a bug report"),
     // Run setup again stays last, whatever else is added above it.
     SETUP("Run setup again", "Walk through the checks from the start"),
 }
@@ -64,6 +66,8 @@ fun MoreSettingsScreen(state: SystemState, onBack: () -> Unit, onRunSetup: () ->
         SettingsPage.MOUSE -> MouseModePage(state, onBack = ::close)
         SettingsPage.TIMING -> TimingPage(onBack = ::close)
         SettingsPage.UPDATES -> UpdateSettingsPage(state, onBack = ::close)
+        SettingsPage.WATCHDOG -> WatchdogPage(state, onBack = ::close)
+        SettingsPage.DIAGNOSTICS -> DiagnosticsPage(state, onBack = ::close)
         SettingsPage.SETUP -> RunSetupPage(onRunSetup = onRunSetup, onBack = ::close)
     }
 }

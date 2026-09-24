@@ -192,6 +192,36 @@ that bind to the button itself, RetroArch for one, don't accept it. Pressing
 the real key means they see exactly what the button sends. Without Shizuku,
 Pathfinder uses Android's own Back and Home instead.
 
+**If the service stops working.** Two different things can go wrong, and
+Pathfinder now tells them apart. Android may switch the service *off* — it
+does that whenever the app is updated, and some devices do it at other times
+too. Or the switch stays on and Android never *starts* the service, in which
+case everything looks right and no shortcut works.
+
+Both are fixed the same way: switch Thor Pathfinder off and on again in
+Android's accessibility list. With Shizuku connected, Pathfinder's setup screen
+offers a button that does it for you. Without Shizuku it can't, since only the
+shell user may change that setting — so there is a script for that case,
+`fix-accessibility.sh`, attached to each release. Put it somewhere you can
+reach, such as Download, then open the Thor's own settings, choose **Run script
+as Root** and pick it. It adds Pathfinder back to the list, keeps every other
+accessibility service exactly as it was, and changes nothing else. It is worth
+reading before running; it is deliberately short.
+
+If it keeps happening, the cog's **Watchdog** page turns on a small helper
+that Shizuku keeps running. Because it belongs to Shizuku rather than to
+Pathfinder, it carries on when something stops Pathfinder itself, and it puts
+the service back within a few seconds. It is off unless you turn it on, it only
+ever adds Pathfinder's own service, and it leaves the switch alone while
+Android's settings are open, so switching the service off yourself still works.
+It stops at a restart, since Shizuku does. The script is `watchdog.sh` in the
+source and it is worth reading.
+
+The cog's **Diagnostics** page gathers everything that matters when reporting
+one of these: what the device reports itself as, whether Android has the
+service installed, switched on and started, and a history of every time the
+switch changed or the service stopped.
+
 **Moving apps between screens.** Android keeps each open app in a *task*, and
 every task belongs to one screen. Pathfinder asks Android to hand the app's
 task to the other screen (`am display move-stack`), the same move Android
