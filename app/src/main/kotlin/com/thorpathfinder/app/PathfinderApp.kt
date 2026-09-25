@@ -18,13 +18,14 @@ class PathfinderApp : Application() {
     private val worker = Executors.newSingleThreadExecutor()
 
     /**
-     * Shizuku arriving, at boot or when started by hand later, is the moment a
-     * watchdog left switched on can run again. Sticky, so a Shizuku that was
-     * already up when the process started counts too.
+     * Shizuku arriving, at boot, when started by hand later, or in the first
+     * process after an update, is the moment a watchdog left switched on can
+     * run again, or swap an older script for this version's. Sticky, so a
+     * Shizuku that was already up when the process started counts too.
      */
     private val shizukuUp = Shizuku.OnBinderReceivedListener {
         worker.execute {
-            if (Watchdog.resume(this)) ServiceLog.add(this, "watchdog started again, now that Shizuku is running")
+            if (Watchdog.resume(this)) ServiceLog.add(this, "watchdog started again")
         }
     }
 

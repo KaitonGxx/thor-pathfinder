@@ -32,7 +32,6 @@ import java.time.format.DateTimeFormatter
 object Diagnostics {
 
     /** AYN's own settings that are known to change how Pathfinder behaves. */
-    private const val FOCUS_LOCK = "screen_focus_lock"
     private const val SYSTEM_KEY_FOCUS_LOCK = "enable_system_key_focus_lock"
     private const val MOUSE_MODE = "global_gamepad_to_mouse_mode"
 
@@ -252,8 +251,8 @@ object Diagnostics {
      */
     private fun StringBuilder.aynSettings(context: Context) {
         section("AYN settings")
-        val focus = Settings.System.getInt(context.contentResolver, FOCUS_LOCK, -1)
-        row("Focus Mode", "$focus ${focusName(focus)}")
+        val focus = Settings.System.getInt(context.contentResolver, FocusMode.KEY, -1)
+        row("Focus Mode", "$focus (${FocusMode.name(focus) ?: "not set"})")
         val keys = Settings.System.getInt(context.contentResolver, SYSTEM_KEY_FOCUS_LOCK, -1)
         row("Home/Back focus lock", "$keys ${onOffUnknown(keys)}")
         val mouse = Settings.System.getInt(context.contentResolver, MOUSE_MODE, -1)
@@ -280,6 +279,7 @@ object Diagnostics {
         section("Watchdog")
         row("Turned on", yesNo(Watchdog.on(context)))
         row("Running", yesNo(Watchdog.alive()))
+        row("Leaving it off (switched off in Settings)", yesNo(Watchdog.holding()))
         val log = Watchdog.log()
         if (log.isEmpty()) list("What it has done", emptyList()) else list("What it has done", log)
         appendLine()
@@ -312,13 +312,6 @@ object Diagnostics {
             return
         }
         lines.takeLast(40).forEach { appendLine("  $it") }
-    }
-
-    private fun focusName(value: Int) = when (value) {
-        0 -> "(auto-lock)"
-        1 -> "(top screen)"
-        2 -> "(bottom screen)"
-        else -> "(not set)"
     }
 
     private fun onOffUnknown(value: Int) = when (value) {

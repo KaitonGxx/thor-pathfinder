@@ -68,6 +68,14 @@
             android:taskAffinity=""
             android:theme="@style/Theme.Pathfinder.Question" />
 
+        <!-- The Shortcut menu: every shortcut in one list, the pick run once -->
+        <activity
+            android:name=".ui.ShortcutMenuActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Pathfinder.Question" />
+
         <service
             android:name=".PathfinderService"
             android:exported="false"

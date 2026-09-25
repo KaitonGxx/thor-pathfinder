@@ -58,6 +58,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import com.thorpathfinder.app.ButtonAction
 import com.thorpathfinder.app.ButtonKind
 import com.thorpathfinder.app.CloseTarget
+import com.thorpathfinder.app.FocusSwitch
 import com.thorpathfinder.app.Gesture
 import com.thorpathfinder.app.HomeTarget
 import com.thorpathfinder.app.LaunchScreen
@@ -66,6 +67,7 @@ import com.thorpathfinder.app.ProfileSwitch
 import com.thorpathfinder.app.Profiles
 import com.thorpathfinder.app.RecentTasks
 import com.thorpathfinder.app.Shell
+import com.thorpathfinder.app.Shortcut
 import com.thorpathfinder.app.Shortcuts
 import com.thorpathfinder.app.SystemState
 import com.thorpathfinder.app.UpdateCheck
@@ -85,7 +87,7 @@ fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit, onOpenSetting
     // Every time the screen comes back, not only the first time it is built:
     // leaving Pathfinder and returning is exactly when a release may be out.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { updates.checkOnOpen() }
-    var flow by remember { mutableStateOf<EditFlow?>(null) }
+    var editing by remember { mutableStateOf<Pair<PhysicalButton, Gesture>?>(null) }
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         ScrollingColumn(
@@ -107,216 +109,24 @@ fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit, onOpenSetting
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             PhysicalButton.entries.forEach { button ->
-                ButtonCard(context, button, shortcuts) { gesture -> flow = EditFlow.Action(button, gesture) }
+                ButtonCard(context, button, shortcuts) { gesture -> editing = button to gesture }
             }
             AboutCard()
         }
     }
 
-    flow?.let { current -> EditDialogs(current, context, state, shortcuts, onFlow = { flow = it }) }
-}
-
-/**
- * Where the edit of one gesture has got to. "Open an app" and "Home" ask
- * further questions after the action; nothing is saved until the last one,
- * so Cancel at any step leaves the gesture as it was.
- */
-private sealed interface EditFlow {
-    val button: PhysicalButton
-    val gesture: Gesture
-
-    data class Action(override val button: PhysicalButton, override val gesture: Gesture) : EditFlow
-
-    /** One app, or one on each screen? */
-    data class HowMany(override val button: PhysicalButton, override val gesture: Gesture) : EditFlow
-
-    data class OneApp(override val button: PhysicalButton, override val gesture: Gesture) : EditFlow
-
-    data class OneScreen(override val button: PhysicalButton, override val gesture: Gesture, val pkg: String) : EditFlow
-
-    data class TopApp(override val button: PhysicalButton, override val gesture: Gesture) : EditFlow
-
-    data class BottomApp(override val button: PhysicalButton, override val gesture: Gesture, val top: String) : EditFlow
-
-    /** Which screens a Home shortcut sends home. */
-    data class HomeWhere(override val button: PhysicalButton, override val gesture: Gesture) : EditFlow
-
-    /** Which apps a Close app(s) shortcut closes. */
-    data class CloseWhich(override val button: PhysicalButton, override val gesture: Gesture) : EditFlow
-
-    /** The apps a "Close specific apps" shortcut closes. */
-    data class CloseApps(override val button: PhysicalButton, override val gesture: Gesture) : EditFlow
-
-    /** Which profile a Profile switcher shortcut turns on, or whether it cycles or asks. */
-    data class ProfileWhich(override val button: PhysicalButton, override val gesture: Gesture) : EditFlow
-}
-
-/**
- * How the shortcut list is laid out, wide or as a list: the user's pick, kept
- * for the whole device rather than per profile, since it is about the screen.
- */
-private object ShortcutListLayout {
-    private const val PREFS = "ui"
-    private const val KEY = "shortcutListColumns"
-
-    fun columns(context: Context): Int =
-        if (prefs(context).getInt(KEY, ChoiceLayout.WIDE) == ChoiceLayout.LIST) ChoiceLayout.LIST else ChoiceLayout.WIDE
-
-    fun set(context: Context, columns: Int) {
-        prefs(context).edit { putInt(KEY, columns) }
-    }
-
-    private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-}
-
-/** What choosing [action] asks next, before anything is saved; null when choosing it is enough. */
-private fun nextStep(action: ButtonAction, button: PhysicalButton, gesture: Gesture): EditFlow? =
-    when (action) {
-        ButtonAction.LAUNCH_APP -> EditFlow.HowMany(button, gesture)
-        ButtonAction.HOME -> EditFlow.HomeWhere(button, gesture)
-        ButtonAction.CLOSE_ALL -> EditFlow.CloseWhich(button, gesture)
-        ButtonAction.PROFILE -> EditFlow.ProfileWhich(button, gesture)
-        else -> null
-    }
-
-@Composable
-private fun EditDialogs(
-    flow: EditFlow,
-    context: Context,
-    state: SystemState,
-    shortcuts: ObservedShortcuts,
-    onFlow: (EditFlow?) -> Unit,
-) {
-    val button = flow.button
-    val gesture = flow.gesture
-    val done = { onFlow(null) }
-    when (flow) {
-        is EditFlow.Action -> {
-            var columns by remember { mutableIntStateOf(ShortcutListLayout.columns(context)) }
-            ChoiceDialog(
-                title = "${button.label}: ${gesture.label}",
-                options = ButtonAction.choicesFor(button),
-                selected = shortcuts.action(button, gesture),
-                label = { if (it == ButtonAction.NORMAL) normalLabel(button, gesture) else it.label },
-                detail = { if (it.needsShizuku && state.shizuku != Shell.Status.READY) "Needs Shizuku" else null },
-                leadsOn = { nextStep(it, button, gesture) != null },
-                columns = columns,
-                onColumnsChange = {
-                    columns = it
-                    ShortcutListLayout.set(context, it)
-                },
-                onPick = { action ->
-                    val next = nextStep(action, button, gesture)
-                    if (next != null) {
-                        onFlow(next)
-                    } else {
-                        shortcuts.set(button, gesture, action)
-                        done()
-                    }
-                },
-                onDismiss = done,
-            )
-        }
-        is EditFlow.HowMany -> PickDialog(
-            title = "Open an app",
-            choices = listOf(
-                "Open 1 App" to "On the top screen, the bottom one, or ask each time",
-                "Open 2 Apps" to "One on each screen, both at once",
-            ),
-            onPick = { choice ->
-                onFlow(if (choice == 0) EditFlow.OneApp(button, gesture) else EditFlow.TopApp(button, gesture))
+    editing?.let { (button, gesture) ->
+        ShortcutPicker(
+            title = "${button.label}: ${gesture.label}",
+            choices = ButtonAction.choicesFor(button),
+            current = shortcuts.shortcut(button, gesture),
+            shizukuReady = state.shizuku == Shell.Status.READY,
+            label = { if (it == ButtonAction.NORMAL) normalLabel(button, gesture) else it.label },
+            onChosen = { chosen ->
+                shortcuts.set(button, gesture, chosen)
+                editing = null
             },
-            onDismiss = done,
-        )
-        is EditFlow.OneApp -> AppPickerDialog(
-            onPick = { pkg -> onFlow(EditFlow.OneScreen(button, gesture, pkg)) },
-            onDismiss = done,
-        )
-        is EditFlow.OneScreen -> ChoiceDialog(
-            title = "Open ${appLabel(context, flow.pkg)} on",
-            options = LaunchScreen.entries,
-            selected = shortcuts.screen(button, gesture),
-            label = { it.label },
-            detail = { if (it == LaunchScreen.ASK) "Choose top or bottom each time the shortcut runs" else null },
-            onPick = { screen ->
-                shortcuts.set(button, gesture, ButtonAction.LAUNCH_APP, flow.pkg, screen)
-                done()
-            },
-            onDismiss = done,
-        )
-        is EditFlow.TopApp -> AppPickerDialog(
-            title = "App for the top screen",
-            onPick = { pkg -> onFlow(EditFlow.BottomApp(button, gesture, pkg)) },
-            onDismiss = done,
-        )
-        is EditFlow.BottomApp -> AppPickerDialog(
-            title = "App for the bottom screen",
-            exclude = flow.top,
-            onPick = { pkg ->
-                shortcuts.set(button, gesture, ButtonAction.LAUNCH_APP, flow.top, LaunchScreen.TOP, second = pkg)
-                done()
-            },
-            onDismiss = done,
-        )
-        is EditFlow.CloseWhich -> PickDialog(
-            title = ButtonAction.CLOSE_ALL.label,
-            choices = CloseTarget.entries.map { it.label to null },
-            onPick = { choice ->
-                val target = CloseTarget.entries[choice]
-                if (target == CloseTarget.SPECIFIC) {
-                    onFlow(EditFlow.CloseApps(button, gesture))
-                } else {
-                    shortcuts.set(button, gesture, ButtonAction.CLOSE_ALL, close = target)
-                    done()
-                }
-            },
-            onDismiss = done,
-        )
-        is EditFlow.CloseApps -> AppMultiPickerDialog(
-            title = "Apps to close",
-            initial = shortcuts.closeApps(button, gesture),
-            onDone = { apps ->
-                shortcuts.set(button, gesture, ButtonAction.CLOSE_ALL, close = CloseTarget.SPECIFIC, closeApps = apps)
-                done()
-            },
-            onDismiss = done,
-        )
-        is EditFlow.ProfileWhich -> {
-            // Cycle and Ask, then one row per profile, so the whole choice is one dialog.
-            val profiles = remember { Profiles.all(context) }
-            PickDialog(
-                title = ButtonAction.PROFILE.label,
-                choices = listOf(
-                    ProfileSwitch.CYCLE.label to "Move to the next profile each press",
-                    ProfileSwitch.ASK.label to "Choose from a list when the shortcut runs",
-                ) + profiles.map { "Enable ${it.name}" to "Press again to go back to the main profile" },
-                onPick = { choice ->
-                    when (choice) {
-                        0 -> shortcuts.set(button, gesture, ButtonAction.PROFILE, profile = ProfileSwitch.CYCLE)
-                        1 -> shortcuts.set(button, gesture, ButtonAction.PROFILE, profile = ProfileSwitch.ASK)
-                        else -> shortcuts.set(
-                            button,
-                            gesture,
-                            ButtonAction.PROFILE,
-                            profile = ProfileSwitch.ENABLE,
-                            profileId = profiles[choice - 2].id,
-                        )
-                    }
-                    done()
-                },
-                onDismiss = done,
-            )
-        }
-        is EditFlow.HomeWhere -> ChoiceDialog(
-            title = "Send home on",
-            options = HomeTarget.entries,
-            selected = shortcuts.home(button, gesture),
-            label = { it.label },
-            onPick = { target ->
-                shortcuts.set(button, gesture, ButtonAction.HOME, home = target)
-                done()
-            },
-            onDismiss = done,
+            onDismiss = { editing = null },
         )
     }
 }
@@ -604,23 +414,15 @@ internal class ObservedShortcuts(private val store: Shortcuts) {
 
     fun profileId(button: PhysicalButton, gesture: Gesture) = observe { store.profileId(button, gesture) }
 
+    fun focus(button: PhysicalButton, gesture: Gesture) = observe { store.focus(button, gesture) }
+
+    fun shortcut(button: PhysicalButton, gesture: Gesture) = observe { store.shortcut(button, gesture) }
+
     /** Another profile is in use, so every shortcut on the screen may have changed. */
     fun reloaded() = changed()
 
-    fun set(
-        button: PhysicalButton,
-        gesture: Gesture,
-        action: ButtonAction,
-        app: String? = null,
-        screen: LaunchScreen = LaunchScreen.TOP,
-        second: String? = null,
-        home: HomeTarget? = null,
-        close: CloseTarget = CloseTarget.ALL,
-        closeApps: Set<String> = emptySet(),
-        profile: ProfileSwitch = ProfileSwitch.CYCLE,
-        profileId: Int = Profiles.ORIGINAL,
-    ) {
-        store.set(button, gesture, action, app, screen, second, home, close, closeApps, profile, profileId)
+    fun set(button: PhysicalButton, gesture: Gesture, shortcut: Shortcut) {
+        store.set(button, gesture, shortcut)
         changed()
     }
 
@@ -662,6 +464,7 @@ private fun ButtonCard(context: Context, button: PhysicalButton, shortcuts: Obse
         subtitle = if (button.kind == ButtonKind.GAMEPAD) "Games still get every press, so a plain press can't be changed." else null,
         expanded = open,
         onToggle = { open = !open },
+        symbol = buttonSymbol(button),
     ) {
         button.gestures.forEach { gesture ->
             ValueRow(gesture.label, values.getValue(gesture)) { onEdit(gesture) }
@@ -694,11 +497,12 @@ private fun valueText(context: Context, button: PhysicalButton, gesture: Gesture
                         "Close " + RecentTasks.names(shortcuts.closeApps(button, gesture).map { appLabel(context, it) }.sorted())
                     else -> target.label
                 }
+                ButtonAction.FOCUS_MODE -> shortcuts.focus(button, gesture).label
                 else -> action.label
     }
 }
 
-private fun appLabel(context: Context, pkg: String?): String = pkg?.let {
+internal fun appLabel(context: Context, pkg: String?): String = pkg?.let {
     runCatching {
         val pm = context.packageManager
         pm.getApplicationLabel(pm.getApplicationInfo(it, 0)).toString()

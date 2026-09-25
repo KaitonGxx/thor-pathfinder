@@ -53,6 +53,7 @@ fun WatchdogPage(state: SystemState, onBack: () -> Unit) {
     val ready = state.shizuku == Shell.Status.READY
     var on by remember { mutableStateOf<Boolean?>(null) }
     var alive by remember { mutableStateOf(false) }
+    var holding by remember { mutableStateOf(false) }
     var log by remember { mutableStateOf<List<String>>(emptyList()) }
     var busy by remember { mutableStateOf(false) }
     var every by remember { mutableStateOf(Watchdog.seconds(context)) }
@@ -65,6 +66,7 @@ fun WatchdogPage(state: SystemState, onBack: () -> Unit) {
         val (isOn, isAlive, lines) = withContext(Dispatchers.IO) {
             Triple(Watchdog.on(context), Watchdog.alive(), Watchdog.log())
         }
+        holding = withContext(Dispatchers.IO) { Watchdog.holding() }
         on = isOn
         alive = isAlive
         log = lines
@@ -90,6 +92,8 @@ fun WatchdogPage(state: SystemState, onBack: () -> Unit) {
                 detail = when {
                     !ready -> "Needs Shizuku"
                     on == true && !alive -> "On, but not running — turn it off and on again"
+                    on == true && holding ->
+                        "On, and leaving the service off, since it was switched off in Android's settings"
                     on == true -> "On"
                     else -> "Off"
                 },
@@ -120,9 +124,9 @@ fun WatchdogPage(state: SystemState, onBack: () -> Unit) {
                     "setting is under half a percent of one processor core.",
             )
             Para(
-                "It only ever adds Pathfinder's own service. It never removes anyone else's, and it " +
-                    "leaves the switch alone while Android's settings are open, so switching the " +
-                    "service off yourself still works.",
+                "It only ever adds Pathfinder's own service, and never removes anyone else's. If you " +
+                    "switch Pathfinder off yourself in Android's settings, it leaves it off, after " +
+                    "you close Settings and after a restart, until the service is switched on again.",
             )
             Para(
                 "It also takes Pathfinder, and nothing else, off the list in the Thor's APP Auto " +

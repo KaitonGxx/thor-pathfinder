@@ -44,9 +44,18 @@ independent project, not affiliated with Wayfinder or AYN.
 - Back, Home and the AYN button: press, double-press and hold.
 - Select, Start, L3 and R3: double-press and hold. Games still receive every
   press of these buttons, so a plain press stays with the game.
-- Actions: swap screens, mouse mode on/off, back, home, recent apps, close
-  app(s), notifications, quick settings, screenshot, screen record (testing),
-  power menu, lock screen, or open an app.
+- Actions: swap screens, mouse mode on/off, Focus Mode, back, home, recent
+  apps, close app(s), notifications, quick settings, screenshot, screen record
+  (testing), power menu, lock screen, the Shortcut menu, or open an app.
+- The Shortcut menu puts every shortcut in one list on the top screen: the
+  same list you set a gesture from in the app, with the same questions after
+  the ones with an arrow. The one you pick runs straight away, once, so a
+  single button can reach every shortcut.
+- Focus Mode sets the screen the controller drives, using the same three modes
+  as the Thor's own Focus Mode menu (Auto-lock, Top screen, Bottom screen). A
+  shortcut can lock focus to the top screen or the bottom one, cycle through
+  all three, or swap between top and bottom (from Auto-lock it goes to the top
+  first). A short message says which mode it moved to.
 - Close app(s) closes every app, like Recents' Clear all, or just some: the
   background ones (all but what the two screens are showing), the focused app
   (on the screen you last used), the top screen's app, the bottom screen's
@@ -72,7 +81,7 @@ there's no button for it in its menus.
 
 *With Pathfinder:*
 - Double-press Select, or any shortcut you pick, to turn mouse mode on or off.
-  A short message says which.
+  The Thor shows its own message saying which.
 - One switch, under the cog's Mouse mode page, reverses the right stick, so
   pushing up scrolls up, like a mouse wheel. It takes effect after a restart,
   and Pathfinder offers a Restart now button.
@@ -227,12 +236,14 @@ watchdog take it off too. The Diagnostics report shows the list.
 If it keeps happening, the cog's **Watchdog** page turns on a small helper
 that Shizuku keeps running. Because it belongs to Shizuku rather than to
 Pathfinder, it carries on when something stops Pathfinder itself, and it puts
-the service back within a few seconds. It is off unless you turn it on, it only
-ever adds Pathfinder's own service, and it leaves the switch alone while
-Android's settings are open, so switching the service off yourself still works.
+the service back within a few seconds. It is off unless you turn it on, and it
+only ever adds Pathfinder's own service. If you switch the service off
+yourself in Android's settings, the watchdog leaves it off, after you close
+Settings and after a restart, until the service is switched on again.
 It also takes Pathfinder, and nothing else, off APP Auto Launch Manage's list.
 A restart stops it along with Shizuku, and it starts again by itself as soon
 as Shizuku is running, whether Shizuku comes up at boot or you start it later.
+An update to Pathfinder brings the watchdog's new script with it straight away.
 The script is `watchdog.sh` in the
 source and it is worth reading.
 
@@ -351,6 +362,10 @@ You need JDK 17 and the Android SDK (platform 35).
 The APK is written to `app/build/outputs/apk/release/app-release.apk`. Without
 the project's signing key it is signed with your local debug key, so it
 installs fine but can't update a copy installed from Releases.
+
+The launcher icon is built from `tools/icon/icon-source.png` by
+`python tools/icon/make_icon.py` (needs Pillow), which writes the icon's
+foreground layer into the app's resources.
 
 ## 📜 License
 

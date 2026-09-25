@@ -113,6 +113,15 @@ enum class HomeTarget(val label: String, val short: String) {
     BOTH("Both screens", "both"),
 }
 
+/** What a "Focus Mode" shortcut does when pressed. */
+enum class FocusSwitch(val label: String) {
+    TOP("Top screen focus"),
+    BOTTOM("Bottom screen focus"),
+    CYCLE("Cycle focus modes"),
+    /** Between the two screens only; from Auto-lock it goes to the top first. */
+    SWAP("Top/Bottom focus swap"),
+}
+
 /** The kernel input device of the Thor's Back and Home buttons. */
 private const val CONTROLLER = "Odin Controller"
 
@@ -127,12 +136,16 @@ enum class ButtonAction(val label: String, val needsShizuku: Boolean = false) {
     CLOSE_ALL("Close app(s)", needsShizuku = true),
     SWAP_SCREENS("Swap screens", needsShizuku = true),
     MOUSE_MODE("Mouse mode on/off", needsShizuku = true),
+    // Which way it moves Focus Mode is a FocusSwitch.
+    FOCUS_MODE("Focus Mode", needsShizuku = true),
     NOTIFICATIONS("Notifications"),
     QUICK_SETTINGS("Quick settings"),
     SCREENSHOT("Screenshot"),
     SCREEN_RECORD("Screen record (Testing)", needsShizuku = true),
     POWER_MENU("Power menu"),
     LOCK_SCREEN("Lock screen"),
+    /** Every other shortcut in one list, run once on the spot: see [menuChoices]. */
+    SHORTCUT_MENU("Shortcut menu"),
     LAUNCH_APP("Open an app"),
     PROFILE("Profile switcher");
 
@@ -140,6 +153,13 @@ enum class ButtonAction(val label: String, val needsShizuku: Boolean = false) {
         /** The choices offered for a button; "Do nothing" only matters where Pathfinder can block. */
         fun choicesFor(button: PhysicalButton): List<ButtonAction> =
             if (button.kind == ButtonKind.SYSTEM) entries else entries - NOTHING
+
+        /**
+         * What the Shortcut menu offers: every action that does something
+         * without a button behind it. Normal is a button's own job and Do
+         * nothing does nothing, and the menu doesn't list itself.
+         */
+        val menuChoices: List<ButtonAction> = entries - listOf(NORMAL, NOTHING, SHORTCUT_MENU)
     }
 }
 

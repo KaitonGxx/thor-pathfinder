@@ -15,8 +15,10 @@ import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import com.thorpathfinder.app.ui.ProfileChoiceActivity
 import com.thorpathfinder.app.ui.ScreenChoiceActivity
+import com.thorpathfinder.app.ui.ShortcutMenuActivity
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.concurrent.thread
 
 /**
  * Watches the Thor's buttons and runs the user's shortcuts.
@@ -119,12 +121,17 @@ class PathfinderService : AccessibilityService() {
             else -> button.normalAction!!
         }
         // Buzz for shortcuts only, not for a long press left on Normal.
-        val shortcut = action != ButtonAction.NORMAL && resolved != ButtonAction.NOTHING
-        if (gesture != Gesture.PRESS && shortcut && shortcuts.vibrate) buzz()
-        when (resolved) {
+        val isShortcut = action != ButtonAction.NORMAL && resolved != ButtonAction.NOTHING
+        if (gesture != Gesture.PRESS && isShortcut && shortcuts.vibrate) buzz()
+        run(shortcuts.shortcut(button, gesture).copy(action = resolved))
+    }
+
+    /** Carries out one shortcut, whether a button's or one picked from the Shortcut menu. */
+    private fun run(shortcut: Shortcut) {
+        when (shortcut.action) {
             ButtonAction.NORMAL, ButtonAction.NOTHING -> Unit
             ButtonAction.BACK -> performGlobalAction(GLOBAL_ACTION_BACK)
-            ButtonAction.HOME -> goHome(shortcuts.home(button, gesture))
+            ButtonAction.HOME -> goHome(shortcut.home)
             ButtonAction.RECENTS -> performGlobalAction(GLOBAL_ACTION_RECENTS)
             ButtonAction.NOTIFICATIONS -> performGlobalAction(GLOBAL_ACTION_NOTIFICATIONS)
             ButtonAction.QUICK_SETTINGS -> performGlobalAction(GLOBAL_ACTION_QUICK_SETTINGS)
@@ -136,7 +143,7 @@ class PathfinderService : AccessibilityService() {
                 // Every way of closing shares the keep-running list: closed, never force-stopped.
                 val keep = shortcuts.keepRunning
                 toast(
-                    when (shortcuts.close(button, gesture)) {
+                    when (shortcut.close) {
                         CloseTarget.ALL -> closeAllOutcomeMessage(RecentTasks.closeAll(this, keep))
                         CloseTarget.BACKGROUND ->
                             closeBackgroundOutcomeMessage(RecentTasks.closeBackground(this, keep))
@@ -148,7 +155,7 @@ class PathfinderService : AccessibilityService() {
                             RecentTasks.closeOnScreen(this, ScreenSwap.otherDisplay(this)?.displayId, "the bottom screen", keep)
                         )
                         CloseTarget.SPECIFIC -> closeAppsOutcomeMessage(
-                            RecentTasks.closeApps(this, shortcuts.closeApps(button, gesture), keep)
+                            RecentTasks.closeApps(this, shortcut.closeApps, keep)
                         )
                     }
                 )
@@ -159,8 +166,12 @@ class PathfinderService : AccessibilityService() {
                 // Pathfinder only speaks when it couldn't change it.
                 if (MouseMode.toggle() == null) toast("Mouse mode needs Shizuku")
             }
-            ButtonAction.LAUNCH_APP -> openApps(button, gesture)
-            ButtonAction.PROFILE -> switchProfile(button, gesture)
+            // Unlike mouse mode, AYN says nothing when Focus Mode changes, so Pathfinder does.
+            ButtonAction.FOCUS_MODE -> worker.execute { toast(focusModeMessage(FocusMode.apply(this, shortcut.focus))) }
+            ButtonAction.LAUNCH_APP -> openApps(shortcut)
+            ButtonAction.PROFILE -> switchProfile(shortcut)
+            ButtonAction.SHORTCUT_MENU ->
+                ask(Intent(this, ShortcutMenuActivity::class.java), "Couldn't open the shortcut menu")
         }
     }
 
@@ -208,13 +219,13 @@ class PathfinderService : AccessibilityService() {
     }
 
     /** "Open an app": one app on its screen, one on each screen, or ask which. */
-    private fun openApps(button: PhysicalButton, gesture: Gesture) {
-        val app = shortcuts.app(button, gesture) ?: run {
+    private fun openApps(shortcut: Shortcut) {
+        val app = shortcut.app ?: run {
             toast("That app isn't installed")
             return
         }
-        val second = shortcuts.second(button, gesture)
-        val screen = shortcuts.screen(button, gesture)
+        val second = shortcut.second
+        val screen = shortcut.screen
         when {
             second != null -> worker.execute { Launcher.openPair(this, app, second)?.let(::toast) }
             screen == LaunchScreen.ASK -> ask(app)
@@ -227,9 +238,9 @@ class PathfinderService : AccessibilityService() {
      * goes back to the main one when it is already on), or ask. A named profile
      * that has since been deleted falls back to cycling.
      */
-    private fun switchProfile(button: PhysicalButton, gesture: Gesture) {
-        val id = shortcuts.profileId(button, gesture)
-        val mode = shortcuts.profile(button, gesture)
+    private fun switchProfile(shortcut: Shortcut) {
+        val id = shortcut.profileId
+        val mode = shortcut.profile
         when {
             mode == ProfileSwitch.ASK -> ask(Intent(this, ProfileChoiceActivity::class.java), "Couldn't ask which profile")
             mode == ProfileSwitch.ENABLE && Profiles.has(this, id) -> announce(Profiles.enable(this, id))
@@ -282,6 +293,10 @@ class PathfinderService : AccessibilityService() {
         closedMap.clear()
         handler.removeCallbacksAndMessages(null)
         if (::worker.isInitialized) worker.shutdown()
+        // Tell the watchdog now, while whatever switched the service off is
+        // still in front: a switch-off in Android's settings is to be kept.
+        val app = applicationContext
+        thread(name = "watchdog-note") { runCatching { Watchdog.noteStopped(app) } }
         return super.onUnbind(intent)
     }
 
@@ -303,6 +318,21 @@ class PathfinderService : AccessibilityService() {
             val service = current ?: return
             service.handler.post { service.announce(Profiles.active(context)) }
         }
+
+        /**
+         * Runs a shortcut picked from the Shortcut menu, once. It waits for the
+         * menu's window to finish closing, so that Back, a screenshot or a swap
+         * acts on what is underneath rather than on the menu. False when the
+         * service isn't running, so nothing can.
+         */
+        fun runFromMenu(shortcut: Shortcut): Boolean {
+            val service = current ?: return false
+            service.handler.postDelayed({ service.run(shortcut) }, MENU_CLOSE_MS)
+            return true
+        }
+
+        /** Long enough for the Shortcut menu's closing animation to finish. */
+        private const val MENU_CLOSE_MS = 400L
 
         /** How long a replayed press may take to arrive and still be let through. */
         private const val REPLAY_WINDOW_MS = 3000L

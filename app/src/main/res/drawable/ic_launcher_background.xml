@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The frame's gradient, orange at the top left to purple at the bottom right.
+     The foreground's ring is drawn from the same gradient over the same 108dp,
+     so wherever the launcher's mask shows this layer it matches the ring. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:angle="315"
+        android:endColor="#FF8F5EEC"
+        android:startColor="#FFF09B14"
+        android:type="linear" />
+</shape>

@@ -9,13 +9,16 @@
 #
 # It is opt-in. It only ever adds Pathfinder's own component to the
 # accessibility list and only ever takes Pathfinder off AYN's auto launch
-# list, and it stops the moment the marker file is gone. Everything it does
-# is here.
+# list. A switch-off made in Android's settings is the user's own choice, and
+# it leaves that alone until the service is switched on again. It stops the
+# moment the marker file is gone, or when Pathfinder stops it. Everything it
+# does is here.
 #
 # Started with:  setsid sh watchdog.sh <seconds> &
-# Stopped with:  rm <marker>
+# Stopped with:  rm <marker>, then pkill
 
 MARK=/data/local/tmp/thorpathfinder-watchdog.on
+HELD=/data/local/tmp/thorpathfinder-watchdog.held
 LOG=/data/local/tmp/thorpathfinder-watchdog.log
 PKG=com.thorpathfinder.app
 SERVICE=$PKG/com.thorpathfinder.app.PathfinderService
@@ -53,10 +56,19 @@ in_front() {
     dumpsys activity activities 2>/dev/null | grep -m1 'ResumedActivity'
 }
 
+# Stopped by Pathfinder: go at once. The shell holds a signal back until the
+# command in front of it ends, so the wait is on a sleep in the background,
+# which the signal does interrupt; otherwise a restart would leave the old copy
+# running for up to one more interval.
+trap 'kill $nap 2>/dev/null; exit 0' TERM
+
+holding=0
 note "watchdog started, checking every ${EVERY}s"
 
 while [ -f "$MARK" ]; do
-    sleep $EVERY
+    sleep $EVERY &
+    nap=$!
+    wait $nap
     [ -f "$MARK" ] || break
 
     # AYN's "APP Auto Launch Manage" page keeps the apps switched on in it in
@@ -93,9 +105,15 @@ while [ -f "$MARK" ]; do
 
     case ":$current:" in
         *":$PKG/"*)
-            # Switched on: nothing to do, which is the usual case. Unless it
-            # has just come off AYN's list, where Android refused it and won't
-            # try again until the switch changes: then off, and on again.
+            # Switched on, by whoever: a switch-off made in Settings no longer holds.
+            if [ -f "$HELD" ]; then
+                rm -f "$HELD"
+                note "switched on again, back to watching"
+            fi
+            holding=0
+            # Nothing else to do, which is the usual case. Unless it has just
+            # come off AYN's list, where Android refused it and won't try
+            # again until the switch changes: then off, and on again.
             if [ $unblocked = 1 ]; then
                 others=$(without "$current" ':' "$PKG/*")
                 settings put secure $KEY "$others"
@@ -111,10 +129,20 @@ while [ -f "$MARK" ]; do
             ;;
     esac
 
-    # Someone may be switching it off on purpose.
-    case "$(in_front)" in
-        *com.android.settings*) note "switched off while Settings was open, leaving it alone"; continue ;;
-    esac
+    # Switched off in Android's settings: the user's own choice. Pathfinder
+    # leaves the marker the moment its service stops there, and a switch-off
+    # seen here while Settings is still open counts too. Either way it stays
+    # off, after Settings closes and after a restart, until it is switched on.
+    if [ ! -f "$HELD" ]; then
+        case "$(in_front)" in
+            *com.android.settings*) touch "$HELD" ;;
+        esac
+    fi
+    if [ -f "$HELD" ]; then
+        [ $holding = 1 ] || note "switched off in Settings, leaving it off until it is switched on again"
+        holding=1
+        continue
+    fi
 
     # Put Pathfinder back, keeping every other service exactly as it was.
     if [ -z "$current" ]; then

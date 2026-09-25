@@ -13,12 +13,14 @@ import androidx.core.content.edit
  * app is force-stopped or killed.
  *
  * Off unless the user turns it on. It only ever adds Pathfinder's own
- * component to the accessibility list, never removes anyone else's, and it
- * leaves the switch alone while Android's settings are open so that turning
- * the service off on purpose still works. It also takes Pathfinder, and only
- * Pathfinder, off AYN's auto launch list ([AutoLaunchList]), which otherwise
- * keeps the service from starting after a restart. The script is
- * `watchdog.sh` in the assets, and it is the whole of what runs.
+ * component to the accessibility list and never removes anyone else's. A
+ * switch-off made in Android's settings is the user's choice, and it stays
+ * off, after Settings closes and after a restart, until the service is
+ * switched on again ([noteStopped], the [HELD] marker). It also takes
+ * Pathfinder, and only Pathfinder, off AYN's auto launch list
+ * ([AutoLaunchList]), which otherwise keeps the service from starting after
+ * a restart. The script is `watchdog.sh` in the assets, and it is the whole
+ * of what runs.
  *
  * Blocking: run it off the main thread.
  */
@@ -34,6 +36,10 @@ object Watchdog {
     private const val SCRIPT = "$DIR/thorpathfinder-watchdog.sh"
     private const val MARKER = "$DIR/thorpathfinder-watchdog.on"
     private const val LOG = "$DIR/thorpathfinder-watchdog.log"
+
+    /** Left while the service is off because it was switched off in Android's settings. */
+    private const val HELD = "$DIR/thorpathfinder-watchdog.held"
+    private const val SETTINGS = "com.android.settings"
 
     /** What the running script's command line contains, for pgrep and pkill. */
     private const val PATTERN = "thorpathfinder-watchdog.sh"
@@ -72,16 +78,17 @@ object Watchdog {
 
     fun start(context: Context): Outcome {
         if (!Shell.ready) return Outcome.NeedsShizuku
-        val script = runCatching {
-            context.assets.open("watchdog.sh").bufferedReader().use { it.readText() }
-        }.getOrElse { return Outcome.Failed("couldn't read the watchdog script") }
+        val script = bundled(context) ?: return Outcome.Failed("couldn't read the watchdog script")
+
+        // Stop any copy first: a shell reads its script as it goes, so the
+        // file mustn't change under one that is still running.
+        stopProcesses()
 
         // Write it where the shell user can reach it. The app's own files are
         // not readable from there, so it has to be copied out.
         val written = Shell.run("sh", "-c", "cat > $SCRIPT", input = script)
         if (!written.ok) return Outcome.Failed(written.err.trim().ifBlank { "couldn't write the script" })
 
-        stopProcesses()
         val marked = Shell.run("sh", "-c", "touch $MARKER")
         if (!marked.ok) return Outcome.Failed(marked.err.trim().ifBlank { "couldn't turn it on" })
 
@@ -95,20 +102,51 @@ object Watchdog {
     /**
      * Starts it again if it was left switched on but isn't running, which is
      * how every restart leaves it: it runs under Shizuku, and Shizuku starts
-     * afresh. The service calls this whenever Shizuku becomes available,
-     * whether that is at boot or later by hand. Switched off, the marker is
-     * gone and this does nothing, so it never overrides the user's choice.
-     * True when it started one.
+     * afresh. Also when the copy running is an older script than this
+     * version's, which is how an update leaves it. Called whenever Shizuku
+     * becomes available to Pathfinder's process, at boot, when started by
+     * hand, or after an update. Switched off, the marker is gone and this
+     * does nothing, so it never overrides the user's choice. True when it
+     * started one.
      */
     fun resume(context: Context): Boolean {
-        if (!Shell.ready || !on(context) || alive()) return false
+        if (!Shell.ready || !on(context)) return false
+        if (alive() && deployedIsCurrent(context)) return false
         return start(context) == Outcome.Started
+    }
+
+    /**
+     * Called as the service stops. With Android's settings in front, the user
+     * has just switched Pathfinder off there, on purpose, so the watchdog is
+     * told to leave it off until it is switched on again. The watchdog checks
+     * for Settings itself too, but only every few seconds, and by then
+     * Settings may have been closed.
+     */
+    fun noteStopped(context: Context) {
+        if (!Shell.ready || !on(context)) return
+        val front = Shell.run("sh", "-c", "dumpsys activity activities | grep -m1 ResumedActivity").out
+        if (SETTINGS in front) Shell.run("sh", "-c", "touch $HELD")
+    }
+
+    /** Whether it is leaving the service off because it was switched off in Android's settings. */
+    fun holding(): Boolean {
+        if (!Shell.ready) return false
+        return Shell.run("sh", "-c", "[ -f $HELD ] && echo yes").out.trim() == "yes"
+    }
+
+    private fun bundled(context: Context): String? =
+        runCatching { context.assets.open("watchdog.sh").bufferedReader().use { it.readText() } }.getOrNull()
+
+    /** Whether the copy out in /data/local/tmp is this version's script. */
+    private fun deployedIsCurrent(context: Context): Boolean {
+        val script = bundled(context) ?: return true
+        return Shell.run("sh", "-c", "cat $SCRIPT 2>/dev/null").out == script
     }
 
     fun stop(): Outcome {
         if (!Shell.ready) return Outcome.NeedsShizuku
         // The marker going is what tells the loop to finish; the kill is for
-        // the copy that is asleep in the middle of a wait.
+        // the copy that is asleep in the middle of a wait, which it ends at once.
         Shell.run("sh", "-c", "rm -f $MARKER")
         stopProcesses()
         return Outcome.Stopped

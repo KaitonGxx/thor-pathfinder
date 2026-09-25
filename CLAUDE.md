@@ -8,8 +8,53 @@ Kotlin + Jetpack Compose, package `com.thorpathfinder.app`, minSdk 33
 Machine-specific notes (toolchain paths, the test Thor's serial, git
 identity) live in `CLAUDE.local.md`, which is gitignored.
 
-## Status (2026-09-24)
+## Status (2026-09-25)
 
+- v0.9.0 (versionCode 19), released 2026-09-25: a new app icon, and
+  `.gitattributes` pins `*.sh` to LF. The icon is an adaptive icon whose
+  foreground is a bitmap (`drawable-nodpi/ic_launcher_foreground.png`,
+  648 px = 108dp at 6x): the artwork without its square frame, on solid
+  lavender (`#FAF8FF`; the artwork's own background is partly transparent),
+  inside a ring in the frame's gradient (`#F09B14` top left to `#8F5EEC`
+  bottom right). The ring ends at the 72dp viewport's circle, because this
+  firmware's `config_icon_mask` is a circle and no icon-shape overlay is on.
+  The background layer (`drawable/ic_launcher_background.xml`) is the same
+  gradient at 315 degrees over the same 108dp, so the rim matches the ring
+  and a squarer launcher mask fills its corners with it. The layer's alpha
+  is set directly, not pasted through a mask onto transparent black, which
+  left a dark rim. No monochrome (themed) layer any more: the old one was
+  the previous vector artwork. Cocoon (the test Thor's home screen) keeps
+  its own copy of every app icon in `files/android_app_icons/<pkg with _>.png`
+  and reuses it while the file exists; an update's `PACKAGE_ADDED` makes it
+  re-sync its list but not the picture, so it keeps showing the old icon.
+  Pathfinder cannot reach that file; only root (or Cocoon itself) can.
+  Getting Cocoon to show the new icon is parked (see "Possible next steps").
+  Also in 0.9.0: a **Focus Mode** shortcut (`FocusMode`, needs Shizuku)
+  that asks which way (`FocusSwitch`, stored as `<key>.focus`, default
+  CYCLE): Top screen focus (1), Bottom screen focus (2), Cycle focus modes
+  (0 → 1 → 2 → 0), Top/Bottom focus swap (1 ↔ 2, and 0 or unknown → 1). It
+  writes `screen_focus_lock` only when the value changes and always shows
+  "Focus Mode: <AYN's name>". And a third shortcut-list layout, two columns
+  (`ChoiceLayout.TWO`, 640 dp), between list (560 dp) and wide (760 dp).
+  The button cards show a symbol left of the name, in a small
+  secondaryContainer circle (`ButtonSymbol`, like the map's A):
+  `ui/ButtonSymbols.kt` maps Back to Material's "replay" path (entered as
+  path data, since the core icon set lacks it; checked by drawing it),
+  Home to `Icons.Filled.Home`, Select to an outlined square (filled would
+  read as "stop"), Start to `Icons.Filled.PlayArrow`, the AYN button to a
+  rounded rectangle with AYN drawn as strokes (as on the button itself),
+  and L3 and R3 to an analog stick from above (a ring and a filled cap).
+  And a **Shortcut menu** action (`SHORTCUT_MENU`): the service opens
+  `ShortcutMenuActivity` on the top screen like the other questions, which
+  shows `ShortcutPicker` with `ButtonAction.menuChoices` (all but Normal, Do
+  nothing and itself) and runs the pick once through
+  `PathfinderService.runFromMenu`, 400 ms after the menu finishes so Back, a
+  screenshot or a swap acts on what is underneath. `ShortcutPicker` is the
+  settings screen's old edit flow moved out whole (the list, then the
+  follow-up questions for the arrow ones), handing back a `Shortcut` (action
+  plus choices); the settings screen saves it, the menu runs it. A button's
+  press now builds its `Shortcut` (`Shortcuts.shortcut`) and goes through the
+  same `PathfinderService.run`.
 - v0.8.3 (versionCode 18), released 2026-09-24. Also in it, described in
   their own sections below: the profile map keeps the buttons and its
   Dismiss shows an A, What's New on the update card, and the neutral update
@@ -21,15 +66,19 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
   ask more before saving (Open an app, Home, Close app(s), Profile switcher)
   carry the same arrow as a row that opens a page, and come last, together,
   after a small gap (`ChoiceDialog` groups by `leadsOn`; in a grid the group
-  starts its own row). The shortcut list is a 3-column grid read across by
+  starts its own row). From 0.9.0 a rule sits in that gap, in full
+  `outlineVariant` like the rules under card titles, inset to line up with
+  the radio buttons: the bare gap read as a layout glitch, and at half alpha
+  the rule read as a mark on the screen. The shortcut list is a 3-column grid read across by
   default (`ChoiceLayout.WIDE`): both screens are landscape and only about
   468 dp tall (top 1920x1080, bottom 1240x1080, both 369 dpi), so 17 choices
-  in one column always scrolled. Two icons on its title row switch between
-  list and wide (the grid icon is drawn by hand, since Material's core icons
-  have none); the pick is kept in the `ui` prefs (`shortcutListColumns`). A
-  dialog that can be a grid drops Android's default dialog width and caps
-  itself (760 dp wide, 560 dp as a list), so switching never changes how
-  Android sizes the window.
+  in one column always scrolled. Icons on its title row switch between
+  list and wide, and from 0.9.0 two columns between them (the grid icons are
+  drawn by `gridIcon`, since Material's core icons have none); the pick is
+  kept in the `ui` prefs (`shortcutListColumns`, read through
+  `ChoiceLayout.of`). A dialog that can be a grid drops Android's default
+  dialog width and caps itself (760 dp wide, 640 dp in two columns, 560 dp
+  as a list), so switching never changes how Android sizes the window.
   **AYN's auto launch list** (issue #1, see "Facts learned on the Thor"):
   `AutoLaunchList` reads `boot_auto_launch_list` directly (no Shizuku
   needed to read it); `SystemState.autoLaunchBlocked` puts it in the
@@ -74,8 +123,10 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
   so it belongs to Shizuku and survives Pathfinder being killed; it checks
   every 5 seconds by default (12 ms a check, measured; 22 ms since 0.8.3
   reads AYN's auto launch list too), only ever adds
-  Pathfinder's own component, and leaves the switch alone while Android's
-  settings are open so a deliberate switch-off stands.
+  Pathfinder's own component. Up to 0.8.3 it only skipped its check while
+  Settings was in front, so a deliberate switch-off was undone at the first
+  check after leaving Settings; from 0.9.0 a switch-off in Settings is kept
+  (see "The watchdog keeps a switch-off made in Settings").
 - v0.8.0 (versionCode 15), released 2026-09-23: **profiles**, several named
   sets of shortcuts with one in use at a time, chosen from the oval under the
   title, from a Profile switcher shortcut (cycle, enable one by name, or ask)
@@ -113,8 +164,8 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
   Normal, Check For Updates, and controller scrolling that reaches the true
   top and bottom of a page. 0.3.0 added Close all apps; 0.2.0 was the first
   public release.
-  Release APK is about 1.7 MB (R8 on). Bump `versionCode` for every APK
-  handed over.
+  Release APK is about 2.5 MB (R8 on) as of 0.9.0. Bump `versionCode` for
+  every APK handed over.
 - What 0.5.0 changed: the cog next to the update button opens a full-screen
   Settings menu (`ui/MoreSettings.kt`) with a page each for Close all apps
   (the keep-running list, OdinTools and ClusterTune offered first), Mouse mode
@@ -169,6 +220,8 @@ app/src/main/kotlin/com/thorpathfinder/app/
   Buttons.kt            PhysicalButton (scan codes), Gesture, ButtonAction
   GestureEngine.kt      press / double-press / hold state machine (pure, tested)
   Shortcuts.kt          SharedPreferences store + defaults; implements GestureConfig
+  Shortcut.kt           one shortcut: an action and its choices (stored or from the menu)
+  FocusMode.kt          AYN's Focus Mode: which screen the controller drives
   PathfinderService.kt  accessibility service: key events -> engine -> actions
   ScreenSwap.kt         parse `am stack list`, plan, script, covered-app fix-up
   RecentTasks.kt        Close all apps: parse `dumpsys activity recents`, `am stack remove`
@@ -190,11 +243,18 @@ app/src/main/kotlin/com/thorpathfinder/app/
   ui/AppPicker.kt       launcher apps for "Open an app" (loadApps is shared)
   ui/MoreSettings.kt    the cog's menu: Mouse mode, Timing, Update settings, Setup
   ui/ScreenChoiceActivity.kt  an "Ask" shortcut's top-or-bottom question
+  ui/ShortcutPicker.kt  choosing a shortcut: the list, then the arrow ones' questions
+  ui/ShortcutMenuActivity.kt  the Shortcut menu: the picker, the pick run once
+  ui/ButtonSymbols.kt   the symbols beside each button card's name
   ui/Updates.kt         update state for the screen: button wording, notice card
   ui/KeepRunning.kt     the cog's Close all apps page: what not to force-stop
   ui/Licenses.kt        About → Open-source licenses (texts in assets/licenses)
   ui/Preview.kt         debug builds only: fake states for screenshots
 app/src/test/           JVM tests; resources are real captures from the Thor
+tools/icon/             icon-source.png (the artwork) and make_icon.py, which
+                        writes drawable-nodpi/ic_launcher_foreground.png
+                        (reproduces the committed one byte for byte)
+tools/fix-accessibility.sh  the root-script fallback (not a release asset)
 ```
 
 ## Facts learned on the Thor (firmware 1.0.0.377)
@@ -413,6 +473,18 @@ app/src/test/           JVM tests; resources are real captures from the Thor
   it obeys the target whatever the setting says. Reported by a user as
   "only home (top) is working" in top focus; the trigger is the OdinSettings
   switch, not Focus Mode, which only chooses the screen the lock points at.
+- **How Focus Mode is applied** (read from this firmware's apps, checked on
+  the test Thor). DualScreenAssistant's Focus Mode dialog
+  (`FocusLockQsItem$a.a`) only writes `screen_focus_lock`. OdinSettings, a
+  persistent system-uid app, watches it (`com.ro.settings.trigger.D.j`) and
+  runs `setprop persist.sys.input.dispaly <0|1|2>` (AYN's spelling), then for
+  1 `input -d 0 tap -10 -10`, for 2 the same on the secondary display, and
+  always `input keyevent 60`. Nothing in the framework, System UI, the
+  mapping app or native code names the setting; the property carries it. A
+  `settings put system screen_focus_lock N` from the shell made the property
+  follow at once (2, 0, 1), so Pathfinder's shortcut goes down AYN's own
+  path. `mTopFocusedDisplayId` did not move with it, and no toast is shown,
+  which is why the shortcut shows its own.
 - **The button map** (`ButtonMap` and `ThorMapView`) is Pathfinder's own
   drawing, not AYN artwork: a lid, a control deck, the staggered sticks, a
   D-pad, four face buttons and the five small ones. Button positions are
@@ -455,7 +527,27 @@ app/src/test/           JVM tests; resources are real captures from the Thor
   if the marker says it was switched on and no copy is running. Switched off,
   the marker is gone and nothing restarts. It lived in `PathfinderService` in
   0.8.2, which never runs when AYN's auto launch list blocks it; Shizuku
-  starts the process through its provider either way.
+  starts the process through its provider either way. Since 0.9.0
+  `resume` also restarts a running copy whose script in /data/local/tmp
+  differs from the bundled one, so an update's script takes effect in the
+  first process after the update, not at the next reboot. `start` stops the
+  old copy before writing the file, since a shell reads its script as it
+  runs.
+- **The watchdog keeps a switch-off made in Settings** (0.9.0). The marker
+  `/data/local/tmp/thorpathfinder-watchdog.held` means "leave it off": the
+  script finds the service missing and keeps away while the marker exists,
+  logging once, and removes the marker as soon as the service is listed
+  again, whoever switched it on. Two things set it. `PathfinderService.
+  onUnbind` runs `Watchdog.noteStopped` on a thread, which checks the first
+  `ResumedActivity` (the focused screen's) for `com.android.settings` at the
+  moment the switch-off lands; the script's own check at its next look is
+  the backup, but with a 30 s interval Settings is usually closed by then,
+  which is exactly how 0.8.3 and earlier undid a deliberate switch-off. An
+  update's switch-off happens with the process being killed and Settings
+  not in front, so the watchdog still restores it. The script now sleeps
+  with `sleep & wait` under a TERM trap: mksh holds a signal back until the
+  foreground command ends, so a plain `sleep` let a stopped copy run on for
+  up to one interval (seen as `pgrep` still finding it after `pkill`).
 - **Profile screens watch the profiles file** (`rememberProfileUi`). A
   `ProfileUi` used to read the profiles once, when its screen was built, so a
   switch made by a shortcut or the Ask question while the app sat behind
@@ -587,3 +679,19 @@ carriage return as part of the command (`x=1\r` does not set `x` to `1`).
   second instead of 2 s per read), falling back to the search otherwise.
   The alternative is Pathfinder's own MediaProjection recorder, which opens
   Android's consent prompt directly but captures the top screen only.
+- Cocoon showing the new icon after an update, without root or a script.
+  What is known (Cocoon 3.06-1): `utils.s3.c` returns
+  `filesDir/android_app_icons/<pkg with _>.png` when that file exists and
+  only asks Android (`PackageManager`) when it doesn't; the only other writer
+  (`de.f1.p`) is Cocoon's restore from its own backup. Its package receiver
+  (`bf.j`) handles PACKAGE_ADDED, CHANGED and FULLY_REMOVED (REMOVED only
+  when not replacing) by re-syncing the app list, which keeps the file. No
+  code found that deletes those files. Cocoon's settings reset clears them
+  but wipes everything else too. The clean fix is Cocoon re-fetching an
+  app's icon on update.
+- Force stop from Android's App info. On the test Thor, with the watchdog
+  on, Force stop did not stop Pathfinder, and no "Force stopping
+  com.thorpathfinder.app" reached ActivityManager's log (the only one after
+  the 0.9.0 test install was the install itself). Not yet checked with the
+  watchdog off, or whether the button was greyed out. Pathfinder must always
+  be stoppable from Settings.

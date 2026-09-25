@@ -86,6 +86,7 @@ object ButtonMap {
             ProfileSwitch.ASK -> "Switch profile (ask)"
             ProfileSwitch.ENABLE -> "Enable " + Profiles.name(context, shortcuts.profileId(button, gesture))
         }
+        ButtonAction.FOCUS_MODE -> shortcuts.focus(button, gesture).label
         else -> action.label
     }
 

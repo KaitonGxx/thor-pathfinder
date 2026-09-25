@@ -66,10 +66,45 @@ class Shortcuts(private val context: Context, private val profile: Int? = null) 
     fun profileId(button: PhysicalButton, gesture: Gesture): Int =
         prefs.getInt(key(button, gesture) + ".profileId", Profiles.ORIGINAL)
 
+    /** What a FOCUS_MODE gesture does; a mapping without one cycles. */
+    fun focus(button: PhysicalButton, gesture: Gesture): FocusSwitch =
+        prefs.getString(key(button, gesture) + ".focus", null)
+            ?.let { name -> FocusSwitch.entries.firstOrNull { it.name == name } }
+            ?: FocusSwitch.CYCLE
+
     /** The screens a HOME gesture sends home; null for the old way, Android's own Home. */
     fun home(button: PhysicalButton, gesture: Gesture): HomeTarget? =
         prefs.getString(key(button, gesture) + ".home", null)
             ?.let { name -> HomeTarget.entries.firstOrNull { it.name == name } }
+
+    /** Everything a gesture is set to, in one piece. */
+    fun shortcut(button: PhysicalButton, gesture: Gesture): Shortcut = Shortcut(
+        action = action(button, gesture),
+        app = app(button, gesture),
+        screen = screen(button, gesture),
+        second = second(button, gesture),
+        home = home(button, gesture),
+        close = close(button, gesture),
+        closeApps = closeApps(button, gesture),
+        profile = profile(button, gesture),
+        profileId = profileId(button, gesture),
+        focus = focus(button, gesture),
+    )
+
+    fun set(button: PhysicalButton, gesture: Gesture, shortcut: Shortcut) = set(
+        button,
+        gesture,
+        shortcut.action,
+        app = shortcut.app,
+        screen = shortcut.screen,
+        second = shortcut.second,
+        home = shortcut.home,
+        close = shortcut.close,
+        closeApps = shortcut.closeApps,
+        profile = shortcut.profile,
+        profileId = shortcut.profileId,
+        focus = shortcut.focus,
+    )
 
     fun set(
         button: PhysicalButton,
@@ -83,6 +118,7 @@ class Shortcuts(private val context: Context, private val profile: Int? = null) 
         closeApps: Set<String> = emptySet(),
         profile: ProfileSwitch = ProfileSwitch.CYCLE,
         profileId: Int = Profiles.ORIGINAL,
+        focus: FocusSwitch = FocusSwitch.CYCLE,
     ) {
         val key = key(button, gesture)
         prefs.edit {
@@ -109,6 +145,7 @@ class Shortcuts(private val context: Context, private val profile: Int? = null) 
             } else {
                 remove("$key.profileId")
             }
+            if (action == ButtonAction.FOCUS_MODE) putString("$key.focus", focus.name) else remove("$key.focus")
         }
     }
 

@@ -104,6 +104,22 @@ val OkGreen: Color
 val WarningYellow: Color
     @Composable get() = if (isSystemInDarkTheme()) Color(0xFFF2C14E) else Color(0xFFB07800)
 
+/** A button's symbol in a small filled circle, the way the profile map's Dismiss shows the A button. */
+@Composable
+fun ButtonSymbol(icon: ImageVector) {
+    Box(
+        Modifier.size(32.dp).background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.size(18.dp),
+        )
+    }
+}
+
 /** A green dot with a white tick: everything is as it should be. */
 @Composable
 fun OkDot(size: Dp = 18.dp) {
@@ -255,7 +271,8 @@ fun ListHeading(title: String, detail: String? = null) {
 /**
  * A card that folds its content away behind its title, one focus stop that
  * opens and closes it. Closed, it shows [summary] under the title; open, it
- * shows [subtitle] and the content.
+ * shows [subtitle] and the content. A [symbol] sits to the left of the title
+ * in a small circle, as a button's cap would show it.
  */
 @Composable
 fun CollapsibleCard(
@@ -264,6 +281,7 @@ fun CollapsibleCard(
     subtitle: String?,
     expanded: Boolean,
     onToggle: () -> Unit,
+    symbol: ImageVector? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Card(Modifier.fillMaxWidth()) {
@@ -277,6 +295,10 @@ fun CollapsibleCard(
                     .padding(horizontal = 8.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                if (symbol != null) {
+                    ButtonSymbol(symbol)
+                    Spacer(Modifier.width(12.dp))
+                }
                 Column(Modifier.weight(1f)) {
                     Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     val line = if (expanded) subtitle else summary
@@ -435,19 +457,23 @@ fun PickDialog(title: String, choices: List<Pair<String, String?>>, onPick: (Int
     LaunchedEffect(inputMode) { runCatching { first.requestFocus() } }
 }
 
-/** The two ways [ChoiceDialog] can lay out a long list: one column, or a wide grid. */
+/** The ways [ChoiceDialog] can lay out a long list: one column, two, or a wide grid of three. */
 object ChoiceLayout {
     const val LIST = 1
+    const val TWO = 2
     const val WIDE = 3
+
+    /** A stored layout, or wide when it is not one of these. */
+    fun of(columns: Int): Int = if (columns == LIST || columns == TWO) columns else WIDE
 }
 
 /**
  * Pick one of [options]; focus starts on the current choice. An option that
  * [leadsOn] asks more before anything is saved, and carries the same arrow
- * as a row that opens a page; those come last, together, after a small gap.
+ * as a row that opens a page; those come last, together, below a thin line.
  * With more than one of [columns], the options sit in a grid read across, in
  * a dialog wide enough for it, so a long list fits the Thor's short screens.
- * Given [onColumnsChange], the title row offers both layouts to switch
+ * Given [onColumnsChange], the title row offers the [ChoiceLayout]s to switch
  * between.
  */
 @Composable
@@ -516,7 +542,12 @@ fun <T> ChoiceDialog(
             if (sized) Modifier.fillMaxWidth().padding(horizontal = 16.dp) else Modifier,
             contentAlignment = Alignment.Center,
         ) {
-            Card(if (sized) Modifier.widthIn(max = if (grid) 760.dp else 560.dp) else Modifier) {
+            val maxWidth = when (columns) {
+                ChoiceLayout.LIST -> 560.dp
+                ChoiceLayout.TWO -> 640.dp
+                else -> 760.dp
+            }
+            Card(if (sized) Modifier.widthIn(max = maxWidth) else Modifier) {
                 Column(Modifier.padding(vertical = 16.dp)) {
                     Row(
                         Modifier.padding(start = 24.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
@@ -525,11 +556,18 @@ fun <T> ChoiceDialog(
                         Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
                         if (onColumnsChange != null) {
                             Spacer(Modifier.width(12.dp))
-                            LayoutSwitch(Icons.AutoMirrored.Filled.List, "List view", !grid) {
+                            val layout = ChoiceLayout.of(columns)
+                            LayoutSwitch(Icons.AutoMirrored.Filled.List, "List view", layout == ChoiceLayout.LIST) {
                                 onColumnsChange(ChoiceLayout.LIST)
                             }
                             Spacer(Modifier.width(4.dp))
-                            LayoutSwitch(WideIcon, "Wide view", grid) { onColumnsChange(ChoiceLayout.WIDE) }
+                            LayoutSwitch(TwoIcon, "Two-column view", layout == ChoiceLayout.TWO) {
+                                onColumnsChange(ChoiceLayout.TWO)
+                            }
+                            Spacer(Modifier.width(4.dp))
+                            LayoutSwitch(WideIcon, "Wide view", layout == ChoiceLayout.WIDE) {
+                                onColumnsChange(ChoiceLayout.WIDE)
+                            }
                         }
                     }
                     // Shrinks to fit a short screen, so Cancel stays in sight below it.
@@ -541,7 +579,13 @@ fun <T> ChoiceDialog(
                             .padding(horizontal = 12.dp),
                     ) {
                         groups.forEachIndexed { group, members ->
-                            if (group > 0) Spacer(Modifier.height(8.dp))
+                            // A rule in the gap, like the ones under card titles, lined up with the radio buttons.
+                            if (group > 0) {
+                                HorizontalDivider(
+                                    Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    color = MaterialTheme.colorScheme.outlineVariant,
+                                )
+                            }
                             if (grid) {
                                 // Each group starts a row of its own.
                                 members.chunked(columns).forEach { cells ->
@@ -597,22 +641,30 @@ private fun LayoutSwitch(icon: ImageVector, description: String, selected: Boole
     }
 }
 
-/** Three columns of two: the wide view, drawn as itself. Material's core icons have no grid. */
-private val WideIcon: ImageVector = ImageVector.Builder(
-    name = "WideView",
+/** Two columns of two: the two-column view, drawn as itself. */
+private val TwoIcon: ImageVector = gridIcon("TwoColumnView", columns = 2)
+
+/** Three columns of two: the wide view, drawn as itself. */
+private val WideIcon: ImageVector = gridIcon("WideView", columns = 3)
+
+/** Blocks in [columns] columns and two rows. Material's core icons have no grid. */
+private fun gridIcon(name: String, columns: Int): ImageVector = ImageVector.Builder(
+    name = name,
     defaultWidth = 24.dp,
     defaultHeight = 24.dp,
     viewportWidth = 24f,
     viewportHeight = 24f,
 ).apply {
+    val gap = 1.5f
+    val width = (18f - gap * (columns - 1)) / columns
     path(fill = SolidColor(Color.Black)) {
-        for (column in 0..2) {
+        for (column in 0 until columns) {
             for (row in 0..1) {
-                val x = 3f + column * 6.5f
+                val x = 3f + column * (width + gap)
                 val y = 5f + row * 7.5f
                 moveTo(x, y)
-                lineTo(x + 5f, y)
-                lineTo(x + 5f, y + 6f)
+                lineTo(x + width, y)
+                lineTo(x + width, y + 6f)
                 lineTo(x, y + 6f)
                 close()
             }
