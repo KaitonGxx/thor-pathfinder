@@ -31,6 +31,9 @@ class PathfinderApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // Whatever app was in front when the last process ended is not known
+        // to be any more; app profiles report afresh once they are watching.
+        Profiles.setCurrentApp(this, null)
         Shizuku.addBinderReceivedListenerSticky(shizukuUp)
     }
 }

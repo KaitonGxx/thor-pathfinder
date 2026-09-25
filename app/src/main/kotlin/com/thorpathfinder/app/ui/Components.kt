@@ -77,6 +77,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.thorpathfinder.app.R
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 
@@ -197,7 +199,7 @@ fun PageScaffold(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 IconButton(onClick = onBack, modifier = Modifier.focusOutline(PillShape)) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.nav_back))
                 }
                 Spacer(Modifier.width(8.dp))
                 Column(Modifier.weight(1f)) {
@@ -272,7 +274,8 @@ fun ListHeading(title: String, detail: String? = null) {
  * A card that folds its content away behind its title, one focus stop that
  * opens and closes it. Closed, it shows [summary] under the title; open, it
  * shows [subtitle] and the content. A [symbol] sits to the left of the title
- * in a small circle, as a button's cap would show it.
+ * in a small circle, as a button's cap would show it, and a [badge] on the
+ * right, beside the arrow and level with the title.
  */
 @Composable
 fun CollapsibleCard(
@@ -282,6 +285,7 @@ fun CollapsibleCard(
     expanded: Boolean,
     onToggle: () -> Unit,
     symbol: ImageVector? = null,
+    badge: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Card(Modifier.fillMaxWidth()) {
@@ -291,7 +295,10 @@ fun CollapsibleCard(
                     .fillMaxWidth()
                     .focusOutline()
                     .clip(RowShape)
-                    .clickable(onClickLabel = if (expanded) "Close" else "Open", onClick = onToggle)
+                    .clickable(
+                        onClickLabel = stringResource(if (expanded) R.string.close else R.string.open),
+                        onClick = onToggle,
+                    )
                     .padding(horizontal = 8.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -307,10 +314,16 @@ fun CollapsibleCard(
                             line,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = if (expanded) Int.MAX_VALUE else 1,
+                            // Two lines, so a longer language still shows every gesture.
+                            maxLines = if (expanded) Int.MAX_VALUE else 2,
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
+                }
+                // Level with the title, so it sits above the arrow's middle.
+                if (badge != null) {
+                    Spacer(Modifier.width(12.dp))
+                    Box(Modifier.align(Alignment.Top).padding(top = 4.dp)) { badge() }
                 }
                 Spacer(Modifier.width(12.dp))
                 Icon(
@@ -449,7 +462,7 @@ fun PickDialog(title: String, choices: List<Pair<String, String?>>, onPick: (Int
                 TextButton(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End).padding(horizontal = 16.dp).focusOutline(PillShape),
-                ) { Text("Cancel") }
+                ) { Text(stringResource(R.string.cancel)) }
             }
         }
     }
@@ -557,15 +570,15 @@ fun <T> ChoiceDialog(
                         if (onColumnsChange != null) {
                             Spacer(Modifier.width(12.dp))
                             val layout = ChoiceLayout.of(columns)
-                            LayoutSwitch(Icons.AutoMirrored.Filled.List, "List view", layout == ChoiceLayout.LIST) {
+                            LayoutSwitch(Icons.AutoMirrored.Filled.List, stringResource(R.string.list_view), layout == ChoiceLayout.LIST) {
                                 onColumnsChange(ChoiceLayout.LIST)
                             }
                             Spacer(Modifier.width(4.dp))
-                            LayoutSwitch(TwoIcon, "Two-column view", layout == ChoiceLayout.TWO) {
+                            LayoutSwitch(TwoIcon, stringResource(R.string.two_column_view), layout == ChoiceLayout.TWO) {
                                 onColumnsChange(ChoiceLayout.TWO)
                             }
                             Spacer(Modifier.width(4.dp))
-                            LayoutSwitch(WideIcon, "Wide view", layout == ChoiceLayout.WIDE) {
+                            LayoutSwitch(WideIcon, stringResource(R.string.wide_view), layout == ChoiceLayout.WIDE) {
                                 onColumnsChange(ChoiceLayout.WIDE)
                             }
                         }
@@ -608,7 +621,7 @@ fun <T> ChoiceDialog(
                     TextButton(
                         onClick = onDismiss,
                         modifier = Modifier.align(Alignment.End).padding(horizontal = 16.dp).focusOutline(PillShape),
-                    ) { Text("Cancel") }
+                    ) { Text(stringResource(R.string.cancel)) }
                 }
             }
         }

@@ -72,7 +72,7 @@ class RecentTasksTest {
         assertEquals(listOf(270, 268), background.map { it.id })
         // The app left on screen is never force-stopped, since its task never closes.
         assertEquals(listOf("com.android.settings"), RecentTasks.stoppable(background, "com.thorpathfinder.app"))
-        assertEquals("Background tasks closed", closeBackgroundOutcomeMessage(RecentTasks.Outcome.Closed(2)))
+        assertEquals("Background tasks closed", closeBackgroundOutcomeMessage(English, RecentTasks.Outcome.Closed(2)))
     }
 
     @Test
@@ -86,9 +86,9 @@ class RecentTasksTest {
         val closing = RecentTasks.closable(RecentTasks.parse(captured), thor)
         val onScreen = closing.mapNotNull { it.packageName }.toSet()
         assertTrue(RecentTasks.background(closing, onScreen).isEmpty())
-        assertEquals("No background tasks", closeBackgroundOutcomeMessage(RecentTasks.Outcome.NothingToClose))
+        assertEquals("No background tasks", closeBackgroundOutcomeMessage(English, RecentTasks.Outcome.NothingToClose))
         // The wording for everything else is shared with Close all apps.
-        assertEquals("Closing tasks needs Shizuku", closeBackgroundOutcomeMessage(RecentTasks.Outcome.NeedsShizuku))
+        assertEquals("Closing tasks needs Shizuku", closeBackgroundOutcomeMessage(English, RecentTasks.Outcome.NeedsShizuku))
     }
 
     @Test
@@ -126,12 +126,12 @@ class RecentTasksTest {
 
     @Test
     fun closedAppsAreNamedLikeASentence() {
-        assertEquals("Discord", RecentTasks.names(listOf("Discord")))
-        assertEquals("Discord and Firefox", RecentTasks.names(listOf("Discord", "Firefox")))
-        assertEquals("3 apps", RecentTasks.names(listOf("Discord", "Firefox", "Cemu")))
-        assertEquals("Discord and Firefox closed", closeAppsOutcomeMessage(RecentTasks.AppsOutcome.Closed("Discord and Firefox")))
-        assertEquals("No app on the bottom screen", closeAppsOutcomeMessage(RecentTasks.AppsOutcome.NothingToClose("the bottom screen")))
-        assertEquals("No app to close", closeAppsOutcomeMessage(RecentTasks.AppsOutcome.NothingToClose()))
+        assertEquals("Discord", RecentTasks.names(English, listOf("Discord")))
+        assertEquals("Discord and Firefox", RecentTasks.names(English, listOf("Discord", "Firefox")))
+        assertEquals("3 apps", RecentTasks.names(English, listOf("Discord", "Firefox", "Cemu")))
+        assertEquals("Discord and Firefox closed", closeAppsOutcomeMessage(English, RecentTasks.AppsOutcome.Closed("Discord and Firefox")))
+        assertEquals("No app on the bottom screen", closeAppsOutcomeMessage(English, RecentTasks.AppsOutcome.NothingToClose(top = false)))
+        assertEquals("No app to close", closeAppsOutcomeMessage(English, RecentTasks.AppsOutcome.NothingToClose()))
     }
 
     @Test
@@ -141,7 +141,7 @@ class RecentTasksTest {
         val tasks = RecentTasks.closable(RecentTasks.parse(captured), thor).filter { it.packageName in chosen }
         assertEquals(listOf("com.android.settings", "com.google.android.youtube"), RecentTasks.running(tasks, chosen))
         assertEquals(emptyList<String>(), RecentTasks.running(tasks, listOf("com.discord")))
-        assertEquals("No selected task(s) running", closeAppsOutcomeMessage(RecentTasks.AppsOutcome.NoneRunning))
+        assertEquals("No selected task(s) running", closeAppsOutcomeMessage(English, RecentTasks.AppsOutcome.NoneRunning))
     }
 
     @Test

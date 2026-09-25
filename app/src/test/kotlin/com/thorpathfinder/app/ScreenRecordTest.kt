@@ -85,10 +85,10 @@ class ScreenRecordTest {
 
     @Test
     fun onlyProblemsGetAMessage() {
-        assertNull(screenRecordOutcomeMessage(ScreenRecord.Outcome.Opened))
+        assertNull(screenRecordOutcomeMessage(English, ScreenRecord.Outcome.Opened))
         assertEquals(
             "Add the Screen record tile to Quick Settings",
-            screenRecordOutcomeMessage(ScreenRecord.Outcome.TileNotFound),
+            screenRecordOutcomeMessage(English, ScreenRecord.Outcome.TileNotFound),
         )
     }
 }

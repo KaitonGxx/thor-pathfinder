@@ -46,15 +46,15 @@ class FocusModeTest {
 
     @Test
     fun namesAreAyns() {
-        assertEquals("Auto-lock", FocusMode.name(auto))
-        assertEquals("Top screen", FocusMode.name(top))
-        assertEquals("Bottom screen", FocusMode.name(bottom))
-        assertNull(FocusMode.name(3))
+        assertEquals("Auto-lock", FocusMode.name(English, auto))
+        assertEquals("Top screen", FocusMode.name(English, top))
+        assertEquals("Bottom screen", FocusMode.name(English, bottom))
+        assertNull(FocusMode.name(English, 3))
     }
 
     @Test
     fun theMessageNamesTheMode() {
-        assertEquals("Focus Mode: Bottom screen", focusModeMessage(FocusMode.Outcome.Changed(bottom)))
-        assertEquals("Focus Mode needs Shizuku", focusModeMessage(FocusMode.Outcome.NeedsShizuku))
+        assertEquals("Focus Mode: Bottom screen", focusModeMessage(English, FocusMode.Outcome.Changed(bottom)))
+        assertEquals("Focus Mode needs Shizuku", focusModeMessage(English, FocusMode.Outcome.NeedsShizuku))
     }
 }

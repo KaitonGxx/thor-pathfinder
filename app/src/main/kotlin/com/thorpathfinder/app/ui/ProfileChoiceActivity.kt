@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.unit.dp
 import com.thorpathfinder.app.PathfinderService
 import com.thorpathfinder.app.Profiles
+import com.thorpathfinder.app.R
 
 /**
  * The question a "Profile switcher" shortcut set to Ask puts when it runs:
@@ -56,14 +57,14 @@ class ProfileChoiceActivity : ComponentActivity() {
                     Card(Modifier.widthIn(max = 420.dp).padding(16.dp).pointerInput(Unit) { detectTapGestures { } }) {
                         Column(Modifier.padding(vertical = 16.dp, horizontal = 12.dp)) {
                             Text(
-                                "Switch to",
+                                getString(R.string.switch_to),
                                 style = MaterialTheme.typography.titleLarge,
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                             )
                             profiles.forEachIndexed { index, profile ->
                                 NavRow(
                                     profile.name,
-                                    if (profile.id == active) "In use" else null,
+                                    if (profile.id == active) getString(R.string.tag_in_use) else null,
                                     modifier = if (index == 0) Modifier.focusRequester(first) else Modifier,
                                     onClick = {
                                         Profiles.switchTo(this@ProfileChoiceActivity, profile.id)

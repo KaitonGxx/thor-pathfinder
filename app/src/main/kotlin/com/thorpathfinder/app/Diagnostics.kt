@@ -252,7 +252,7 @@ object Diagnostics {
     private fun StringBuilder.aynSettings(context: Context) {
         section("AYN settings")
         val focus = Settings.System.getInt(context.contentResolver, FocusMode.KEY, -1)
-        row("Focus Mode", "$focus (${FocusMode.name(focus) ?: "not set"})")
+        row("Focus Mode", "$focus (${FocusMode.name(context.englishWords(), focus) ?: "not set"})")
         val keys = Settings.System.getInt(context.contentResolver, SYSTEM_KEY_FOCUS_LOCK, -1)
         row("Home/Back focus lock", "$keys ${onOffUnknown(keys)}")
         val mouse = Settings.System.getInt(context.contentResolver, MOUSE_MODE, -1)
@@ -321,14 +321,28 @@ object Diagnostics {
     }
 
     private fun StringBuilder.profiles(context: Context) {
+        // The report stays in English whatever language Pathfinder shows.
+        val english = context.englishWords()
         val all = Profiles.all(context)
         val active = Profiles.activeId(context)
         val main = Profiles.mainId(context)
         section("Profiles")
         row("Count", all.size.toString())
+        val chosen = Profiles.chosenId(context)
         row("Active", "${Profiles.name(context, active)} (id $active)")
+        row("Chosen", "${Profiles.name(context, chosen)} (id $chosen)")
         row("Main", "${Profiles.name(context, main)} (id $main)")
         row("Map on switching", onOff(Profiles.showMap(context)))
+        row(
+            "App profiles watching",
+            when {
+                PathfinderService.watchingApps -> "yes"
+                Profiles.hasLinks(context) -> "NO"
+                else -> "no, no apps linked"
+            },
+        )
+        row("App in front", Profiles.currentApp(context) ?: "not known")
+        row("An app's profile in use", Profiles.appInUse(context) ?: "no")
         appendLine()
 
         for (profile in all) {
@@ -338,14 +352,24 @@ object Diagnostics {
                 "main".takeIf { profile.id == main },
             )
             section("Profile: ${profile.name} (id ${profile.id})" + if (marks.isEmpty()) "" else " [${marks.joinToString(", ")}]")
+            val apps = Profiles.linkedApps(context, profile.id)
+            if (apps.isNotEmpty()) row("Apps", apps.sorted().joinToString(", "))
             var any = false
             for (button in PhysicalButton.entries) {
                 for (gesture in button.gestures) {
                     val action = shortcuts.action(button, gesture)
                     if (action == ButtonAction.NORMAL) continue
                     any = true
-                    row("${button.label} / ${gesture.label}", ButtonMap.describe(context, shortcuts, button, gesture, action))
+                    row(
+                        "${english.text(button.text)} / ${english.text(gesture.text)}",
+                        ButtonMap.describe(context, shortcuts.shortcut(button, gesture), english),
+                    )
                 }
+            }
+            for (keys in shortcuts.combos.sortedBy { Combos.id(it) }) {
+                val combo = shortcuts.combo(keys) ?: continue
+                any = true
+                row(Combos.label(english, keys), ButtonMap.describe(context, combo, english))
             }
             if (!any) appendLine("  (everything left on Normal)")
             row("Timings", "hold ${shortcuts.holdMs} ms, double-press ${shortcuts.doubleMs} ms")

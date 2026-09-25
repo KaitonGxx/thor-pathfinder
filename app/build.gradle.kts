@@ -28,8 +28,8 @@ android {
         // The AYN Thor ships Android 13.
         minSdk = 33
         targetSdk = 35
-        versionCode = 19
-        versionName = "0.9.0"
+        versionCode = 20
+        versionName = "1.0.0"
     }
 
     signingConfigs {
@@ -75,6 +75,8 @@ android {
 
     buildFeatures {
         compose = true
+        // The app-profiles helper's interface (src/main/aidl)
+        aidl = true
     }
 
     sourceSets["main"].java.srcDirs("src/main/kotlin")

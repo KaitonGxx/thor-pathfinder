@@ -167,9 +167,9 @@ object Watchdog {
 }
 
 /** What to tell the user after turning the watchdog on or off. */
-fun watchdogMessage(outcome: Watchdog.Outcome): String = when (outcome) {
-    Watchdog.Outcome.Started -> "Watchdog on"
-    Watchdog.Outcome.Stopped -> "Watchdog off"
-    Watchdog.Outcome.NeedsShizuku -> "The watchdog needs Shizuku"
-    is Watchdog.Outcome.Failed -> "Couldn't change the watchdog: ${outcome.message}"
+fun watchdogMessage(words: Words, outcome: Watchdog.Outcome): String = when (outcome) {
+    Watchdog.Outcome.Started -> words.text(R.string.msg_watchdog_on)
+    Watchdog.Outcome.Stopped -> words.text(R.string.msg_watchdog_off)
+    Watchdog.Outcome.NeedsShizuku -> words.text(R.string.msg_watchdog_needs_shizuku)
+    is Watchdog.Outcome.Failed -> words.text(R.string.msg_watchdog_failed, outcome.message)
 }

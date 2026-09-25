@@ -28,7 +28,9 @@ class Overlay(private val context: Context) {
     private val handler = Handler(Looper.getMainLooper())
     private val windowManager = context.getSystemService(WindowManager::class.java)
     private var view: TextView? = null
-    private val hide = Runnable { dismiss() }
+
+    // The message's own timer: it never takes the map with it, which only the user puts away.
+    private val hide = Runnable { hideMessage() }
     private var map: View? = null
 
     /** Whether the map is up, which is when the buttons go to it rather than to the app underneath. */
@@ -46,11 +48,16 @@ class Overlay(private val context: Context) {
         handler.postDelayed(hide, DURATION_MS)
     }
 
+    /** Takes down the message and the map, for when the service stops. */
     fun dismiss() {
+        hideMessage()
+        dismissMap()
+    }
+
+    private fun hideMessage() {
         handler.removeCallbacks(hide)
         view?.let { runCatching { windowManager.removeView(it) } }
         view = null
-        dismissMap()
     }
 
     /**

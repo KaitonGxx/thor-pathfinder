@@ -21,12 +21,27 @@ object KeyReplay {
     private const val EV_KEY = 1
     private const val EV_SYN = 0
 
-    /** "/dev/input/eventN" of the device called [name], from /proc/bus/input/devices. */
-    fun devicePath(devices: String, name: String): String? {
+    /**
+     * The names one device goes by. AYN's controller styles make the Thor's
+     * controller anew under another name on the same event node: "Xbox
+     * Wireless Controller" in Xbox style, "None Controller" when set to
+     * Disconnected (seen on the Thor, firmware 1.0.0.377).
+     */
+    private val ALIASES = mapOf(
+        "Odin Controller" to listOf("Odin Controller", "Xbox Wireless Controller", "None Controller"),
+    )
+
+    fun names(name: String): List<String> = ALIASES[name] ?: listOf(name)
+
+    /** "/dev/input/eventN" of the device called [name], or any other name it goes by. */
+    fun devicePath(devices: String, name: String): String? = devicePath(devices, names(name).toSet())
+
+    /** "/dev/input/eventN" of the first device with one of [names], from /proc/bus/input/devices. */
+    fun devicePath(devices: String, names: Set<String>): String? {
         var matching = false
         for (line in devices.lineSequence()) {
             when {
-                line.startsWith("N: Name=") -> matching = line.removePrefix("N: Name=").trim().trim('"') == name
+                line.startsWith("N: Name=") -> matching = line.removePrefix("N: Name=").trim().trim('"') in names
                 matching && line.startsWith("H: Handlers=") ->
                     return line.removePrefix("H: Handlers=").split(' ')
                         .firstOrNull { it.matches(Regex("""event\d+""")) }

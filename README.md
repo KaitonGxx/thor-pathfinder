@@ -9,7 +9,9 @@ Move apps between the AYN Thor's two screens, and put shortcuts on its buttons.
 Pathfinder is a free, open-source companion for the AYN Thor. Hold Back and the
 apps on the top and bottom screens trade places. Double-press Select and the
 Thor's mouse mode turns on or off. Every shortcut can be changed, on seven of
-the Thor's buttons.
+the Thor's buttons, and button combos add dozens more. Profiles can switch by
+themselves to match the game you're playing, and Pathfinder speaks five
+languages.
 
 It's made in the spirit of [Thor Wayfinder](https://github.com/Thor-Wayfinder/thor-wayfinder),
 which found the way first, and covers everything Wayfinder does. It's an
@@ -21,13 +23,17 @@ independent project, not affiliated with Wayfinder or AYN.
 
 ## 📸 Screenshots
 
-| Setup | Main menu |
+| What's new in 1.0 | Main menu |
 |:---:|:---:|
-| <img src="docs/screenshots/welcome.png" alt="Setup's welcome screen, listing the default shortcuts"> | <img src="docs/screenshots/main-menu.png" alt="Pathfinder's main menu"> |
-| **Button shortcuts** | **Choosing a shortcut** |
-| <img src="docs/screenshots/button-shortcuts.png" alt="The Back button's press, double-press and hold shortcuts"> | <img src="docs/screenshots/shortcut-picker.png" alt="Choosing what holding Back does"> |
-| **Settings** | **Open-source licenses** |
-| <img src="docs/screenshots/settings-menu.png" alt="The settings menu: close app(s), mouse mode, timing, update settings, run setup again"> | <img src="docs/screenshots/licenses.png" alt="The licenses of Pathfinder and everything it ships"> |
+| <img src="docs/screenshots/whats-new.png" alt="The Welcome to 1.0 page: app profiles, button combos, backup and share, languages"> | <img src="docs/screenshots/main-menu.png" alt="Pathfinder's main menu"> |
+| **A button's shortcuts** | **Button combos** |
+| <img src="docs/screenshots/button-shortcuts.png" alt="The Back button's press, double-press and hold shortcuts, and its combos"> | <img src="docs/screenshots/combos.png" alt="Adding a combo: hold Back, and press one or two other buttons"> |
+| **Choosing a shortcut** | **Settings** |
+| <img src="docs/screenshots/shortcut-picker.png" alt="Choosing what holding Back does"> | <img src="docs/screenshots/settings-menu.png" alt="The settings menu: update settings, watchdog, language, diagnostics, run setup again"> |
+| **Manage profiles** | **Backup & share** |
+| <img src="docs/screenshots/manage-profiles.png" alt="Manage profiles: the profiles, showing the buttons on switching, backup and share"> | <img src="docs/screenshots/backup-share.png" alt="Backup and share: save, restore, share a profile, add a shared profile"> |
+| **Language** | **Setup** |
+| <img src="docs/screenshots/language.png" alt="Choosing Pathfinder's language"> | <img src="docs/screenshots/welcome.png" alt="Setup's welcome screen, listing the default shortcuts"> |
 
 ## ✨ Features
 
@@ -42,6 +48,15 @@ independent project, not affiliated with Wayfinder or AYN.
 
 **🎮 Button shortcuts** on Back, Home, the AYN button, Select, Start, L3 and R3:
 - Back, Home and the AYN button: press, double-press and hold.
+- Combos: hold Back, Home or the AYN button and press one other button, or
+  two together (A, B, X, Y, the D-pad, L1, R1, L2, R2, L3, R3, Select, Start,
+  or another of Back, Home and AYN): 18 two-button combos on each, and far
+  more with three. The buttons in a combo never reach the app. A combo has to come before the held
+  button's Hold time; when a two-button combo is also the start of a
+  three-button one, Pathfinder waits a moment (0.15 s) for the third. Add them
+  on the Back, Home and AYN cards, which carry a small A + B mark. Combos go
+  by the letters printed on the buttons, so they stay the same in the Thor's
+  Xbox controller style, which swaps A with B and X with Y for games.
 - Select, Start, L3 and R3: double-press and hold. Games still receive every
   press of these buttons, so a plain press stays with the game.
 - Actions: swap screens, mouse mode on/off, Focus Mode, back, home, recent
@@ -62,6 +77,20 @@ independent project, not affiliated with Wayfinder or AYN.
   app, or apps you pick by name.
 - Profiles: keep more than one set of shortcuts and switch between them from
   the oval under the title, or with a shortcut of its own.
+- Backup & share (cog → Manage profiles): save every profile to one file and
+  bring it back, on this Thor or another, or share a single profile for
+  someone to add beside their own. A backup holds the shortcuts, combos,
+  timings, keep-running lists and linked apps, plus the shortcut list's layout
+  and the update check; the watchdog and automatic updates stay as they are.
+  Files go through Android's own file picker, so no storage permission.
+- App profiles: link apps to a profile (cog → Manage profiles → Profiles → a
+  profile → Apps that use it), and Pathfinder uses that profile while one of them is
+  the app the controller drives. That follows Focus Mode: the top screen's app
+  when focus is locked to the top, the bottom screen's when locked to the
+  bottom, and in Auto-lock the one you last used. Leave the app and your own
+  profile comes back. Switch profile yourself while in a linked app and your
+  pick holds until you leave it. Each switch shows a short message (and the
+  picture of the Thor, if that is on). Needs Shizuku.
 - Open an app on the top screen, the bottom one, or ask each time. Or open two
   at once, one on each screen.
 - Home can go to the top screen, the bottom one, or both at once. Pathfinder
@@ -89,13 +118,22 @@ there's no button for it in its menus.
 
 **🕹️ Built for the Thor**
 - A step-by-step setup that checks each requirement before moving on.
-- The cog at the top opens a settings menu: which apps keep running, mouse
-  mode, the hold and double-press timings, updates, and running setup again.
+- Updating to 1.0 opens a one-time page with what's new, each with a button
+  straight to it. It's under About → What's new in 1.0 afterwards.
+- The cog at the top opens a settings menu: profiles, which apps keep
+  running, mouse mode, the hold and double-press timings, updates, the
+  watchdog, the language, diagnostics, and running setup again.
 - When something needs attention, it says why. Android switches accessibility
   services off whenever their app updates, and Shizuku stops when the Thor
   restarts.
 - Works with the Thor's controller as well as touch. Every control shows a
   clear outline when it has focus.
+- In English, Spanish, Portuguese (Brazil), Simplified Chinese and Japanese.
+  Pathfinder follows the Thor's language, or you can pick one for it alone
+  under the cog → Language (Android 13's per-app language setting lists it
+  too). The translations were made with AI (Claude), so some wording may be
+  off; corrections are welcome as an issue or pull request. The Diagnostics
+  report stays in English so anyone can read it.
 - Pathfinder looks for a newer release when it opens, and the button at the
   top says what it found. A new version brings up a notice you can dismiss,
   for now or for good, with **What's New** to read that version's notes.
@@ -109,11 +147,15 @@ there's no button for it in its menus.
 **🔒 Private and light**
 - The accessibility service receives button presses only. It cannot read the
   screen or anything you type.
+- App profiles learn which app is in front from Android's task manager,
+  through Shizuku, and only the apps' names: nothing inside them.
 - It goes online only to ask GitHub for the newest release: when you open
   Pathfinder, which you can turn off, and when you tap the button. With
   automatic updates on it also downloads the APK from the release. Nothing
   about you or your Thor is sent.
-- The app is under 2 MB and runs no background work of its own.
+- The app is about 3 MB and runs no background work of its own. While any
+  app is linked to a profile, a small helper runs under Shizuku to hear which
+  app is in front; it goes when Pathfinder or Shizuku stops.
 
 ## 📦 Out of the box
 

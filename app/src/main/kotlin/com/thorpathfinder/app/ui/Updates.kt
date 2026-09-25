@@ -21,6 +21,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.thorpathfinder.app.R
+import com.thorpathfinder.app.words
 import com.thorpathfinder.app.UpdateCheck
 import com.thorpathfinder.app.UpdateSettings
 import com.thorpathfinder.app.Updater
@@ -102,7 +105,7 @@ class UpdateUi(private val context: Context, private val scope: CoroutineScope) 
         if (state is State.Checking || state is State.Downloading || state is State.Installing) return
         state = State.Checking
         scope.launch {
-            val outcome = withContext(Dispatchers.IO) { UpdateCheck.check(installed) }
+            val outcome = withContext(Dispatchers.IO) { UpdateCheck.check(context.words(), installed) }
             settings.lastCheckMs = System.currentTimeMillis()
             state = when (outcome) {
                 is UpdateCheck.Outcome.Available -> {
@@ -153,10 +156,10 @@ class UpdateUi(private val context: Context, private val scope: CoroutineScope) 
     /** What the button by the version badge says. */
     val buttonLabel: String
         get() = when (state) {
-            State.Checking -> "Checking…"
-            is State.Available -> "Update Available"
-            is State.UpToDate -> "Up to date"
-            else -> "Check For Updates"
+            State.Checking -> context.getString(R.string.upd_checking)
+            is State.Available -> context.getString(R.string.upd_available_button)
+            is State.UpToDate -> context.getString(R.string.upd_up_to_date)
+            else -> context.getString(R.string.upd_check)
         }
 
     private companion object {
@@ -176,18 +179,18 @@ fun UpdateCard(ui: UpdateUi, release: UpdateCheck.Release, onOpenPage: (String) 
     ) {
         Column(Modifier.fillMaxWidth().padding(16.dp)) {
             Text(
-                "Update available",
+                stringResource(R.string.update_available_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
             )
             Text(
-                "Version ${release.version} is out. You have ${ui.installed}.",
+                stringResource(R.string.update_available_msg, release.version, ui.installed),
                 style = MaterialTheme.typography.bodyMedium,
             )
             when (val state = ui.state) {
                 is UpdateUi.State.Downloading -> {
                     Spacer(Modifier.height(8.dp))
-                    Text("Downloading ${state.percent}%", style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.upd_downloading, state.percent), style = MaterialTheme.typography.bodySmall)
                     LinearProgressIndicator(
                         progress = { state.percent / 100f },
                         modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
@@ -196,7 +199,7 @@ fun UpdateCard(ui: UpdateUi, release: UpdateCheck.Release, onOpenPage: (String) 
                 UpdateUi.State.Installing -> {
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Installing… Pathfinder closes for a moment while Android swaps it over.",
+                        stringResource(R.string.upd_installing),
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
@@ -213,27 +216,27 @@ fun UpdateCard(ui: UpdateUi, release: UpdateCheck.Release, onOpenPage: (String) 
                         TextButton(
                             onClick = { ui.install(release) },
                             modifier = Modifier.focusOutline(PillShape),
-                        ) { Text("Update now") }
+                        ) { Text(stringResource(R.string.upd_update_now)) }
                         // The release page holds that version's notes. Without an
                         // install from here, the button below opens it anyway.
                         TextButton(
                             onClick = { onOpenPage(release.page) },
                             modifier = Modifier.focusOutline(PillShape),
-                        ) { Text("What's New") }
+                        ) { Text(stringResource(R.string.whats_new)) }
                     } else {
                         TextButton(
                             onClick = { onOpenPage(release.page) },
                             modifier = Modifier.focusOutline(PillShape),
-                        ) { Text("Open release page") }
+                        ) { Text(stringResource(R.string.open_release_page)) }
                     }
                     TextButton(
                         onClick = { ui.dismiss() },
                         modifier = Modifier.focusOutline(PillShape),
-                    ) { Text("Dismiss") }
+                    ) { Text(stringResource(R.string.dismiss)) }
                     TextButton(
                         onClick = { ui.dismissForever() },
                         modifier = Modifier.focusOutline(PillShape),
-                    ) { Text("Don't show again") }
+                    ) { Text(stringResource(R.string.upd_dont_show)) }
                 }
             }
         }

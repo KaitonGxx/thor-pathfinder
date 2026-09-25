@@ -1,0 +1,547 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Japanese. Written with AI help; corrections are welcome. -->
+<resources>
+    <string name="accessibility_description">Thor Pathfinder は、ショートカットのために戻る、ホーム、AYN、Select、Start、L3、R3 の各ボタンを監視します（画面の入れ替え、最近使ったアプリ、マウスモードなど）。受け取るのはボタン操作だけで、画面の内容や入力した文字を読み取ることはできません。</string>
+
+    <!-- The Thor's buttons -->
+    <string name="button_back">戻る</string>
+    <string name="button_home">ホーム</string>
+    <string name="button_ayn">AYN ボタン</string>
+    <string name="button_select">Select</string>
+    <string name="button_start">Start</string>
+    <string name="button_l3">L3（左スティック押し込み）</string>
+    <string name="button_r3">R3（右スティック押し込み）</string>
+    <string name="normal_ayn_menu">AYN メニュー</string>
+
+    <!-- Gestures -->
+    <string name="gesture_press">1 回押し</string>
+    <string name="gesture_double">2 回押し</string>
+    <string name="gesture_hold">長押し</string>
+
+    <!-- Where "Open an app" opens it -->
+    <string name="launch_top">上画面</string>
+    <string name="launch_bottom">下画面</string>
+    <string name="launch_ask">毎回確認</string>
+    <string name="launch_top_short">上</string>
+    <string name="launch_bottom_short">下</string>
+    <string name="launch_ask_short">確認</string>
+
+    <!-- What "Close app(s)" closes -->
+    <string name="close_all">すべてのアプリを閉じる</string>
+    <string name="close_background">バックグラウンドのアプリを閉じる</string>
+    <string name="close_focused">フォーカス中のアプリを閉じる</string>
+    <string name="close_top">上画面のアプリを閉じる</string>
+    <string name="close_bottom">下画面のアプリを閉じる</string>
+    <string name="close_specific">指定したアプリを閉じる</string>
+
+    <!-- What a Profile switcher does -->
+    <string name="profile_switch_cycle">プロファイルを順に切り替え</string>
+    <string name="profile_switch_enable">特定のプロファイルを有効化</string>
+    <string name="profile_switch_ask">毎回確認</string>
+
+    <!-- Which screens a Home shortcut sends home -->
+    <string name="home_top">上画面のみ</string>
+    <string name="home_bottom">下画面のみ</string>
+    <string name="home_both">両方の画面</string>
+    <string name="home_top_short">上</string>
+    <string name="home_bottom_short">下</string>
+    <string name="home_both_short">両方</string>
+
+    <!-- What a Focus Mode shortcut does -->
+    <string name="focus_top">上画面にフォーカス</string>
+    <string name="focus_bottom">下画面にフォーカス</string>
+    <string name="focus_cycle">フォーカスモードを順に切り替え</string>
+    <string name="focus_swap">上下のフォーカスを入れ替え</string>
+
+    <!-- Actions -->
+    <string name="action_normal">通常</string>
+    <string name="action_nothing">何もしない</string>
+    <string name="action_back">戻る</string>
+    <string name="action_home">ホーム</string>
+    <string name="action_recents">最近使ったアプリ</string>
+    <string name="action_close_all">アプリを閉じる</string>
+    <string name="action_swap_screens">画面を入れ替え</string>
+    <string name="action_mouse_mode">マウスモードのオン/オフ</string>
+    <string name="action_focus_mode">フォーカスモード</string>
+    <string name="action_notifications">通知</string>
+    <string name="action_quick_settings">クイック設定</string>
+    <string name="action_screenshot">スクリーンショット</string>
+    <string name="action_screen_record">画面録画（テスト中）</string>
+    <string name="action_power_menu">電源メニュー</string>
+    <string name="action_lock_screen">画面ロック</string>
+    <string name="action_shortcut_menu">ショートカットメニュー</string>
+    <string name="action_launch_app">アプリを開く</string>
+    <string name="action_profile">プロファイル切り替え</string>
+
+    <!-- A gesture left on Normal -->
+    <string name="normal_nothing_extra">追加の動作なし</string>
+    <string name="normal_is">通常（%1$s）</string>
+    <string name="normal_two_presses">通常（2 回押し）</string>
+    <string name="normal_long_press">通常（長押し）</string>
+    <string name="normal_a_press">通常（1 回押し）</string>
+
+    <!-- Combo buttons -->
+    <string name="key_up">十字キー上</string>
+    <string name="key_down">十字キー下</string>
+    <string name="key_left">十字キー左</string>
+    <string name="key_right">十字キー右</string>
+    <string name="key_up_short">上</string>
+    <string name="key_down_short">下</string>
+    <string name="key_left_short">左</string>
+    <string name="key_right_short">右</string>
+
+    <!-- The Thor picture shown on a profile switch -->
+    <string name="map_line">%1$s：%2$s</string>
+    <string name="map_combo_line">+ %1$s：%2$s</string>
+    <plurals name="map_more_combos">
+        <item quantity="other">ほかにコンボ %d 件</item>
+    </plurals>
+    <string name="map_home_to">ホーム（%1$s）</string>
+    <string name="map_profile_ask">プロファイル切り替え（確認）</string>
+    <string name="map_profile_enable">%1$s を有効化</string>
+    <string name="map_open_pair">%1$s + %2$s を開く</string>
+    <string name="map_open_one">%1$s を開く（%2$s）</string>
+    <string name="map_dismiss">閉じる</string>
+
+    <!-- Messages over the screen when a shortcut runs -->
+    <string name="msg_mouse_needs_shizuku">マウスモードには Shizuku が必要です</string>
+    <string name="msg_button_menu_needs_shizuku">%1$s本来のメニューには Shizuku が必要です</string>
+    <string name="msg_couldnt_press">%1$sを押せませんでした</string>
+    <string name="msg_app_not_installed">そのアプリはインストールされていません</string>
+    <string name="msg_couldnt_ask_screen">どの画面か確認できませんでした</string>
+    <string name="msg_couldnt_ask_profile">どのプロファイルか確認できませんでした</string>
+    <string name="msg_couldnt_open_menu">ショートカットメニューを開けませんでした</string>
+    <string name="msg_swap_nothing">移動するアプリがありません</string>
+    <string name="msg_no_second_screen">2 つ目の画面が見つかりません</string>
+    <string name="msg_other_screen_off">もう一方の画面がオフです</string>
+    <string name="msg_swap_needs_shizuku">画面の入れ替えには Shizuku が必要です</string>
+    <string name="msg_swap_failed">入れ替えできませんでした：%1$s</string>
+    <string name="msg_closed">閉じました：%1$s</string>
+    <string name="msg_no_app_top">上画面にアプリがありません</string>
+    <string name="msg_no_app_bottom">下画面にアプリがありません</string>
+    <string name="msg_no_app_to_close">閉じるアプリがありません</string>
+    <string name="msg_none_running">選択したタスクは実行されていません</string>
+    <string name="msg_close_apps_needs_shizuku">アプリを閉じるには Shizuku が必要です</string>
+    <string name="msg_close_failed">閉じられませんでした：%1$s</string>
+    <string name="msg_background_closed">バックグラウンドのタスクを閉じました</string>
+    <string name="msg_no_background">バックグラウンドのタスクはありません</string>
+    <string name="msg_all_closed">すべてのタスクを閉じました</string>
+    <string name="msg_no_tasks">閉じるタスクがありません</string>
+    <string name="msg_close_tasks_needs_shizuku">タスクを閉じるには Shizuku が必要です</string>
+    <string name="msg_close_tasks_failed">タスクを閉じられませんでした：%1$s</string>
+    <string name="list_none">アプリなし</string>
+    <string name="list_two">%1$s と %2$s</string>
+    <plurals name="list_apps">
+        <item quantity="other">アプリ %d 個</item>
+    </plurals>
+    <string name="msg_add_record_tile">クイック設定に「画面録画」タイルを追加してください</string>
+    <string name="msg_record_needs_shizuku">画面録画には Shizuku が必要です</string>
+    <string name="msg_record_failed">画面録画を開けませんでした：%1$s</string>
+    <string name="msg_switched_on">再びオンにしました</string>
+    <string name="msg_switch_needs_shizuku">ここからオンにするには Shizuku が必要です</string>
+    <string name="msg_switch_failed">オンにできませんでした：%1$s</string>
+    <string name="msg_watchdog_on">ウォッチドッグ：オン</string>
+    <string name="msg_watchdog_off">ウォッチドッグ：オフ</string>
+    <string name="msg_watchdog_needs_shizuku">ウォッチドッグには Shizuku が必要です</string>
+    <string name="msg_watchdog_failed">ウォッチドッグを変更できませんでした：%1$s</string>
+    <string name="msg_couldnt_open_app">そのアプリを開けませんでした</string>
+    <string name="msg_no_home_found">その画面のホーム画面が見つかりませんでした</string>
+    <string name="msg_couldnt_go_home">ホームに戻れませんでした</string>
+    <string name="focus_mode_auto">自動ロック</string>
+    <string name="focus_mode_top">上画面</string>
+    <string name="focus_mode_bottom">下画面</string>
+    <string name="msg_focus_mode">フォーカスモード：%1$s</string>
+    <string name="msg_focus_needs_shizuku">フォーカスモードには Shizuku が必要です</string>
+    <string name="msg_focus_failed">フォーカスモードを変更できませんでした：%1$s</string>
+    <string name="msg_profile">プロファイル：%1$s</string>
+    <string name="msg_profile_for">プロファイル：%1$s（%2$s）</string>
+
+    <!-- Choosing a shortcut -->
+    <string name="needs_shizuku">Shizuku が必要</string>
+    <string name="picker_open_one">アプリを 1 つ開く</string>
+    <string name="picker_open_one_detail">上画面、下画面、または毎回確認</string>
+    <string name="picker_open_two">アプリを 2 つ開く</string>
+    <string name="picker_open_two_detail">各画面に 1 つずつ、同時に</string>
+    <string name="picker_open_on">%1$s を開く画面</string>
+    <string name="picker_ask_detail">ショートカットの実行時に毎回、上か下かを選択</string>
+    <string name="picker_app_top">上画面のアプリ</string>
+    <string name="picker_app_bottom">下画面のアプリ</string>
+    <string name="picker_apps_to_close">閉じるアプリ</string>
+    <string name="picker_cycle_detail">押すたびに次のプロファイルへ</string>
+    <string name="picker_ask_profile_detail">ショートカットの実行時にリストから選択</string>
+    <string name="picker_enable_detail">もう一度押すとメインプロファイルに戻る</string>
+    <string name="picker_home_on">ホームに戻す画面</string>
+    <string name="picker_focus_top_detail">コントローラーを上画面に固定</string>
+    <string name="picker_focus_bottom_detail">コントローラーを下画面に固定</string>
+    <string name="picker_focus_cycle_detail">押すたびに自動ロック、上画面、下画面の順に切り替え</string>
+    <string name="picker_focus_swap_detail">上下を行き来します。自動ロックからは、まず上画面へ</string>
+
+    <!-- Common buttons -->
+    <string name="cancel">キャンセル</string>
+    <string name="next">次へ</string>
+    <string name="next_with">次へ：%1$s</string>
+    <string name="ok">OK</string>
+    <string name="done">完了</string>
+    <string name="done_count">完了（%1$d）</string>
+
+    <!-- Combos -->
+    <string name="combos_badge">コンボ</string>
+    <string name="group_face">ABXY ボタン</string>
+    <string name="group_dpad">十字キー</string>
+    <string name="group_shoulders">ショルダー</string>
+    <string name="group_sticks">スティック</string>
+    <string name="group_select_start">Select と Start</string>
+    <string name="group_system">システム</string>
+    <string name="combo_hold_press">%1$sを押しながら…</string>
+    <string name="combo_pick_detail">ボタン 1 つ、または 2 つの同時押し。%1$sを押している間、これらのボタンはアプリに送られません。コンボは、コントローラーのスタイルに関係なく、常にボタンに印字された文字に従います。</string>
+
+    <!-- The main screen -->
+    <string name="main_intro">ジェスチャーをタップすると動作を変更できます。戻る、ホーム、AYN ボタンは、いずれかのジェスチャーを変更すると Pathfinder がそのボタンを処理するようになり、「通常」は本来の動作をそのまま行います。</string>
+    <string name="edit_title">%1$s：%2$s</string>
+    <string name="combo_change">動作を変更</string>
+    <string name="combo_remove">このコンボを削除</string>
+    <string name="combo_remove_detail">ボタンはそれぞれ単独の動作に戻ります</string>
+    <string name="settings">設定</string>
+    <string name="update_available_title">アップデートがあります</string>
+    <string name="update_available_msg">バージョン %1$s が公開されています。現在のバージョンは %2$s です。</string>
+    <string name="up_to_date_title">最新の状態です</string>
+    <string name="up_to_date_newer">現在のバージョン %1$s は、最新リリース（%2$s）より新しいバージョンです。</string>
+    <string name="up_to_date_latest">%1$s が最新バージョンです。</string>
+    <string name="check_failed_title">アップデートを確認できませんでした</string>
+    <string name="whats_new">新機能</string>
+    <string name="open_release_page">リリースページを開く</string>
+    <string name="not_now">後で</string>
+    <string name="close">閉じる</string>
+    <string name="attention_title">対応が必要な項目があります</string>
+    <string name="problem_firmware">この Thor のファームウェアはサポートされていません</string>
+    <string name="problem_wayfinder">Thor Wayfinder も戻るボタンを処理しています</string>
+    <string name="problem_autolaunch">AYN の APP Auto Launch Manage が Pathfinder をブロックしています</string>
+    <string name="problem_autolaunch_detail">そのページ（設定 → Thor settings → Advanced Settings）で Thor Pathfinder がオンになっているため、Android がサービスを起動できず、再起動後はショートカットが一切動作しません。そこでオフにするか、Pathfinder に修正させてください。</string>
+    <string name="problem_stuck">Pathfinder はオンですが、実行されていません</string>
+    <string name="problem_stuck_detail">Android ではスイッチがオンですが、サービスが起動していないため、ショートカットが動作しません。クラッシュや予期しない再起動の後、または他のアプリをバックグラウンドで停止するアプリがあると起こることがあります。一度オフにしてから再びオンにすると直ります。</string>
+    <string name="problem_off">Pathfinder のユーザー補助サービスがオフです</string>
+    <string name="problem_off_detail">Android は、アプリが更新されるたびにそのユーザー補助サービスをオフにします。再びオンにすると、ショートカットがまた使えるようになります。</string>
+    <string name="problem_shizuku">Shizuku が接続されていません</string>
+    <string name="shizuku_not_installed_detail">画面の入れ替え、マウスモード、アプリを閉じる操作は Shizuku を経由します。Shizuku は Thor を root 化せずにその権限を与えます。</string>
+    <string name="shizuku_not_running_detail">Shizuku は Thor を再起動するたびに停止するため、再起動後にもう一度起動する必要があります。</string>
+    <string name="shizuku_no_permission_detail">Shizuku は実行中ですが、まだ Pathfinder を許可していません。</string>
+    <string name="fix">修正</string>
+    <plurals name="combos_count">
+        <item quantity="other">コンボ %d 件</item>
+    </plurals>
+    <string name="works_as_usual">通常どおり動作</string>
+    <string name="gamepad_subtitle">ゲームはすべてのボタン操作を受け取るため、1 回押しは変更できません。</string>
+    <string name="combos_heading">コンボ</string>
+    <string name="combos_heading_detail">%1$sを押しながら、長押しが発動する前に他のボタンを 1 つか 2 つ押します</string>
+    <string name="add_combo">コンボを追加</string>
+    <string name="text_open_pair">上に %1$s、下に %2$s を開く</string>
+    <string name="text_close_specific">%1$s を閉じる</string>
+    <string name="an_app">アプリ</string>
+    <string name="about_title">このアプリについて</string>
+    <string name="about_text">Thor Pathfinder は GNU GPL v3 のもとで公開されている自由ソフトウェアで、先に道を切り開いた Thor Wayfinder の精神を受け継いで作られました。独立したプロジェクトであり、Wayfinder や AYN とは関係ありません。</string>
+    <string name="whats_new_row">1.0 の新機能</string>
+    <string name="show">表示</string>
+    <string name="licenses_row">オープンソース ライセンス</string>
+    <string name="view">表示</string>
+
+    <!-- Setup -->
+    <string name="nav_back">戻る</string>
+    <string name="setup_get_started">はじめる</string>
+    <string name="setup_finish">完了</string>
+    <string name="setup_step">ステップ %1$d / %2$d</string>
+    <string name="welcome_title">Thor Pathfinder へようこそ</string>
+    <string name="welcome_body">Pathfinder は、Thor の 2 つの画面の間でアプリを移動させ、ボタンにショートカットを割り当てます。初期設定では次のように動作します：</string>
+    <string name="welcome_b1">戻るを長押し：2 つの画面のアプリを入れ替え</string>
+    <string name="welcome_b2">戻るを 2 回押し：最近使ったアプリ</string>
+    <string name="welcome_b3">Select を 2 回押し：マウスモードのオン/オフ</string>
+    <string name="welcome_later">これらはすべて後から変更できます。セットアップは約 2 分で終わります。</string>
+    <string name="device_title">Thor を確認</string>
+    <string name="device_ok">%1$s、ファームウェア %2$s</string>
+    <string name="device_untested">Pathfinder は AYN Thor と Thor Lite で開発・テストされています。%1$s でも同じように動作するはずです。うまく動作しない場合はお知らせください。</string>
+    <string name="device_newer">これは Pathfinder のテストに使用したファームウェア（%1$s）より新しいバージョンです。動作するはずですが、うまく動作しない場合はお知らせください。</string>
+    <string name="device_not_thor">これは %1$s で、AYN Thor ではありません</string>
+    <string name="device_not_thor_body">Pathfinder は Thor の 2 つの画面とボタンのために作られているため、この端末では動作しません。</string>
+    <string name="device_old">ファームウェア %1$s は %2$s より古いバージョンです</string>
+    <string name="device_unknown">この Thor のファームウェアを判別できませんでした</string>
+    <string name="device_update_body">Pathfinder は、ファームウェア %1$s 以降の AYN ソフトウェアの一部の機能に依存しています。Thor をアップデートしてから、もう一度 Pathfinder を開いてください。</string>
+    <string name="device_open_update">システム アップデートを開く</string>
+    <string name="wayfinder_title">Thor Wayfinder がインストールされています</string>
+    <string name="wayfinder_body">Pathfinder は Wayfinder の機能をすべて備えており、どちらも戻るボタンを使うため、両方がオンだと戻るを長押しするたびに画面が 2 回入れ替わります。Wayfinder をアンインストールするか、少なくともそのユーザー補助サービスをオフにしてください。</string>
+    <string name="wayfinder_uninstalled">Wayfinder はアンインストールされています</string>
+    <string name="wayfinder_off">Wayfinder のサービスはオフです</string>
+    <string name="wayfinder_on">Wayfinder のサービスはまだオンです</string>
+    <string name="wayfinder_uninstall">Wayfinder をアンインストール</string>
+    <string name="wayfinder_turn_off">代わりにオフにする</string>
+    <string name="a11y_title">Pathfinder がボタンを認識できるようにする</string>
+    <string name="a11y_body">Android はボタン操作をユーザー補助サービスにしか渡さないため、Pathfinder はユーザー補助サービスを備えています。受け取るのはボタン操作だけで、画面の内容や入力した文字を読み取ることはできません。</string>
+    <string name="a11y_on">Pathfinder のサービスはオンです</string>
+    <string name="a11y_stuck">Pathfinder はオンですが、Android がまだ起動していません</string>
+    <string name="a11y_off">Pathfinder のサービスはオフです</string>
+    <string name="a11y_blocked_body">APP Auto Launch Manage（設定 → Thor settings → Advanced Settings）で Thor Pathfinder がオンになっています。名前とは逆に、このページでオンにしたアプリはバックグラウンドで起動できなくなり、そこにある限り Android は Pathfinder のサービスを起動できないため、再起動後はショートカットが一切動作しません。そのページで Thor Pathfinder をオフにしてから、下のリストでサービスを一度オフにして再びオンにしてください。</string>
+    <string name="a11y_blocked_body_fix">APP Auto Launch Manage（設定 → Thor settings → Advanced Settings）で Thor Pathfinder がオンになっています。名前とは逆に、このページでオンにしたアプリはバックグラウンドで起動できなくなり、そこにある限り Android は Pathfinder のサービスを起動できないため、再起動後はショートカットが一切動作しません。そのページで Thor Pathfinder をオフにしてから、下のリストでサービスを一度オフにして再びオンにしてください。「修正する」を押せば、両方をまとめて行えます。</string>
+    <string name="a11y_stuck_body">Android ではスイッチがオンですが、サービスが起動していません。クラッシュや予期しない再起動の後、または他のアプリをバックグラウンドで停止するアプリがあると起こることがあります。リストを開いて Thor Pathfinder を一度オフにし、再びオンにすると、Android が起動します。</string>
+    <string name="a11y_off_body">リストで Thor Pathfinder を開き、オンにしてください。</string>
+    <string name="a11y_open">ユーザー補助の設定を開く</string>
+    <string name="a11y_fix_it">修正する</string>
+    <string name="a11y_off_on">オフにしてから再びオン</string>
+    <string name="a11y_turn_on">再びオンにする</string>
+    <string name="a11y_restricted">Android に「制限付き設定」と表示された場合：Pathfinder のアプリ情報を開き、隅の ⋮ をタップして「制限付き設定を許可」を選んでから、もう一度お試しください。Play ストア以外からインストールしたアプリでは、この操作が求められます。</string>
+    <string name="a11y_app_info">Pathfinder のアプリ情報を開く</string>
+    <string name="shizuku_title">Shizuku に接続</string>
+    <string name="shizuku_body">画面の入れ替えやマウスモードの切り替えには、通常のアプリより少し多くの権限が必要です。Shizuku は Thor を root 化せずにその権限を与え、セットアップも案内してくれます。</string>
+    <string name="shizuku_not_installed">Shizuku がインストールされていません</string>
+    <string name="shizuku_install_body">Google Play または GitHub のリリースページから Shizuku をインストールし、開いて手順どおりに起動してから、ここに戻ってきてください。</string>
+    <string name="shizuku_play">Google Play で入手</string>
+    <string name="shizuku_github">GitHub からダウンロード</string>
+    <string name="shizuku_not_running">Shizuku が実行されていません</string>
+    <string name="shizuku_start_body">Shizuku を開いて起動し（手順は案内されます）、ここに戻ってきてください。</string>
+    <string name="shizuku_open">Shizuku を開く</string>
+    <string name="shizuku_no_permission">Shizuku は実行中ですが、Pathfinder はまだ許可されていません</string>
+    <string name="shizuku_allow">Pathfinder を許可</string>
+    <string name="shizuku_connected">Shizuku に接続しました</string>
+    <string name="done_title">準備完了です</string>
+    <string name="done_body1">戻るの長押しで画面を入れ替え、戻るの 2 回押しで最近使ったアプリ、Select の 2 回押しでマウスモードです。</string>
+    <string name="done_body2">次に Pathfinder の設定画面が表示されます。戻る、ホーム、AYN ボタン、Select、Start、L3、R3 に別の操作を割り当てたり、マウスモードで右スティックをどちら向きにスクロールするかを選んだりできます。</string>
+
+    <!-- Watchdog page -->
+    <string name="wd_title">ウォッチドッグ</string>
+    <string name="wd_subtitle">Pathfinder 自体が停止されても、Pathfinder のユーザー補助サービスをオンのまま保ちます。</string>
+    <string name="wd_switch">サービスをオンのまま保つ</string>
+    <string name="wd_on_not_running">オンですが、実行されていません。一度オフにしてから再びオンにしてください</string>
+    <string name="wd_holding">オン。Android の設定でオフにされたため、サービスはオフのままにしています</string>
+    <string name="on">オン</string>
+    <string name="off">オフ</string>
+    <string name="wd_how_often">確認の間隔</string>
+    <string name="wd_every_short">%1$d 秒ごと</string>
+    <string name="wd_every">%1$d 秒ごと</string>
+    <string name="wd_default_detail">すばやく、負荷もほとんどありません</string>
+    <string name="wd_what_it_does">仕組み</string>
+    <string name="wd_p1">Shizuku が小さなスクリプトを起動します。このスクリプトは Pathfinder ではなく Shizuku に属するため、Pathfinder を強制停止したり終了させたりしても止まりません。数秒ごとに Pathfinder が Android のユーザー補助リストにまだあるかを確認し、なくなっていれば元に戻します。1 回の確認は約 22 ミリ秒なので、最も短い間隔でも CPU コア 1 つの 0.5 パーセント未満です。</string>
+    <string name="wd_p2">追加するのは Pathfinder 自身のサービスだけで、他のアプリのサービスを削除することはありません。Android の設定で自分で Pathfinder をオフにした場合は、設定を閉じた後も再起動した後も、サービスが再びオンにされるまでオフのままにします。</string>
+    <string name="wd_p3">また、Thor の APP Auto Launch Manage ページのリストから Pathfinder を（Pathfinder だけを）外します。名前とは逆に、そこでオンにしたアプリはバックグラウンドで何も起動できないため、そのリストにあると Pathfinder のサービスは再起動後に起動しません。Thor の設定が開いている間は、そのリストには触れません。</string>
+    <string name="wd_p4">再起動すると Shizuku と一緒に停止し、Shizuku が実行されると自動的に再び起動します。このスイッチをオフにするとすぐに停止します。スクリプトは Pathfinder のソースにある watchdog.sh で、短いものです。</string>
+    <string name="wd_log">実行記録</string>
+
+    <!-- The cog's menu -->
+    <string name="page_profiles">プロファイルの管理</string>
+    <string name="page_profiles_detail">ショートカットのセット：追加、名前の変更、アプリとの関連付け、バックアップ、共有</string>
+    <string name="page_close">アプリを閉じる</string>
+    <string name="page_close_detail">タスクを閉じるときに実行を続けるアプリ</string>
+    <string name="page_mouse">マウスモード</string>
+    <string name="page_mouse_detail">右スティックのスクロール方向</string>
+    <string name="page_timing">タイミング</string>
+    <string name="page_timing_detail">長押しの長さと 2 回押しの間隔</string>
+    <string name="page_updates">アップデートの設定</string>
+    <string name="page_updates_detail">アップデートの確認と自動インストール</string>
+    <string name="page_watchdog_detail">何かに停止されても、ユーザー補助サービスをオンに保つ</string>
+    <string name="page_language">言語 (Language)</string>
+    <string name="page_diagnostics">診断</string>
+    <string name="page_diagnostics_detail">バグ報告に貼り付けるための、この Thor に関するレポート</string>
+    <string name="page_setup">セットアップをやり直す</string>
+    <string name="page_setup_detail">最初から順に確認します</string>
+    <string name="mouse_subtitle">カーソルの速度とスクロールの感度は、Thor 本体のマウスモード設定で調整します。</string>
+    <string name="mouse_reverse">右スティックのスクロールを反転</string>
+    <string name="mouse_needs_shizuku">Shizuku が必要です。</string>
+    <string name="mouse_unreadable">Thor のマウスモード設定を読み取れませんでした。</string>
+    <string name="mouse_reverse_detail">上に倒すと上に、下に倒すと下にスクロールします。再起動後に反映されます。</string>
+    <string name="mouse_couldnt_change">Thor のマウスモード設定を変更できませんでした。</string>
+    <string name="mouse_restart">新しい方向を反映するには Thor を再起動してください。</string>
+    <string name="mouse_restart_now">今すぐ再起動</string>
+    <string name="updates_subtitle">Pathfinder は GitHub に最新リリースを問い合わせます。あなたや Thor に関する情報は一切送信されません。</string>
+    <string name="updates_check_on_open">Pathfinder を開いたときに確認</string>
+    <string name="updates_check_on_open_detail">アプリを開くたびに、新しいリリースがあるかを簡単に確認します。</string>
+    <string name="updates_auto">アップデートを自動でインストール</string>
+    <string name="updates_auto_detail">Pathfinder のリリースページから新しい APK をダウンロードし、確認なしで Shizuku 経由でインストールします。オンにしない限りオフです。</string>
+    <string name="updates_auto_needs_shizuku">Shizuku が必要です。Shizuku がないと、確認なしでインストールする方法はありません。</string>
+    <string name="updates_none_seen">まだリリースを確認していません。</string>
+    <string name="updates_seen">確認した最新リリース：%1$s。</string>
+    <string name="updates_same_key">アップデートは同じ署名鍵の場合にのみインストールされるため、他から入手したコピーは拒否されます。</string>
+    <string name="setup_again_title">セットアップをやり直しますか？</string>
+    <string name="setup_again_body">セットアップでは、Thor のファームウェア、Thor Wayfinder、Pathfinder のユーザー補助サービス、Shizuku を 1 画面ずつ確認し、それぞれを確認してから次へ進みます。</string>
+    <string name="setup_again_keeps">ショートカット、タイミング、実行を続けるアプリはすべてそのまま残ります。</string>
+    <string name="setup_again_run">セットアップを実行</string>
+    <string name="timing_subtitle">戻る、ホーム、AYN ボタンに 2 回押しのショートカットがある場合、1 回押しは間隔が過ぎるのを待ってから動作します。</string>
+    <string name="timing_hold">長押しの長さ</string>
+    <string name="timing_double">2 回押しの間隔</string>
+    <string name="timing_ms">%1$d ミリ秒</string>
+    <string name="timing_vibrate">ショートカットの実行時に振動</string>
+    <string name="language_subtitle">Pathfinder 自体の言語です。Thor の他のアプリはそのままです。</string>
+    <string name="language_system">Thor と同じ</string>
+    <string name="language_system_detail">Android の設定の言語に従います</string>
+
+    <!-- Profiles -->
+    <string name="profile_main_default">メインプロファイル</string>
+    <string name="profile_n">プロファイル %1$d</string>
+    <string name="profile_create">プロファイルを作成</string>
+    <string name="profile_no_room">これ以上作成できません</string>
+    <string name="profile_fresh">すべてデフォルトの、独立したショートカットのセット</string>
+    <string name="active_profile">使用中のプロファイル：</string>
+    <string name="choose_profile">プロファイルを選択</string>
+    <string name="for_app">%1$s 用</string>
+    <string name="profiles_title">プロファイル</string>
+    <string name="create_body">すべてのショートカットはデフォルトから始まります。マウスモードはそのままです。これは Thor 本体の設定で、すべてのプロファイルで共通です。</string>
+    <string name="name">名前</string>
+    <string name="keep_list">実行継続リストを引き継ぐ</string>
+    <string name="keep_list_detail">%1$s で強制停止しないアプリをコピー</string>
+    <string name="create">作成</string>
+    <string name="rename_title">プロファイル名を変更</string>
+    <string name="rename">名前を変更</string>
+    <string name="manage_subtitle">プロファイルには、すべてのショートカット、実行継続リスト、タイミング、振動が含まれます。マウスモードは Thor 本体の設定で、すべてのプロファイルで共通です。</string>
+    <plurals name="profiles_count">
+        <item quantity="other">プロファイル %d 個</item>
+    </plurals>
+    <string name="profiles_row_detail">%1$s · 使用中：%2$s</string>
+    <string name="show_buttons">切り替え時にボタンを表示</string>
+    <string name="show_buttons_detail">自分で切り替えたときも、アプリによって切り替わったときも、新しいプロファイルのショートカットを Thor の図で表示します。いずれかのボタンを押すと閉じます</string>
+    <string name="backup_row">バックアップと共有</string>
+    <string name="backup_row_detail">すべてのプロファイルをファイルに保存して復元する、または 1 つを共有する</string>
+    <string name="profiles_subtitle">プロファイルをタップすると、使用、名前の変更、アプリとの関連付け、削除ができます。メインプロファイルは「有効化」ショートカットで戻る先となるプロファイルで、削除できません。アプリと関連付けたプロファイルは、そのアプリがコントローラーで操作中のアプリである間、使用されます（Shizuku が必要です）。</string>
+    <string name="delete_title">%1$s を削除しますか？</string>
+    <string name="delete_body">ショートカットも一緒に削除され、元に戻すことはできません。このプロファイルを有効化するよう設定されたショートカットは、代わりにプロファイルを順に切り替えるようになります。</string>
+    <string name="delete">削除</string>
+    <string name="delete_detail">ショートカットも一緒に削除されます</string>
+    <string name="apps_for">%1$s のアプリ</string>
+    <string name="uses_now">現在は %1$s を使用</string>
+    <string name="list_sep">、</string>
+    <string name="apps_tag">アプリ：%1$s</string>
+    <plurals name="apps_tag_more">
+        <item quantity="other">アプリ：%1$s ほか %2$d 個</item>
+    </plurals>
+    <string name="tag_main_in_use_for">メインプロファイル、%1$s で使用中</string>
+    <string name="tag_in_use_for">%1$s で使用中</string>
+    <string name="tag_main_in_use">メインプロファイル、使用中</string>
+    <string name="tag_main">メインプロファイル</string>
+    <string name="tag_in_use">使用中</string>
+    <string name="action_enable_detail">今からこのプロファイルのショートカットを使用</string>
+    <string name="action_back_to">%1$s に戻る</string>
+    <string name="action_back_to_detail">このプロファイルはすでに使用中です</string>
+    <string name="action_apps">使用するアプリ</string>
+    <string name="action_apps_none">選んだアプリが前面にある間に使用</string>
+    <string name="action_make_main">メインプロファイルにする</string>
+    <string name="action_make_main_detail">「有効化」ショートカットで戻る先</string>
+
+    <!-- Backup & share -->
+    <string name="backup_subtitle">バックアップには、すべてのプロファイルとそのショートカット、コンボ、タイミング、実行継続リスト、関連付けたアプリに加え、ショートカット一覧のレイアウトとアップデートの確認設定が含まれます。ウォッチドッグと自動アップデートは、Thor ごとの Shizuku に依存するため、そのまま残ります。</string>
+    <string name="save_backup">バックアップを保存</string>
+    <string name="save_backup_detail">上記のすべてを、好きな場所に保管できる 1 つのファイルに</string>
+    <string name="restore_backup">バックアップを復元</string>
+    <string name="restore_backup_detail">プロファイルと設定をバックアップの内容に置き換えます</string>
+    <string name="share_profile">プロファイルを共有</string>
+    <string name="share_profile_detail">他の Thor で使えるよう、プロファイル 1 つをファイルに</string>
+    <string name="add_shared">共有されたプロファイルを追加</string>
+    <string name="add_shared_detail">他の人のプロファイルを自分のプロファイルに追加します</string>
+    <string name="saved">%1$sを保存しました。</string>
+    <string name="backup_what">バックアップ</string>
+    <string name="shared_what">%1$s（共有プロファイル）</string>
+    <string name="save_failed">ファイルを保存できませんでした：%1$s</string>
+    <string name="too_big">Thor Pathfinder のファイルにしては大きすぎます。</string>
+    <string name="read_failed">読み取れませんでした：%1$s</string>
+    <string name="not_ours">Thor Pathfinder のバックアップでも共有プロファイルでもありません。</string>
+    <string name="from_newer">新しいバージョンの Thor Pathfinder（%1$s）で保存されています。Pathfinder をアップデートしてから、もう一度お試しください。</string>
+    <string name="damaged">一部が欠けているか破損しているため、何も変更しませんでした。</string>
+    <string name="share_which">共有するプロファイルは？</string>
+    <plurals name="share_apps">
+        <item quantity="other">関連付けたアプリ %d 個も一緒に含まれます</item>
+    </plurals>
+    <string name="cant_use">このファイルは使用できません</string>
+    <string name="restore_title">このバックアップを復元しますか？</string>
+    <plurals name="linked_apps_count">
+        <item quantity="other">関連付けたアプリ %d 個</item>
+    </plurals>
+    <plurals name="shortcuts_count">
+        <item quantity="other">ショートカット %d 個</item>
+    </plurals>
+    <string name="restore_body">%1$s に Thor Pathfinder %2$s で保存。%3$s：%4$s（%5$s、%6$s）。現在のプロファイルとそのショートカットは、これらに置き換えられます。</string>
+    <string name="restore">復元</string>
+    <plurals name="restored">
+        <item quantity="other">バックアップを復元しました：プロファイル %d 個。</item>
+    </plurals>
+    <string name="restore_failed">復元できませんでした：%1$s</string>
+    <string name="add_title">%1$s を追加しますか？</string>
+    <string name="add_no_room">空きがありません。Pathfinder に保存できるプロファイルは %1$d 個までです。「プロファイルの管理」で 1 つ削除してから、もう一度お試しください。</string>
+    <string name="add_body">Thor Pathfinder %1$s で共有されたプロファイルです（%2$s、%3$s、%4$s）。新しいプロファイルとして追加され、自分のプロファイルはそのまま残ります。関連付けたアプリは、インストール済みで、まだ自分のプロファイルに関連付けられていなければ一緒に追加されます。</string>
+    <string name="add">追加</string>
+    <string name="no_room_msg">これ以上プロファイルを追加する空きがありません。</string>
+    <string name="added">%1$s を追加しました。</string>
+    <string name="add_failed">追加できませんでした：%1$s</string>
+
+    <!-- Keep apps running -->
+    <string name="keep_title">アプリの実行を続ける</string>
+    <string name="keep_subtitle">「アプリを閉じる」がどの方法で閉じても（すべて、画面上のもの以外すべて、片方の画面、名前で指定）、これらのアプリは他と同じくタスク一覧からは消えますが、強制停止はされないため、音楽、ダウンロード、同期は続きます。</string>
+    <string name="keep_none">アプリが選択されていません：すべて強制停止されます。</string>
+    <string name="keep_count">%2$d 個中 %1$d 個のアプリの実行を続けます。</string>
+    <string name="keep_recommended">強くおすすめ</string>
+    <string name="keep_recommended_detail">これらはプレイ中もバックグラウンドで動作し続けるため、実行を続けておくのがおすすめです。</string>
+    <string name="keep_all">すべてのアプリ</string>
+
+    <!-- Updates -->
+    <string name="upd_checking">確認中…</string>
+    <string name="upd_available_button">アップデートあり</string>
+    <string name="upd_up_to_date">最新です</string>
+    <string name="upd_check">アップデートを確認</string>
+    <string name="upd_downloading">ダウンロード中 %1$d%%</string>
+    <string name="upd_installing">インストール中… Android が新しいバージョンに置き換える間、Pathfinder は一時的に閉じます。</string>
+    <string name="upd_update_now">今すぐアップデート</string>
+    <string name="dismiss">閉じる</string>
+    <string name="upd_dont_show">今後表示しない</string>
+    <string name="upd_bad_answer">GitHub からの応答を解釈できませんでした。しばらくしてからもう一度お試しください。</string>
+    <string name="upd_no_releases">GitHub にはまだリリースがありません。</string>
+    <string name="upd_rate_limited">GitHub がこのネットワークからの確認を制限しています。1 時間後にもう一度お試しください。</string>
+    <string name="upd_error">GitHub がエラー %1$d を返しました。しばらくしてからもう一度お試しください。</string>
+    <string name="upd_offline">GitHub に接続できませんでした。Thor がオンラインか確認してください。</string>
+    <string name="inst_no_apk">そのリリースにはダウンロードできる APK がありません。</string>
+    <string name="inst_not_ours">そのダウンロードは Pathfinder のリリースからのものではありません。</string>
+    <string name="inst_needs_shizuku">アップデートのインストールには Shizuku が必要です。</string>
+    <string name="inst_download_failed">アップデートをダウンロードできませんでした。Thor がオンラインか確認してください。</string>
+    <string name="inst_http">GitHub がエラー %1$d を返しました。</string>
+    <string name="inst_empty">ダウンロードしたファイルが空でした。</string>
+    <string name="inst_broken">ダウンロードしたファイルは有効な APK ではありません。</string>
+    <string name="inst_not_pathfinder">その APK は Thor Pathfinder ではありません。</string>
+    <string name="inst_other_key">その APK は別の鍵で署名されているため、Android はインストールしません。</string>
+    <string name="inst_not_newer">その APK はインストール済みのバージョンより新しくありません。</string>
+    <string name="inst_start_failed">インストールを開始できませんでした：%1$s</string>
+    <string name="inst_write_failed">アップデートを書き込めませんでした：%1$s</string>
+    <string name="inst_failed">アップデートをインストールできませんでした：%1$s</string>
+
+    <!-- Diagnostics page -->
+    <string name="diag_subtitle">Pathfinder から見たこの Thor の情報です。Issue に貼り付けておけば、ほとんどの質問に先回りして答えられます。レポートは英語です。</string>
+    <string name="diag_failed">レポートを作成できませんでした：%1$s</string>
+    <string name="diag_copy">レポートをコピー</string>
+    <string name="diag_gathering">収集中…</string>
+
+    <!-- Choosing apps -->
+    <string name="choose_app">アプリを選択</string>
+
+    <!-- The questions an Ask shortcut puts up -->
+    <string name="the_app">アプリ</string>
+    <string name="ask_open_on">%1$s を開く画面</string>
+    <string name="ask_top">上画面</string>
+    <string name="ask_top_detail">メイン画面</string>
+    <string name="ask_bottom">下画面</string>
+    <string name="ask_bottom_detail">2 つ目の画面</string>
+    <string name="switch_to">切り替え先</string>
+
+    <!-- Welcome to 1.0 -->
+    <string name="w_profiles">アプリ別プロファイル</string>
+    <string name="w_profiles_text">アプリをプロファイルに関連付けると、そのアプリをプレイしている間、Pathfinder がそのプロファイルに切り替えます。</string>
+    <string name="w_profiles_button">設定する</string>
+    <string name="w_combos">ボタンコンボ</string>
+    <string name="w_combos_text">戻る、ホーム、AYN ボタンを押しながら他のボタンを 1 つか 2 つ押すだけで、数十もの新しいショートカットが使えます。</string>
+    <string name="w_combos_button">コンボを追加</string>
+    <string name="w_backup">バックアップと共有</string>
+    <string name="w_backup_text">すべてのプロファイルをファイルに保存して、いつでも復元したり、友だちと共有したりできます。</string>
+    <string name="w_backup_button">開く</string>
+    <string name="w_languages">あなたの言語で</string>
+    <string name="w_languages_text">英語、スペイン語、ポルトガル語（ブラジル）、簡体字中国語、日本語に対応しました。いずれかを選ぶか、Thor の言語に合わせられます。</string>
+    <string name="w_languages_button">選択</string>
+    <string name="w_title">Thor Pathfinder %1$s へようこそ</string>
+    <string name="w_intro">これまでで最大のアップデートです。新機能をお試しください：</string>
+    <string name="w_notes">リリースノートを読む</string>
+    <string name="w_continue">続ける</string>
+
+    <!-- Shared pieces of the interface -->
+    <string name="open">開く</string>
+    <string name="list_view">リスト表示</string>
+    <string name="two_column_view">2 列表示</string>
+    <string name="wide_view">ワイド表示</string>
+</resources>

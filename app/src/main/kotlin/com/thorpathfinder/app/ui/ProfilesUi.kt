@@ -40,6 +40,12 @@ import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.unit.dp
 import com.thorpathfinder.app.PathfinderService
 import com.thorpathfinder.app.Profiles
+import com.thorpathfinder.app.R
+import com.thorpathfinder.app.Shell
+import com.thorpathfinder.app.Words
+import com.thorpathfinder.app.words
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 
 /**
  * The profiles as Compose sees them.
@@ -66,6 +72,17 @@ internal class ProfileUi(private val context: Context, private val onSwitched: (
     var activeId by mutableIntStateOf(Profiles.activeId(context))
         private set
 
+    /** The app whose profile is in use, when an app's is. */
+    var appInUse by mutableStateOf(Profiles.appInUse(context))
+        private set
+
+    /** Each profile's linked apps. */
+    var links by mutableStateOf(allLinks())
+        private set
+
+    private fun allLinks(): Map<Int, Set<String>> =
+        Profiles.ids(context).associateWith { Profiles.linkedApps(context, it) }.filterValues { it.isNotEmpty() }
+
     private var showMapState by mutableStateOf(Profiles.showMap(context))
 
     /** The profile an "Enable" shortcut returns to; the user says which. */
@@ -87,6 +104,8 @@ internal class ProfileUi(private val context: Context, private val onSwitched: (
     private fun refresh() {
         profiles = Profiles.all(context)
         activeId = Profiles.activeId(context)
+        appInUse = Profiles.appInUse(context)
+        links = allLinks()
         mainId = Profiles.mainId(context)
         onSwitched()
     }
@@ -127,6 +146,12 @@ internal class ProfileUi(private val context: Context, private val onSwitched: (
         refresh()
     }
 
+    /** Links [apps] to profile [id], taking them from any other profile. */
+    fun linkApps(id: Int, apps: Set<String>) {
+        Profiles.setLinkedApps(context, id, apps)
+        refresh()
+    }
+
     /** Makes one profile the main one, which every "Enable" shortcut then returns to. */
     fun makeMain(id: Int) {
         Profiles.setMain(context, id)
@@ -147,21 +172,22 @@ internal fun rememberProfileUi(onSwitched: () -> Unit = {}): ProfileUi {
 }
 
 /** What a row on the Manage profiles page offers for one profile. */
-private enum class ProfileRowAction { ENABLE, BACK_TO_MAIN, MAKE_MAIN, RENAME, DELETE }
+private enum class ProfileRowAction { ENABLE, BACK_TO_MAIN, APPS, MAKE_MAIN, RENAME, DELETE }
 
-private const val CREATE = "Create profile"
-private const val NO_ROOM = "No room for another one"
-private const val FRESH = "A set of shortcuts of its own, all at their defaults"
+private val CREATE = R.string.profile_create
+private val NO_ROOM = R.string.profile_no_room
+private val FRESH = R.string.profile_fresh
 
 /** The oval under the title: the profile in use, and a tap to change it. */
 @Composable
 internal fun ProfileBar(ui: ProfileUi) {
+    val context = LocalContext.current
     var picking by remember { mutableStateOf(false) }
     var creating by remember { mutableStateOf(false) }
 
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(
-            "Active Profile:",
+            stringResource(R.string.active_profile),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(start = 2.dp, end = 8.dp),
@@ -185,19 +211,27 @@ internal fun ProfileBar(ui: ProfileUi) {
                 )
                 Icon(
                     Icons.Filled.ArrowDropDown,
-                    contentDescription = "Choose a profile",
+                    contentDescription = stringResource(R.string.choose_profile),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(22.dp),
                 )
             }
         }
+        ui.appInUse?.let { app ->
+            Text(
+                stringResource(R.string.for_app, appLabel(context, app)),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 8.dp),
+            )
+        }
     }
 
     if (picking) {
         PickDialog(
-            title = "Profiles",
-            choices = ui.profiles.map { it.name to profileTag(it, ui) } +
-                listOf(CREATE to if (ui.full) NO_ROOM else FRESH),
+            title = stringResource(R.string.profiles_title),
+            choices = ui.profiles.map { it.name to profileTag(context, it, ui) } +
+                listOf(stringResource(CREATE) to stringResource(if (ui.full) NO_ROOM else FRESH)),
             onPick = { index ->
                 picking = false
                 when {
@@ -219,31 +253,31 @@ internal fun ProfileBar(ui: ProfileUi) {
 @Composable
 private fun CreateProfileDialog(ui: ProfileUi, onDone: () -> Unit) {
     val from = ui.active.name
-    val suggested = remember { Profiles.newName(ui.profiles.map { it.name }) }
+    val context = LocalContext.current
+    val suggested = remember { Profiles.newName(ui.profiles.map { it.name }) { context.getString(R.string.profile_n, it) } }
     var name by rememberSaveable { mutableStateOf(suggested) }
     var keep by rememberSaveable { mutableStateOf(true) }
 
     AlertDialog(
         onDismissRequest = onDone,
-        title = { Text(CREATE) },
+        title = { Text(stringResource(CREATE)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    "Every shortcut starts at its default. Mouse mode stays as it is: that one is " +
-                        "the Thor's own setting, shared by every profile.",
+                    stringResource(R.string.create_body),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 OutlinedTextField(
                     value = name,
                     onValueChange = { if (it.length <= Profiles.MAX_NAME) name = it },
-                    label = { Text("Name") },
+                    label = { Text(stringResource(R.string.name)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 SwitchRow(
-                    title = "Keep the keep-running list",
-                    detail = "Copy the apps $from never force-stops",
+                    title = stringResource(R.string.keep_list),
+                    detail = stringResource(R.string.keep_list_detail, from),
                     checked = keep,
                     onChange = { keep = it },
                 )
@@ -253,9 +287,9 @@ private fun CreateProfileDialog(ui: ProfileUi, onDone: () -> Unit) {
             TextButton(onClick = {
                 ui.create(Profiles.cleanName(name, suggested), keep)
                 onDone()
-            }) { Text("Create") }
+            }) { Text(stringResource(R.string.create)) }
         },
-        dismissButton = { TextButton(onClick = onDone) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDone) { Text(stringResource(R.string.cancel)) } },
     )
 }
 
@@ -265,12 +299,12 @@ private fun RenameProfileDialog(profile: Profiles.Profile, onRename: (String) ->
     var name by rememberSaveable { mutableStateOf(profile.name) }
     AlertDialog(
         onDismissRequest = onDone,
-        title = { Text("Rename profile") },
+        title = { Text(stringResource(R.string.rename_title)) },
         text = {
             OutlinedTextField(
                 value = name,
                 onValueChange = { if (it.length <= Profiles.MAX_NAME) name = it },
-                label = { Text("Name") },
+                label = { Text(stringResource(R.string.name)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -279,30 +313,95 @@ private fun RenameProfileDialog(profile: Profiles.Profile, onRename: (String) ->
             TextButton(onClick = {
                 onRename(Profiles.cleanName(name, profile.name))
                 onDone()
-            }) { Text("Rename") }
+            }) { Text(stringResource(R.string.rename)) }
         },
-        dismissButton = { TextButton(onClick = onDone) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDone) { Text(stringResource(R.string.cancel)) } },
     )
 }
 
-/** The Manage profiles page: enable, rename, add or remove. */
+/** The pages inside Manage profiles. */
+enum class ManagePage { PROFILES, BACKUP }
+
+/**
+ * The Manage profiles page: Profiles (the list itself, a page of its own),
+ * how a switch is shown, and Backup & share. Back from an inner page lands
+ * on the row that opened it.
+ */
 @Composable
-internal fun ManageProfilesPage(onBack: () -> Unit) {
-    val context = LocalContext.current
+internal fun ManageProfilesPage(onBack: () -> Unit, openAt: ManagePage? = null) {
     val ui = rememberProfileUi()
+    var page by rememberSaveable { mutableStateOf(openAt) }
+    var last by rememberSaveable { mutableStateOf(openAt ?: ManagePage.PROFILES) }
+    fun close() {
+        last = page ?: last
+        page = null
+    }
+    when (page) {
+        ManagePage.PROFILES -> {
+            ProfileListPage(ui, onBack = ::close)
+            return
+        }
+        ManagePage.BACKUP -> {
+            BackupPage(onBack = ::close)
+            return
+        }
+        null -> Unit
+    }
+    val rows = remember { ManagePage.entries.associateWith { FocusRequester() } }
+    val inputMode = LocalInputModeManager.current.inputMode
+    LaunchedEffect(inputMode) { runCatching { rows.getValue(last).requestFocus() } }
+
+    PageScaffold(
+        stringResource(R.string.page_profiles),
+        stringResource(R.string.manage_subtitle),
+        onBack = onBack,
+    ) {
+        ScrollingColumn(
+            state = rememberScrollState(),
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            contentPadding = PaddingValues(vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            NavRow(
+                stringResource(R.string.profiles_title),
+                stringResource(
+                    R.string.profiles_row_detail,
+                    pluralStringResource(R.plurals.profiles_count, ui.profiles.size, ui.profiles.size),
+                    ui.active.name,
+                ),
+                modifier = Modifier.focusRequester(rows.getValue(ManagePage.PROFILES)),
+            ) { page = ManagePage.PROFILES }
+            SwitchRow(
+                title = stringResource(R.string.show_buttons),
+                detail = stringResource(R.string.show_buttons_detail),
+                checked = ui.showMap,
+                onChange = { ui.showMap = it },
+            )
+            NavRow(
+                stringResource(R.string.backup_row),
+                stringResource(R.string.backup_row_detail),
+                modifier = Modifier.focusRequester(rows.getValue(ManagePage.BACKUP)),
+            ) { page = ManagePage.BACKUP }
+        }
+    }
+}
+
+/** Every profile, and a new one: tap one to use, rename, link apps to, or delete it. */
+@Composable
+private fun ProfileListPage(ui: ProfileUi, onBack: () -> Unit) {
+    val context = LocalContext.current
     var acting by remember { mutableStateOf<Profiles.Profile?>(null) }
     var renaming by remember { mutableStateOf<Profiles.Profile?>(null) }
     var deleting by remember { mutableStateOf<Profiles.Profile?>(null) }
+    var linking by remember { mutableStateOf<Profiles.Profile?>(null) }
     var creating by remember { mutableStateOf(false) }
     val first = remember { FocusRequester() }
     val inputMode = LocalInputModeManager.current.inputMode
     LaunchedEffect(inputMode) { runCatching { first.requestFocus() } }
 
     PageScaffold(
-        "Manage profiles",
-        "A profile holds every shortcut, the keep-running list, the timings and vibration. " +
-            "The main profile is the one an Enable shortcut goes back to, and the one that stays. " +
-            "Mouse mode is the Thor's own setting and is shared by all of them.",
+        stringResource(R.string.profiles_title),
+        stringResource(R.string.profiles_subtitle),
         onBack = onBack,
     ) {
         ScrollingColumn(
@@ -314,23 +413,19 @@ internal fun ManageProfilesPage(onBack: () -> Unit) {
             ui.profiles.forEachIndexed { index, profile ->
                 NavRow(
                     title = profile.name,
-                    detail = profileTag(profile, ui),
+                    detail = listOfNotNull(profileTag(context, profile, ui), appsTag(context, ui.links[profile.id]))
+                        .joinToString(" \u00b7 ")
+                        .ifEmpty { null },
                     modifier = if (index == 0) Modifier.focusRequester(first) else Modifier,
                     onClick = { acting = profile },
                 )
             }
-            NavRow(CREATE, if (ui.full) NO_ROOM else FRESH) { if (!ui.full) creating = true }
-            SwitchRow(
-                title = "Show the buttons on switching",
-                detail = "Draw the Thor with this profile's shortcuts for a few seconds",
-                checked = ui.showMap,
-                onChange = { ui.showMap = it },
-            )
+            NavRow(stringResource(CREATE), stringResource(if (ui.full) NO_ROOM else FRESH)) { if (!ui.full) creating = true }
         }
     }
 
     acting?.let { profile ->
-        val choices = profileActions(profile, ui)
+        val choices = profileActions(context.words(), profile, ui)
         PickDialog(
             title = profile.name,
             choices = choices.map { it.second },
@@ -340,6 +435,7 @@ internal fun ManageProfilesPage(onBack: () -> Unit) {
                 when (action) {
                     ProfileRowAction.ENABLE -> ui.switchTo(profile.id)
                     ProfileRowAction.BACK_TO_MAIN -> ui.switchTo(ui.mainId)
+                    ProfileRowAction.APPS -> linking = profile
                     ProfileRowAction.MAKE_MAIN -> ui.makeMain(profile.id)
                     ProfileRowAction.RENAME -> renaming = profile
                     ProfileRowAction.DELETE -> deleting = profile
@@ -356,57 +452,105 @@ internal fun ManageProfilesPage(onBack: () -> Unit) {
     deleting?.let { profile ->
         AlertDialog(
             onDismissRequest = { deleting = null },
-            title = { Text("Delete ${profile.name}?") },
-            text = {
-                Text(
-                    "Its shortcuts go with it, and this can't be undone. Any shortcut set to enable " +
-                        "it cycles through the profiles instead.",
-                )
-            },
+            title = { Text(stringResource(R.string.delete_title, profile.name)) },
+            text = { Text(stringResource(R.string.delete_body)) },
             confirmButton = {
                 TextButton(onClick = {
                     ui.delete(profile.id)
                     deleting = null
-                }) { Text("Delete") }
+                }) { Text(stringResource(R.string.delete)) }
             },
-            dismissButton = { TextButton(onClick = { deleting = null }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { deleting = null }) { Text(stringResource(R.string.cancel)) } },
+        )
+    }
+
+    linking?.let { profile ->
+        AppMultiPickerDialog(
+            title = stringResource(R.string.apps_for, profile.name),
+            initial = ui.links[profile.id].orEmpty(),
+            includeHomes = true,
+            allowNone = true,
+            note = { pkg ->
+                ui.links.entries.firstOrNull { (id, apps) -> id != profile.id && pkg in apps }
+                    ?.let { (id, _) -> ui.profiles.firstOrNull { it.id == id }?.name }
+                    ?.let { context.getString(R.string.uses_now, it) }
+            },
+            onDone = { apps ->
+                ui.linkApps(profile.id, apps)
+                linking = null
+            },
+            onDismiss = { linking = null },
         )
     }
 
     if (creating) CreateProfileDialog(ui) { creating = false }
 }
 
+/** A profile's linked apps, for its row: two by name, then how many more. */
+private fun appsTag(context: Context, apps: Set<String>?): String? {
+    if (apps.isNullOrEmpty()) return null
+    val names = apps.map { appLabel(context, it) }.sortedBy { it.lowercase() }
+    val shown = names.take(2).joinToString(context.getString(R.string.list_sep))
+    val more = names.size - 2
+    return if (more > 0) {
+        context.resources.getQuantityString(R.plurals.apps_tag_more, more, shown, more)
+    } else {
+        context.getString(R.string.apps_tag, shown)
+    }
+}
+
 /** How a profile is labelled wherever it is listed. */
-private fun profileTag(profile: Profiles.Profile, ui: ProfileUi): String? {
+private fun profileTag(context: Context, profile: Profiles.Profile, ui: ProfileUi): String? {
     val main = profile.id == ui.mainId
     val active = profile.id == ui.activeId
+    val app = ui.appInUse?.takeIf { active }?.let { appLabel(context, it) }
     return when {
-        main && active -> "Main profile, in use"
-        main -> "Main profile"
-        active -> "In use"
+        app != null -> context.getString(if (main) R.string.tag_main_in_use_for else R.string.tag_in_use_for, app)
+        main && active -> context.getString(R.string.tag_main_in_use)
+        main -> context.getString(R.string.tag_main)
+        active -> context.getString(R.string.tag_in_use)
         else -> null
     }
 }
 
 /** What one profile's row offers: the main profile is never deleted, and is its own way back. */
 private fun profileActions(
+    words: Words,
     profile: Profiles.Profile,
     ui: ProfileUi,
 ): List<Pair<ProfileRowAction, Pair<String, String?>>> = buildList {
     if (profile.id != ui.activeId) {
-        add(ProfileRowAction.ENABLE to ("Enable ${profile.name}" to "Use its shortcuts from now on"))
-    } else if (profile.id != ui.mainId) {
-        add(ProfileRowAction.BACK_TO_MAIN to ("Back to ${ui.main.name}" to "This one is already in use"))
-    }
-    if (profile.id != ui.mainId) {
         add(
-            ProfileRowAction.MAKE_MAIN to (
-                "Make this the main profile" to "Where an Enable shortcut goes back to"
+            ProfileRowAction.ENABLE to (
+                words.text(R.string.map_profile_enable, profile.name) to words.text(R.string.action_enable_detail)
+                ),
+        )
+    } else if (profile.id != ui.mainId) {
+        add(
+            ProfileRowAction.BACK_TO_MAIN to (
+                words.text(R.string.action_back_to, ui.main.name) to words.text(R.string.action_back_to_detail)
                 ),
         )
     }
-    add(ProfileRowAction.RENAME to ("Rename" to null))
+    val linked = ui.links[profile.id].orEmpty()
+    add(
+        ProfileRowAction.APPS to (
+            words.text(R.string.action_apps) to when {
+                !Shell.ready -> words.text(R.string.needs_shizuku)
+                linked.isEmpty() -> words.text(R.string.action_apps_none)
+                else -> words.count(R.plurals.list_apps, linked.size, linked.size)
+            }
+            ),
+    )
+    if (profile.id != ui.mainId) {
+        add(
+            ProfileRowAction.MAKE_MAIN to (
+                words.text(R.string.action_make_main) to words.text(R.string.action_make_main_detail)
+                ),
+        )
+    }
+    add(ProfileRowAction.RENAME to (words.text(R.string.rename) to null))
     if (ui.deletable(profile.id)) {
-        add(ProfileRowAction.DELETE to ("Delete" to "Its shortcuts go with it"))
+        add(ProfileRowAction.DELETE to (words.text(R.string.delete) to words.text(R.string.delete_detail)))
     }
 }

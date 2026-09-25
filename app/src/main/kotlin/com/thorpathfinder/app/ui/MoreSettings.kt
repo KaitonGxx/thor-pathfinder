@@ -27,7 +27,11 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.unit.dp
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
+import com.thorpathfinder.app.Language
 import com.thorpathfinder.app.MouseMode
+import com.thorpathfinder.app.R
 import com.thorpathfinder.app.Shell
 import com.thorpathfinder.app.Shortcuts
 import com.thorpathfinder.app.SystemState
@@ -37,22 +41,41 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** The pages behind the cog, each opened from the settings menu. */
-private enum class SettingsPage(val title: String, val detail: String) {
-    PROFILES("Manage profiles", "Rename, add or remove your sets of shortcuts"),
-    CLOSE_ALL("Close app(s)", "Which apps keep running when tasks are closed"),
-    MOUSE("Mouse mode", "Which way the right stick scrolls"),
-    TIMING("Timing", "How long a hold takes, and the double-press gap"),
-    UPDATES("Update settings", "Checking for updates, and installing them by itself"),
-    WATCHDOG("Watchdog", "Keep the accessibility service on when something stops it"),
-    DIAGNOSTICS("Diagnostics", "A report about this Thor, to paste into a bug report"),
+private enum class SettingsPage(@StringRes val title: Int, @StringRes val detail: Int?) {
+    PROFILES(R.string.page_profiles, R.string.page_profiles_detail),
+    CLOSE_ALL(R.string.page_close, R.string.page_close_detail),
+    MOUSE(R.string.page_mouse, R.string.page_mouse_detail),
+    TIMING(R.string.page_timing, R.string.page_timing_detail),
+    UPDATES(R.string.page_updates, R.string.page_updates_detail),
+    WATCHDOG(R.string.wd_title, R.string.page_watchdog_detail),
+    // Its detail is the language in use, in its own words.
+    LANGUAGE(R.string.page_language, null),
+    DIAGNOSTICS(R.string.page_diagnostics, R.string.page_diagnostics_detail),
     // Run setup again stays last, whatever else is added above it.
-    SETUP("Run setup again", "Walk through the checks from the start"),
+    SETUP(R.string.page_setup, R.string.page_setup_detail),
 }
 
-/** The cog's menu: a page per group of settings. */
+/**
+ * The cog's menu: a page per group of settings. [openAt] opens Manage
+ * profiles at one of its pages straight away, as the welcome page does.
+ */
 @Composable
-fun MoreSettingsScreen(state: SystemState, onBack: () -> Unit, onRunSetup: () -> Unit) {
-    var page by rememberSaveable { mutableStateOf<SettingsPage?>(null) }
+fun MoreSettingsScreen(
+    state: SystemState,
+    onBack: () -> Unit,
+    onRunSetup: () -> Unit,
+    openAt: ManagePage? = null,
+    openLanguage: Boolean = false,
+) {
+    var page by rememberSaveable {
+        mutableStateOf(
+            when {
+                openLanguage -> SettingsPage.LANGUAGE
+                openAt != null -> SettingsPage.PROFILES
+                else -> null
+            },
+        )
+    }
     // Where the menu puts focus when a page closes: the row it came from.
     var last by rememberSaveable { mutableStateOf(SettingsPage.entries.first()) }
     fun close() {
@@ -61,12 +84,13 @@ fun MoreSettingsScreen(state: SystemState, onBack: () -> Unit, onRunSetup: () ->
     }
     when (page) {
         null -> SettingsMenu(focusOn = last, onOpen = { page = it }, onBack = onBack)
-        SettingsPage.PROFILES -> ManageProfilesPage(onBack = ::close)
+        SettingsPage.PROFILES -> ManageProfilesPage(onBack = ::close, openAt = openAt)
         SettingsPage.CLOSE_ALL -> KeepRunningPage(onBack = ::close)
         SettingsPage.MOUSE -> MouseModePage(state, onBack = ::close)
         SettingsPage.TIMING -> TimingPage(onBack = ::close)
         SettingsPage.UPDATES -> UpdateSettingsPage(state, onBack = ::close)
         SettingsPage.WATCHDOG -> WatchdogPage(state, onBack = ::close)
+        SettingsPage.LANGUAGE -> LanguagePage(onBack = ::close)
         SettingsPage.DIAGNOSTICS -> DiagnosticsPage(state, onBack = ::close)
         SettingsPage.SETUP -> RunSetupPage(onRunSetup = onRunSetup, onBack = ::close)
     }
@@ -74,11 +98,13 @@ fun MoreSettingsScreen(state: SystemState, onBack: () -> Unit, onRunSetup: () ->
 
 @Composable
 private fun SettingsMenu(focusOn: SettingsPage, onOpen: (SettingsPage) -> Unit, onBack: () -> Unit) {
+    val context = LocalContext.current
+    val language = remember { Language.chosenName(context) }
     val first = remember { FocusRequester() }
     val inputMode = LocalInputModeManager.current.inputMode
     LaunchedEffect(inputMode) { runCatching { first.requestFocus() } }
 
-    PageScaffold("Settings", onBack = onBack) {
+    PageScaffold(stringResource(R.string.settings), onBack = onBack) {
         ScrollingColumn(
             state = rememberScrollState(),
             modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -87,8 +113,10 @@ private fun SettingsMenu(focusOn: SettingsPage, onOpen: (SettingsPage) -> Unit, 
         ) {
             SettingsPage.entries.forEach { entry ->
                 NavRow(
-                    title = entry.title,
-                    detail = entry.detail,
+                    title = stringResource(entry.title),
+                    detail = entry.detail?.let { stringResource(it) }
+                        ?: language
+                        ?: stringResource(R.string.language_system),
                     modifier = if (entry == focusOn) Modifier.focusRequester(first) else Modifier,
                     onClick = { onOpen(entry) },
                 )
@@ -100,6 +128,7 @@ private fun SettingsMenu(focusOn: SettingsPage, onOpen: (SettingsPage) -> Unit, 
 /** Reversing the right stick in the Thor's mouse mode. */
 @Composable
 private fun MouseModePage(state: SystemState, onBack: () -> Unit) {
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val ready = state.shizuku == Shell.Status.READY
     // null until read, or when AYN's config can't be read
@@ -117,8 +146,8 @@ private fun MouseModePage(state: SystemState, onBack: () -> Unit) {
     LaunchedEffect(inputMode, reversed != null) { runCatching { first.requestFocus() } }
 
     PageScaffold(
-        "Mouse mode",
-        "Cursor speed and scroll sensitivity stay in the Thor's own mouse mode settings.",
+        stringResource(R.string.page_mouse),
+        stringResource(R.string.mouse_subtitle),
         onBack = onBack,
     ) {
         ScrollingColumn(
@@ -128,12 +157,14 @@ private fun MouseModePage(state: SystemState, onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             SwitchRow(
-                title = "Reverse right-stick scrolling",
-                detail = when {
-                    !ready -> "Needs Shizuku."
-                    reversed == null -> "Couldn't read the Thor's mouse mode settings."
-                    else -> "Pushing up scrolls up, pushing down scrolls down. Takes effect after a restart."
-                },
+                title = stringResource(R.string.mouse_reverse),
+                detail = stringResource(
+                    when {
+                        !ready -> R.string.mouse_needs_shizuku
+                        reversed == null -> R.string.mouse_unreadable
+                        else -> R.string.mouse_reverse_detail
+                    },
+                ),
                 checked = reversed == true,
                 enabled = reversed != null && !busy,
                 modifier = Modifier.focusRequester(first),
@@ -145,7 +176,7 @@ private fun MouseModePage(state: SystemState, onBack: () -> Unit) {
                             reversed = want
                             needsRestart = true
                         } else {
-                            error = "Couldn't change the Thor's mouse mode settings."
+                            error = context.getString(R.string.mouse_couldnt_change)
                         }
                         busy = false
                     }
@@ -155,7 +186,7 @@ private fun MouseModePage(state: SystemState, onBack: () -> Unit) {
             if (needsRestart) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        "Restart the Thor to apply the new direction.",
+                        stringResource(R.string.mouse_restart),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f),
                     )
@@ -163,7 +194,7 @@ private fun MouseModePage(state: SystemState, onBack: () -> Unit) {
                     Button(
                         onClick = { scope.launch(Dispatchers.IO) { MouseMode.restart() } },
                         modifier = Modifier.focusOutline(PillShape),
-                    ) { Text("Restart now") }
+                    ) { Text(stringResource(R.string.mouse_restart_now)) }
                 }
             }
         }
@@ -183,8 +214,8 @@ private fun UpdateSettingsPage(state: SystemState, onBack: () -> Unit) {
     LaunchedEffect(inputMode) { runCatching { first.requestFocus() } }
 
     PageScaffold(
-        "Update settings",
-        "Pathfinder asks GitHub for the newest release. Nothing about you or your Thor is sent.",
+        stringResource(R.string.page_updates),
+        stringResource(R.string.updates_subtitle),
         onBack = onBack,
     ) {
         ScrollingColumn(
@@ -194,8 +225,8 @@ private fun UpdateSettingsPage(state: SystemState, onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             SwitchRow(
-                title = "Check when Pathfinder opens",
-                detail = "A quick look for a newer release each time you open the app.",
+                title = stringResource(R.string.updates_check_on_open),
+                detail = stringResource(R.string.updates_check_on_open_detail),
                 checked = checkOnOpen,
                 modifier = Modifier.focusRequester(first),
                 onChange = {
@@ -204,13 +235,8 @@ private fun UpdateSettingsPage(state: SystemState, onBack: () -> Unit) {
                 },
             )
             SwitchRow(
-                title = "Install updates automatically",
-                detail = if (ready) {
-                    "Downloads the new APK from Pathfinder's releases and installs it through " +
-                        "Shizuku, with nothing to confirm. Off unless you turn it on."
-                } else {
-                    "Needs Shizuku: without it there is no way to install without prompts."
-                },
+                title = stringResource(R.string.updates_auto),
+                detail = stringResource(if (ready) R.string.updates_auto_detail else R.string.updates_auto_needs_shizuku),
                 checked = autoInstall && ready,
                 enabled = ready,
                 onChange = {
@@ -220,11 +246,8 @@ private fun UpdateSettingsPage(state: SystemState, onBack: () -> Unit) {
             )
             val known = settings.known
             Text(
-                buildString {
-                    append(if (known == null) "No release seen yet." else "Newest release seen: ${known.version}.")
-                    append(" Updates install only over the same signing key, so a copy from ")
-                    append("anywhere else is refused.")
-                },
+                (if (known == null) stringResource(R.string.updates_none_seen) else stringResource(R.string.updates_seen, known.version)) +
+                    " " + stringResource(R.string.updates_same_key),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
@@ -241,7 +264,7 @@ private fun RunSetupPage(onRunSetup: () -> Unit, onBack: () -> Unit) {
     val inputMode = LocalInputModeManager.current.inputMode
     LaunchedEffect(inputMode) { runCatching { notNow.requestFocus() } }
 
-    PageScaffold("Run setup again?", onBack = onBack) {
+    PageScaffold(stringResource(R.string.setup_again_title), onBack = onBack) {
         ScrollingColumn(
             state = rememberScrollState(),
             modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -249,32 +272,30 @@ private fun RunSetupPage(onRunSetup: () -> Unit, onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                "Setup goes through the Thor's firmware, Thor Wayfinder, Pathfinder's " +
-                    "accessibility service and Shizuku, one screen at a time, and checks each one " +
-                    "before it moves on.",
+                stringResource(R.string.setup_again_body),
                 style = MaterialTheme.typography.bodyLarge,
             )
             Text(
-                "Your shortcuts, timings and the apps you keep running all stay as they are.",
+                stringResource(R.string.setup_again_keeps),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Button(onClick = onRunSetup, modifier = Modifier.focusOutline(PillShape)) {
-                    Text("Run setup")
+                    Text(stringResource(R.string.setup_again_run))
                 }
                 OutlinedButton(
                     onClick = onBack,
                     modifier = Modifier.focusRequester(notNow).focusOutline(PillShape),
-                ) { Text("Not now") }
+                ) { Text(stringResource(R.string.not_now)) }
             }
         }
     }
 }
 
-private enum class Timing(val title: String, val choices: List<Long>) {
-    HOLD("How long to hold", Shortcuts.HOLD_CHOICES),
-    DOUBLE("Double-press gap", Shortcuts.DOUBLE_CHOICES);
+private enum class Timing(@StringRes val title: Int, val choices: List<Long>) {
+    HOLD(R.string.timing_hold, Shortcuts.HOLD_CHOICES),
+    DOUBLE(R.string.timing_double, Shortcuts.DOUBLE_CHOICES);
 
     fun get(s: ObservedShortcuts) = if (this == HOLD) s.holdMs else s.doubleMs
 
@@ -294,9 +315,8 @@ private fun TimingPage(onBack: () -> Unit) {
     LaunchedEffect(inputMode) { runCatching { first.requestFocus() } }
 
     PageScaffold(
-        "Timing",
-        "With a double-press shortcut on Back, Home or the AYN button, a single press waits for " +
-            "the gap to pass before it acts.",
+        stringResource(R.string.page_timing),
+        stringResource(R.string.timing_subtitle),
         onBack = onBack,
     ) {
         ScrollingColumn(
@@ -306,21 +326,24 @@ private fun TimingPage(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             ValueRow(
-                "How long to hold",
-                "${shortcuts.holdMs} ms",
+                stringResource(R.string.timing_hold),
+                stringResource(R.string.timing_ms, shortcuts.holdMs),
                 modifier = Modifier.focusRequester(first),
             ) { editing = Timing.HOLD }
-            ValueRow("Double-press gap", "${shortcuts.doubleMs} ms") { editing = Timing.DOUBLE }
-            SwitchRow("Vibrate when a shortcut runs", null, shortcuts.vibrate) { shortcuts.vibrate = it }
+            ValueRow(
+                stringResource(R.string.timing_double),
+                stringResource(R.string.timing_ms, shortcuts.doubleMs),
+            ) { editing = Timing.DOUBLE }
+            SwitchRow(stringResource(R.string.timing_vibrate), null, shortcuts.vibrate) { shortcuts.vibrate = it }
         }
     }
 
     editing?.let { timing ->
         ChoiceDialog(
-            title = timing.title,
+            title = stringResource(timing.title),
             options = timing.choices,
             selected = timing.get(shortcuts),
-            label = { "$it ms" },
+            label = { context.getString(R.string.timing_ms, it) },
             onPick = {
                 timing.set(shortcuts, it)
                 editing = null

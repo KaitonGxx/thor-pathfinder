@@ -91,20 +91,52 @@ class Shortcuts(private val context: Context, private val profile: Int? = null) 
         focus = focus(button, gesture),
     )
 
-    fun set(button: PhysicalButton, gesture: Gesture, shortcut: Shortcut) = set(
-        button,
-        gesture,
-        shortcut.action,
-        app = shortcut.app,
-        screen = shortcut.screen,
-        second = shortcut.second,
-        home = shortcut.home,
-        close = shortcut.close,
-        closeApps = shortcut.closeApps,
-        profile = shortcut.profile,
-        profileId = shortcut.profileId,
-        focus = shortcut.focus,
-    )
+    fun set(button: PhysicalButton, gesture: Gesture, shortcut: Shortcut) = write(key(button, gesture), shortcut)
+
+    /**
+     * Every combo in this profile that does something. A combo is kept like a
+     * gesture, under "combo." and its [Combos.id], with the same extras.
+     */
+    override val combos: Set<Set<ComboKey>>
+        get() = prefs.all.keys.asSequence()
+            .filter { it.startsWith(COMBO) && '.' !in it.removePrefix(COMBO) }
+            .filter { stored(it) != null }
+            .mapNotNull { Combos.parse(it.removePrefix(COMBO)) }
+            .toSet()
+
+    /** What a combo is set to, or null when it isn't one. */
+    fun combo(keys: Set<ComboKey>): Shortcut? {
+        val slot = COMBO + Combos.id(keys)
+        val action = stored(slot) ?: return null
+        return Shortcut(
+            action = action,
+            app = prefs.getString("$slot.app", null),
+            screen = prefs.getString("$slot.screen", null)
+                ?.let { name -> LaunchScreen.entries.firstOrNull { it.name == name } } ?: LaunchScreen.TOP,
+            second = prefs.getString("$slot.app2", null),
+            home = prefs.getString("$slot.home", null)?.let { name -> HomeTarget.entries.firstOrNull { it.name == name } },
+            close = prefs.getString("$slot.close", null)
+                ?.let { name -> CloseTarget.entries.firstOrNull { it.name == name } } ?: CloseTarget.ALL,
+            closeApps = prefs.getStringSet("$slot.closeApps", null)?.toSet() ?: emptySet(),
+            profile = prefs.getString("$slot.profile", null)
+                ?.let { name -> ProfileSwitch.entries.firstOrNull { it.name == name } } ?: ProfileSwitch.CYCLE,
+            profileId = prefs.getInt("$slot.profileId", Profiles.ORIGINAL),
+            focus = prefs.getString("$slot.focus", null)
+                ?.let { name -> FocusSwitch.entries.firstOrNull { it.name == name } } ?: FocusSwitch.CYCLE,
+        )
+    }
+
+    fun setCombo(keys: Set<ComboKey>, shortcut: Shortcut) = write(COMBO + Combos.id(keys), shortcut)
+
+    fun removeCombo(keys: Set<ComboKey>) {
+        val slot = COMBO + Combos.id(keys)
+        prefs.edit {
+            for (stored in prefs.all.keys) if (stored == slot || stored.startsWith("$slot.")) remove(stored)
+        }
+    }
+
+    private fun stored(slot: String): ButtonAction? =
+        prefs.getString(slot, null)?.let { name -> ButtonAction.entries.firstOrNull { it.name == name } }
 
     fun set(
         button: PhysicalButton,
@@ -119,8 +151,23 @@ class Shortcuts(private val context: Context, private val profile: Int? = null) 
         profile: ProfileSwitch = ProfileSwitch.CYCLE,
         profileId: Int = Profiles.ORIGINAL,
         focus: FocusSwitch = FocusSwitch.CYCLE,
-    ) {
-        val key = key(button, gesture)
+    ) = write(
+        key(button, gesture),
+        Shortcut(action, app, screen, second, home, close, closeApps, profile, profileId, focus),
+    )
+
+    /** Stores [shortcut] under [key], keeping only the extras its action uses. */
+    private fun write(key: String, shortcut: Shortcut) {
+        val action = shortcut.action
+        val app = shortcut.app
+        val screen = shortcut.screen
+        val second = shortcut.second
+        val home = shortcut.home
+        val close = shortcut.close
+        val closeApps = shortcut.closeApps
+        val profile = shortcut.profile
+        val profileId = shortcut.profileId
+        val focus = shortcut.focus
         prefs.edit {
             putString(key, action.name)
             if (action == ButtonAction.LAUNCH_APP) {
@@ -181,6 +228,9 @@ class Shortcuts(private val context: Context, private val profile: Int? = null) 
     private fun key(button: PhysicalButton, gesture: Gesture) = "map.${button.name}.${gesture.name}"
 
     companion object {
+        /** Where combos are kept: "combo." and their [Combos.id]. */
+        private const val COMBO = "combo."
+
         /** What a fresh install does: the familiar Back gestures, plus Select for mouse mode. */
         val DEFAULTS = mapOf(
             (PhysicalButton.BACK to Gesture.DOUBLE) to ButtonAction.RECENTS,

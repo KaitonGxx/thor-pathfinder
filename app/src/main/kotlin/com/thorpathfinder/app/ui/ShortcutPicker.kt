@@ -16,7 +16,9 @@ import com.thorpathfinder.app.HomeTarget
 import com.thorpathfinder.app.LaunchScreen
 import com.thorpathfinder.app.ProfileSwitch
 import com.thorpathfinder.app.Profiles
+import com.thorpathfinder.app.R
 import com.thorpathfinder.app.Shortcut
+import com.thorpathfinder.app.words
 
 /**
  * How the shortcut list is laid out, wide or as a list: the user's pick, kept
@@ -89,11 +91,12 @@ internal fun ShortcutPicker(
     choices: List<ButtonAction>,
     current: Shortcut?,
     shizukuReady: Boolean,
-    label: (ButtonAction) -> String = { it.label },
+    label: ((ButtonAction) -> String)? = null,
     onChosen: (Shortcut) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
+    val words = remember(context) { context.words() }
     var step by remember { mutableStateOf<Step>(Step.Action) }
     when (val at = step) {
         Step.Action -> {
@@ -102,8 +105,8 @@ internal fun ShortcutPicker(
                 title = title,
                 options = choices,
                 selected = current?.action,
-                label = label,
-                detail = { if (it.needsShizuku && !shizukuReady) "Needs Shizuku" else null },
+                label = label ?: { words.text(it.text) },
+                detail = { if (it.needsShizuku && !shizukuReady) words.text(R.string.needs_shizuku) else null },
                 leadsOn = { nextStep(it) != null },
                 columns = columns,
                 onColumnsChange = {
@@ -118,10 +121,10 @@ internal fun ShortcutPicker(
             )
         }
         Step.HowMany -> PickDialog(
-            title = "Open an app",
+            title = words.text(ButtonAction.LAUNCH_APP.text),
             choices = listOf(
-                "Open 1 App" to "On the top screen, the bottom one, or ask each time",
-                "Open 2 Apps" to "One on each screen, both at once",
+                words.text(R.string.picker_open_one) to words.text(R.string.picker_open_one_detail),
+                words.text(R.string.picker_open_two) to words.text(R.string.picker_open_two_detail),
             ),
             onPick = { choice -> step = if (choice == 0) Step.OneApp else Step.TopApp },
             onDismiss = onDismiss,
@@ -131,21 +134,21 @@ internal fun ShortcutPicker(
             onDismiss = onDismiss,
         )
         is Step.OneScreen -> ChoiceDialog(
-            title = "Open ${appLabel(context, at.pkg)} on",
+            title = words.text(R.string.picker_open_on, appLabel(context, at.pkg)),
             options = LaunchScreen.entries,
             selected = current?.screen ?: LaunchScreen.TOP,
-            label = { it.label },
-            detail = { if (it == LaunchScreen.ASK) "Choose top or bottom each time the shortcut runs" else null },
+            label = { words.text(it.text) },
+            detail = { if (it == LaunchScreen.ASK) words.text(R.string.picker_ask_detail) else null },
             onPick = { screen -> onChosen(Shortcut(ButtonAction.LAUNCH_APP, app = at.pkg, screen = screen)) },
             onDismiss = onDismiss,
         )
         Step.TopApp -> AppPickerDialog(
-            title = "App for the top screen",
+            title = words.text(R.string.picker_app_top),
             onPick = { pkg -> step = Step.BottomApp(pkg) },
             onDismiss = onDismiss,
         )
         is Step.BottomApp -> AppPickerDialog(
-            title = "App for the bottom screen",
+            title = words.text(R.string.picker_app_bottom),
             exclude = at.top,
             onPick = { pkg ->
                 onChosen(Shortcut(ButtonAction.LAUNCH_APP, app = at.top, screen = LaunchScreen.TOP, second = pkg))
@@ -153,8 +156,8 @@ internal fun ShortcutPicker(
             onDismiss = onDismiss,
         )
         Step.CloseWhich -> PickDialog(
-            title = ButtonAction.CLOSE_ALL.label,
-            choices = CloseTarget.entries.map { it.label to null },
+            title = words.text(ButtonAction.CLOSE_ALL.text),
+            choices = CloseTarget.entries.map { words.text(it.text) to null },
             onPick = { choice ->
                 val target = CloseTarget.entries[choice]
                 if (target == CloseTarget.SPECIFIC) {
@@ -166,7 +169,7 @@ internal fun ShortcutPicker(
             onDismiss = onDismiss,
         )
         Step.CloseApps -> AppMultiPickerDialog(
-            title = "Apps to close",
+            title = words.text(R.string.picker_apps_to_close),
             initial = current?.closeApps ?: emptySet(),
             onDone = { apps ->
                 onChosen(Shortcut(ButtonAction.CLOSE_ALL, close = CloseTarget.SPECIFIC, closeApps = apps))
@@ -177,11 +180,13 @@ internal fun ShortcutPicker(
             // Cycle and Ask, then one row per profile, so the whole choice is one dialog.
             val profiles = remember { Profiles.all(context) }
             PickDialog(
-                title = ButtonAction.PROFILE.label,
+                title = words.text(ButtonAction.PROFILE.text),
                 choices = listOf(
-                    ProfileSwitch.CYCLE.label to "Move to the next profile each press",
-                    ProfileSwitch.ASK.label to "Choose from a list when the shortcut runs",
-                ) + profiles.map { "Enable ${it.name}" to "Press again to go back to the main profile" },
+                    words.text(ProfileSwitch.CYCLE.text) to words.text(R.string.picker_cycle_detail),
+                    words.text(ProfileSwitch.ASK.text) to words.text(R.string.picker_ask_profile_detail),
+                ) + profiles.map {
+                    words.text(R.string.map_profile_enable, it.name) to words.text(R.string.picker_enable_detail)
+                },
                 onPick = { choice ->
                     onChosen(
                         when (choice) {
@@ -199,26 +204,28 @@ internal fun ShortcutPicker(
             )
         }
         Step.HomeWhere -> ChoiceDialog(
-            title = "Send home on",
+            title = words.text(R.string.picker_home_on),
             options = HomeTarget.entries,
             selected = current?.home,
-            label = { it.label },
+            label = { words.text(it.text) },
             onPick = { target -> onChosen(Shortcut(ButtonAction.HOME, home = target)) },
             onDismiss = onDismiss,
         )
         Step.FocusWhich -> ChoiceDialog(
-            title = ButtonAction.FOCUS_MODE.label,
+            title = words.text(ButtonAction.FOCUS_MODE.text),
             options = FocusSwitch.entries,
             // Only a gesture already on Focus Mode has a choice to start from.
             selected = current?.focus?.takeIf { current.action == ButtonAction.FOCUS_MODE },
-            label = { it.label },
+            label = { words.text(it.text) },
             detail = {
-                when (it) {
-                    FocusSwitch.TOP -> "Lock the controller to the top screen"
-                    FocusSwitch.BOTTOM -> "Lock the controller to the bottom screen"
-                    FocusSwitch.CYCLE -> "Auto-lock, Top screen, Bottom screen, one each press"
-                    FocusSwitch.SWAP -> "Top to bottom and back; from Auto-lock, the top first"
-                }
+                words.text(
+                    when (it) {
+                        FocusSwitch.TOP -> R.string.picker_focus_top_detail
+                        FocusSwitch.BOTTOM -> R.string.picker_focus_bottom_detail
+                        FocusSwitch.CYCLE -> R.string.picker_focus_cycle_detail
+                        FocusSwitch.SWAP -> R.string.picker_focus_swap_detail
+                    },
+                )
             },
             onPick = { switch -> onChosen(Shortcut(ButtonAction.FOCUS_MODE, focus = switch)) },
             onDismiss = onDismiss,

@@ -22,6 +22,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.thorpathfinder.app.R
+import com.thorpathfinder.app.words
 import com.thorpathfinder.app.Shell
 import com.thorpathfinder.app.SystemState
 import com.thorpathfinder.app.Watchdog
@@ -76,9 +79,8 @@ fun WatchdogPage(state: SystemState, onBack: () -> Unit) {
     LaunchedEffect(inputMode, on) { runCatching { first.requestFocus() } }
 
     PageScaffold(
-        "Watchdog",
-        "Keeps Pathfinder's accessibility service switched on, even when something stops " +
-            "Pathfinder itself.",
+        stringResource(R.string.wd_title),
+        stringResource(R.string.wd_subtitle),
         onBack = onBack,
     ) {
         ScrollingColumn(
@@ -88,15 +90,16 @@ fun WatchdogPage(state: SystemState, onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             SwitchRow(
-                title = "Keep the service switched on",
-                detail = when {
-                    !ready -> "Needs Shizuku"
-                    on == true && !alive -> "On, but not running — turn it off and on again"
-                    on == true && holding ->
-                        "On, and leaving the service off, since it was switched off in Android's settings"
-                    on == true -> "On"
-                    else -> "Off"
-                },
+                title = stringResource(R.string.wd_switch),
+                detail = stringResource(
+                    when {
+                        !ready -> R.string.needs_shizuku
+                        on == true && !alive -> R.string.wd_on_not_running
+                        on == true && holding -> R.string.wd_holding
+                        on == true -> R.string.on
+                        else -> R.string.off
+                    },
+                ),
                 checked = on == true,
                 enabled = ready && !busy,
                 modifier = Modifier.focusRequester(first),
@@ -106,43 +109,27 @@ fun WatchdogPage(state: SystemState, onBack: () -> Unit) {
                         val outcome = withContext(Dispatchers.IO) {
                             if (want) Watchdog.start(context) else Watchdog.stop()
                         }
-                        said = watchdogMessage(outcome)
+                        said = watchdogMessage(context.words(), outcome)
                         reload()
                         busy = false
                     }
                 },
             )
-            ValueRow("How often it looks", "every ${every}s", enabled = ready && !busy) { choosing = true }
+            ValueRow(
+                stringResource(R.string.wd_how_often),
+                stringResource(R.string.wd_every_short, every),
+                enabled = ready && !busy,
+            ) { choosing = true }
             said?.let { Para(it) }
 
-            ListHeading("What it does")
-            Para(
-                "Shizuku starts a small script that belongs to Shizuku rather than to Pathfinder, " +
-                    "so force-stopping or killing Pathfinder doesn't stop it. Every few seconds it " +
-                    "checks whether Pathfinder is still in Android's accessibility list, and puts it " +
-                    "back if it has gone. A check costs about 22 milliseconds, so even the quickest " +
-                    "setting is under half a percent of one processor core.",
-            )
-            Para(
-                "It only ever adds Pathfinder's own service, and never removes anyone else's. If you " +
-                    "switch Pathfinder off yourself in Android's settings, it leaves it off, after " +
-                    "you close Settings and after a restart, until the service is switched on again.",
-            )
-            Para(
-                "It also takes Pathfinder, and nothing else, off the list in the Thor's APP Auto " +
-                    "Launch Manage page. Despite the name, the apps switched on there can't have " +
-                    "anything started in the background, so on that list Pathfinder's service never " +
-                    "starts after a restart. It leaves that list alone while the Thor's settings are " +
-                    "open.",
-            )
-            Para(
-                "A restart stops it along with Shizuku, and it starts again by itself once Shizuku " +
-                    "is running. It stops the moment you turn " +
-                    "this off. The script is watchdog.sh in Pathfinder's source, and it is short.",
-            )
+            ListHeading(stringResource(R.string.wd_what_it_does))
+            Para(stringResource(R.string.wd_p1))
+            Para(stringResource(R.string.wd_p2))
+            Para(stringResource(R.string.wd_p3))
+            Para(stringResource(R.string.wd_p4))
 
             if (log.isNotEmpty()) {
-                ListHeading("What it has done")
+                ListHeading(stringResource(R.string.wd_log))
                 Column(Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
                     log.forEach {
                         Text(
@@ -158,12 +145,13 @@ fun WatchdogPage(state: SystemState, onBack: () -> Unit) {
     }
 
     if (choosing) {
+        val words = context.words()
         ChoiceDialog(
-            title = "How often it looks",
+            title = stringResource(R.string.wd_how_often),
             options = Watchdog.CHOICES,
             selected = every,
-            label = { "Every $it seconds" },
-            detail = { if (it == Watchdog.DEFAULT_SECONDS) "Quick, and still barely any work" else null },
+            label = { words.text(R.string.wd_every, it) },
+            detail = { if (it == Watchdog.DEFAULT_SECONDS) words.text(R.string.wd_default_detail) else null },
             onPick = { seconds ->
                 choosing = false
                 every = seconds

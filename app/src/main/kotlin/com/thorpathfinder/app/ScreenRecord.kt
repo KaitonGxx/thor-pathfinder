@@ -170,9 +170,9 @@ object ScreenRecord {
 }
 
 /** A message for the user, or null when the panel simply opened. */
-fun screenRecordOutcomeMessage(outcome: ScreenRecord.Outcome): String? = when (outcome) {
+fun screenRecordOutcomeMessage(words: Words, outcome: ScreenRecord.Outcome): String? = when (outcome) {
     ScreenRecord.Outcome.Opened -> null
-    ScreenRecord.Outcome.TileNotFound -> "Add the Screen record tile to Quick Settings"
-    ScreenRecord.Outcome.NeedsShizuku -> "Screen record needs Shizuku"
-    is ScreenRecord.Outcome.Failed -> "Couldn't open screen record: ${outcome.message}"
+    ScreenRecord.Outcome.TileNotFound -> words.text(R.string.msg_add_record_tile)
+    ScreenRecord.Outcome.NeedsShizuku -> words.text(R.string.msg_record_needs_shizuku)
+    is ScreenRecord.Outcome.Failed -> words.text(R.string.msg_record_failed, outcome.message)
 }

@@ -40,6 +40,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.thorpathfinder.app.R
 import androidx.compose.ui.window.Dialog
 import androidx.core.graphics.drawable.toBitmap
 import com.thorpathfinder.app.ScreenSwap
@@ -51,7 +53,7 @@ internal class AppEntry(val pkg: String, val label: String, val icon: ImageBitma
 /** Pick an app for a shortcut to open. */
 @Composable
 fun AppPickerDialog(
-    title: String = "Choose an app",
+    title: String? = null,
     exclude: String? = null,
     onPick: (String) -> Unit,
     onDismiss: () -> Unit,
@@ -71,7 +73,7 @@ fun AppPickerDialog(
         Card {
             Column(Modifier.padding(vertical = 16.dp)) {
                 Text(
-                    title,
+                    title ?: stringResource(R.string.choose_app),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                 )
@@ -103,7 +105,7 @@ fun AppPickerDialog(
                 TextButton(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End).padding(horizontal = 16.dp).focusOutline(PillShape),
-                ) { Text("Cancel") }
+                ) { Text(stringResource(R.string.cancel)) }
             }
         }
     }
@@ -111,18 +113,32 @@ fun AppPickerDialog(
 
 /**
  * Pick any number of apps; Done hands back the ticked ones. Home screens are
- * left off the list, since closing one would only bring it straight back.
+ * left off the list unless [includeHomes], since closing one would only bring
+ * it straight back. [allowNone] lets Done hand back an empty set, and [note]
+ * puts a line under an app's name.
  */
 @Composable
-fun AppMultiPickerDialog(title: String, initial: Set<String>, onDone: (Set<String>) -> Unit, onDismiss: () -> Unit) {
+fun AppMultiPickerDialog(
+    title: String,
+    initial: Set<String>,
+    onDone: (Set<String>) -> Unit,
+    onDismiss: () -> Unit,
+    includeHomes: Boolean = false,
+    allowNone: Boolean = false,
+    note: (String) -> String? = { null },
+) {
     val context = LocalContext.current
     var apps by remember { mutableStateOf<List<AppEntry>?>(null) }
     var chosen by remember { mutableStateOf(initial) }
     val first = remember { FocusRequester() }
     LaunchedEffect(Unit) {
         val list = withContext(Dispatchers.IO) {
-            val homes = ScreenSwap.exclusions(context).packages
-            loadApps(context).filter { it.pkg !in homes }
+            if (includeHomes) {
+                loadApps(context)
+            } else {
+                val homes = ScreenSwap.exclusions(context).packages
+                loadApps(context).filter { it.pkg !in homes }
+            }
         }
         // Forget anything uninstalled since it was picked.
         chosen = chosen.filter { pkg -> list.any { it.pkg == pkg } }.toSet()
@@ -164,7 +180,16 @@ fun AppMultiPickerDialog(title: String, initial: Set<String>, onDone: (Set<Strin
                             ) {
                                 Image(app.icon, contentDescription = null, modifier = Modifier.size(36.dp))
                                 Spacer(Modifier.width(12.dp))
-                                Text(app.label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                                Column(Modifier.weight(1f)) {
+                                    Text(app.label, style = MaterialTheme.typography.bodyLarge)
+                                    note(app.pkg)?.let {
+                                        Text(
+                                            it,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                }
                                 Checkbox(checked = checked, onCheckedChange = null)
                             }
                         }
@@ -174,12 +199,22 @@ fun AppMultiPickerDialog(title: String, initial: Set<String>, onDone: (Set<Strin
                     Modifier.align(Alignment.End).padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    TextButton(onClick = onDismiss, modifier = Modifier.focusOutline(PillShape)) { Text("Cancel") }
+                    TextButton(onClick = onDismiss, modifier = Modifier.focusOutline(PillShape)) {
+                        Text(stringResource(R.string.cancel))
+                    }
                     TextButton(
                         onClick = { onDone(chosen) },
-                        enabled = chosen.isNotEmpty(),
+                        enabled = allowNone || chosen.isNotEmpty(),
                         modifier = Modifier.focusOutline(PillShape),
-                    ) { Text(if (chosen.isEmpty()) "Done" else "Done (${chosen.size})") }
+                    ) {
+                        Text(
+                            if (chosen.isEmpty()) {
+                                stringResource(R.string.done)
+                            } else {
+                                stringResource(R.string.done_count, chosen.size)
+                            },
+                        )
+                    }
                 }
             }
         }

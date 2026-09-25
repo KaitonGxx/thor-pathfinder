@@ -1,0 +1,565 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Spanish. Written with AI help; corrections are welcome. -->
+<resources>
+    <string name="accessibility_description">Thor Pathfinder vigila los botones Atrás, Inicio, AYN, Select, Start, L3 y R3 para tus atajos: intercambiar pantallas, apps recientes, modo ratón y más. Solo recibe pulsaciones de botones. No puede leer la pantalla ni nada de lo que escribes.</string>
+
+    <!-- The Thor's buttons -->
+    <string name="button_back">Atrás</string>
+    <string name="button_home">Inicio</string>
+    <string name="button_ayn">Botón AYN</string>
+    <string name="button_select">Select</string>
+    <string name="button_start">Start</string>
+    <string name="button_l3">L3 (pulsar stick izquierdo)</string>
+    <string name="button_r3">R3 (pulsar stick derecho)</string>
+    <string name="normal_ayn_menu">menú de AYN</string>
+
+    <!-- Gestures -->
+    <string name="gesture_press">Pulsar</string>
+    <string name="gesture_double">Doble pulsación</string>
+    <string name="gesture_hold">Mantener</string>
+
+    <!-- Where "Open an app" opens it -->
+    <string name="launch_top">Pantalla superior</string>
+    <string name="launch_bottom">Pantalla inferior</string>
+    <string name="launch_ask">Preguntar</string>
+    <string name="launch_top_short">arriba</string>
+    <string name="launch_bottom_short">abajo</string>
+    <string name="launch_ask_short">preguntar</string>
+
+    <!-- What "Close app(s)" closes -->
+    <string name="close_all">Cerrar todas las apps</string>
+    <string name="close_background">Cerrar apps en segundo plano</string>
+    <string name="close_focused">Cerrar la app enfocada</string>
+    <string name="close_top">Cerrar la app de arriba</string>
+    <string name="close_bottom">Cerrar la app de abajo</string>
+    <string name="close_specific">Cerrar apps concretas</string>
+
+    <!-- What a Profile switcher does -->
+    <string name="profile_switch_cycle">Rotar perfiles</string>
+    <string name="profile_switch_enable">Activar un perfil</string>
+    <string name="profile_switch_ask">Preguntar cada vez</string>
+
+    <!-- Which screens a Home shortcut sends home -->
+    <string name="home_top">Solo la pantalla superior</string>
+    <string name="home_bottom">Solo la pantalla inferior</string>
+    <string name="home_both">Ambas pantallas</string>
+    <string name="home_top_short">arriba</string>
+    <string name="home_bottom_short">abajo</string>
+    <string name="home_both_short">ambas</string>
+
+    <!-- What a Focus Mode shortcut does -->
+    <string name="focus_top">Foco en la pantalla superior</string>
+    <string name="focus_bottom">Foco en la pantalla inferior</string>
+    <string name="focus_cycle">Rotar modos de foco</string>
+    <string name="focus_swap">Alternar foco arriba/abajo</string>
+
+    <!-- Actions -->
+    <string name="action_normal">Normal</string>
+    <string name="action_nothing">No hacer nada</string>
+    <string name="action_back">Atrás</string>
+    <string name="action_home">Inicio</string>
+    <string name="action_recents">Apps recientes</string>
+    <string name="action_close_all">Cerrar app(s)</string>
+    <string name="action_swap_screens">Intercambiar pantallas</string>
+    <string name="action_mouse_mode">Modo ratón sí/no</string>
+    <string name="action_focus_mode">Modo de foco</string>
+    <string name="action_notifications">Notificaciones</string>
+    <string name="action_quick_settings">Ajustes rápidos</string>
+    <string name="action_screenshot">Captura de pantalla</string>
+    <string name="action_screen_record">Grabar pantalla (en pruebas)</string>
+    <string name="action_power_menu">Menú de apagado</string>
+    <string name="action_lock_screen">Bloquear pantalla</string>
+    <string name="action_shortcut_menu">Menú de atajos</string>
+    <string name="action_launch_app">Abrir una app</string>
+    <string name="action_profile">Cambiar de perfil</string>
+
+    <!-- A gesture left on Normal -->
+    <string name="normal_nothing_extra">Nada extra</string>
+    <string name="normal_is">Normal (%1$s)</string>
+    <string name="normal_two_presses">Normal (dos pulsaciones)</string>
+    <string name="normal_long_press">Normal (pulsación larga)</string>
+    <string name="normal_a_press">Normal (una pulsación)</string>
+
+    <!-- Combo buttons -->
+    <string name="key_up">Cruceta arriba</string>
+    <string name="key_down">Cruceta abajo</string>
+    <string name="key_left">Cruceta izquierda</string>
+    <string name="key_right">Cruceta derecha</string>
+    <string name="key_up_short">Arriba</string>
+    <string name="key_down_short">Abajo</string>
+    <string name="key_left_short">Izquierda</string>
+    <string name="key_right_short">Derecha</string>
+
+    <!-- The Thor picture shown on a profile switch -->
+    <string name="map_line">%1$s: %2$s</string>
+    <string name="map_combo_line">+ %1$s: %2$s</string>
+    <plurals name="map_more_combos">
+        <item quantity="one">y %d combo más</item>
+        <item quantity="many">y %d combos más</item>
+        <item quantity="other">y %d combos más</item>
+    </plurals>
+    <string name="map_home_to">Inicio (%1$s)</string>
+    <string name="map_profile_ask">Cambiar de perfil (preguntar)</string>
+    <string name="map_profile_enable">Activar %1$s</string>
+    <string name="map_open_pair">Abrir %1$s + %2$s</string>
+    <string name="map_open_one">Abrir %1$s (%2$s)</string>
+    <string name="map_dismiss">Cerrar</string>
+
+    <!-- Messages over the screen when a shortcut runs -->
+    <string name="msg_mouse_needs_shizuku">El modo ratón necesita Shizuku</string>
+    <string name="msg_button_menu_needs_shizuku">El menú propio del %1$s necesita Shizuku</string>
+    <string name="msg_couldnt_press">No se pudo pulsar %1$s</string>
+    <string name="msg_app_not_installed">Esa app no está instalada</string>
+    <string name="msg_couldnt_ask_screen">No se pudo preguntar qué pantalla</string>
+    <string name="msg_couldnt_ask_profile">No se pudo preguntar qué perfil</string>
+    <string name="msg_couldnt_open_menu">No se pudo abrir el menú de atajos</string>
+    <string name="msg_swap_nothing">No hay ninguna app que mover</string>
+    <string name="msg_no_second_screen">No se encontró la segunda pantalla</string>
+    <string name="msg_other_screen_off">La otra pantalla está apagada</string>
+    <string name="msg_swap_needs_shizuku">Intercambiar pantallas necesita Shizuku</string>
+    <string name="msg_swap_failed">No se pudo intercambiar: %1$s</string>
+    <string name="msg_closed">Cerrado: %1$s</string>
+    <string name="msg_no_app_top">No hay ninguna app en la pantalla superior</string>
+    <string name="msg_no_app_bottom">No hay ninguna app en la pantalla inferior</string>
+    <string name="msg_no_app_to_close">No hay ninguna app que cerrar</string>
+    <string name="msg_none_running">Ninguna de las apps elegidas está abierta</string>
+    <string name="msg_close_apps_needs_shizuku">Cerrar apps necesita Shizuku</string>
+    <string name="msg_close_failed">No se pudo cerrar: %1$s</string>
+    <string name="msg_background_closed">Tareas en segundo plano cerradas</string>
+    <string name="msg_no_background">No hay tareas en segundo plano</string>
+    <string name="msg_all_closed">Todas las tareas cerradas</string>
+    <string name="msg_no_tasks">No hay tareas que cerrar</string>
+    <string name="msg_close_tasks_needs_shizuku">Cerrar tareas necesita Shizuku</string>
+    <string name="msg_close_tasks_failed">No se pudieron cerrar las tareas: %1$s</string>
+    <string name="list_none">Ninguna app</string>
+    <string name="list_two">%1$s y %2$s</string>
+    <plurals name="list_apps">
+        <item quantity="one">%d app</item>
+        <item quantity="many">%d apps</item>
+        <item quantity="other">%d apps</item>
+    </plurals>
+    <string name="msg_add_record_tile">Añade el botón Grabar pantalla a los Ajustes rápidos</string>
+    <string name="msg_record_needs_shizuku">Grabar pantalla necesita Shizuku</string>
+    <string name="msg_record_failed">No se pudo abrir la grabación de pantalla: %1$s</string>
+    <string name="msg_switched_on">Activado de nuevo</string>
+    <string name="msg_switch_needs_shizuku">Activarlo desde aquí necesita Shizuku</string>
+    <string name="msg_switch_failed">No se pudo activar: %1$s</string>
+    <string name="msg_watchdog_on">Watchdog activado</string>
+    <string name="msg_watchdog_off">Watchdog desactivado</string>
+    <string name="msg_watchdog_needs_shizuku">El watchdog necesita Shizuku</string>
+    <string name="msg_watchdog_failed">No se pudo cambiar el watchdog: %1$s</string>
+    <string name="msg_couldnt_open_app">No se pudo abrir esa app</string>
+    <string name="msg_no_home_found">No se encontró una pantalla de inicio para esa pantalla</string>
+    <string name="msg_couldnt_go_home">No se pudo ir al inicio</string>
+    <string name="focus_mode_auto">Bloqueo automático</string>
+    <string name="focus_mode_top">Pantalla superior</string>
+    <string name="focus_mode_bottom">Pantalla inferior</string>
+    <string name="msg_focus_mode">Modo de foco: %1$s</string>
+    <string name="msg_focus_needs_shizuku">El modo de foco necesita Shizuku</string>
+    <string name="msg_focus_failed">No se pudo cambiar el modo de foco: %1$s</string>
+    <string name="msg_profile">Perfil: %1$s</string>
+    <string name="msg_profile_for">Perfil: %1$s (%2$s)</string>
+
+    <!-- Choosing a shortcut -->
+    <string name="needs_shizuku">Necesita Shizuku</string>
+    <string name="picker_open_one">Abrir 1 app</string>
+    <string name="picker_open_one_detail">En la pantalla superior, en la inferior o preguntar cada vez</string>
+    <string name="picker_open_two">Abrir 2 apps</string>
+    <string name="picker_open_two_detail">Una en cada pantalla, las dos a la vez</string>
+    <string name="picker_open_on">Abrir %1$s en</string>
+    <string name="picker_ask_detail">Elige arriba o abajo cada vez que se use el atajo</string>
+    <string name="picker_app_top">App para la pantalla superior</string>
+    <string name="picker_app_bottom">App para la pantalla inferior</string>
+    <string name="picker_apps_to_close">Apps que cerrar</string>
+    <string name="picker_cycle_detail">Pasa al siguiente perfil con cada pulsación</string>
+    <string name="picker_ask_profile_detail">Elige de una lista cuando se use el atajo</string>
+    <string name="picker_enable_detail">Púlsalo otra vez para volver al perfil principal</string>
+    <string name="picker_home_on">Ir al inicio en</string>
+    <string name="picker_focus_top_detail">Fija el mando en la pantalla superior</string>
+    <string name="picker_focus_bottom_detail">Fija el mando en la pantalla inferior</string>
+    <string name="picker_focus_cycle_detail">Bloqueo automático, pantalla superior, pantalla inferior, uno por pulsación</string>
+    <string name="picker_focus_swap_detail">De arriba a abajo y vuelta; desde el bloqueo automático, primero arriba</string>
+
+    <!-- Common buttons -->
+    <string name="cancel">Cancelar</string>
+    <string name="next">Siguiente</string>
+    <string name="next_with">Siguiente: %1$s</string>
+    <string name="ok">Aceptar</string>
+    <string name="done">Listo</string>
+    <string name="done_count">Listo (%1$d)</string>
+
+    <!-- Combos -->
+    <string name="combos_badge">Combos</string>
+    <string name="group_face">Botones frontales</string>
+    <string name="group_dpad">Cruceta</string>
+    <string name="group_shoulders">Gatillos</string>
+    <string name="group_sticks">Sticks</string>
+    <string name="group_select_start">Select y Start</string>
+    <string name="group_system">Sistema</string>
+    <string name="combo_hold_press">Mantén %1$s y pulsa…</string>
+    <string name="combo_pick_detail">Un botón, o dos pulsados a la vez. La app no los recibe mientras mantienes %1$s. Los combos siempre siguen las letras impresas en los botones, sea cual sea el estilo de mando.</string>
+
+    <!-- The main screen -->
+    <string name="main_intro">Toca un gesto para cambiar lo que hace. En Atrás, Inicio y el botón AYN, Pathfinder se encarga del botón en cuanto cambias cualquier gesto, y Normal sigue haciendo lo de siempre.</string>
+    <string name="edit_title">%1$s: %2$s</string>
+    <string name="combo_change">Cambiar lo que hace</string>
+    <string name="combo_remove">Quitar este combo</string>
+    <string name="combo_remove_detail">Los botones vuelven a funcionar por separado</string>
+    <string name="settings">Ajustes</string>
+    <string name="update_available_title">Actualización disponible</string>
+    <string name="update_available_msg">Ya está la versión %1$s. Tienes la %2$s.</string>
+    <string name="up_to_date_title">Estás al día</string>
+    <string name="up_to_date_newer">Tienes la %1$s, más nueva que la última versión publicada (%2$s).</string>
+    <string name="up_to_date_latest">La %1$s es la última versión.</string>
+    <string name="check_failed_title">No se pudieron buscar actualizaciones</string>
+    <string name="whats_new">Novedades</string>
+    <string name="open_release_page">Abrir la página de la versión</string>
+    <string name="not_now">Ahora no</string>
+    <string name="close">Cerrar</string>
+    <string name="attention_title">Algo necesita tu atención</string>
+    <string name="problem_firmware">El firmware de este Thor no es compatible</string>
+    <string name="problem_wayfinder">Thor Wayfinder también está usando el botón Atrás</string>
+    <string name="problem_autolaunch">APP Auto Launch Manage de AYN está bloqueando Pathfinder</string>
+    <string name="problem_autolaunch_detail">Thor Pathfinder está activado en esa página (Ajustes → Thor settings → Advanced Settings), lo que impide que Android inicie su servicio, así que tras reiniciar ningún atajo funciona. Desactívalo allí, o deja que Pathfinder lo arregle.</string>
+    <string name="problem_stuck">Pathfinder está activado pero no se está ejecutando</string>
+    <string name="problem_stuck_detail">Android tiene el interruptor activado pero no ha iniciado el servicio, así que ningún atajo funciona. Puede pasar tras un fallo, un reinicio inesperado o una app que detiene otras en segundo plano. Desactívalo y vuelve a activarlo para arreglarlo.</string>
+    <string name="problem_off">El servicio de accesibilidad de Pathfinder está desactivado</string>
+    <string name="problem_off_detail">Android desactiva los servicios de accesibilidad cada vez que su app se actualiza. Vuelve a activarlo y tus atajos funcionarán de nuevo.</string>
+    <string name="problem_shizuku">Shizuku no está conectado</string>
+    <string name="shizuku_not_installed_detail">Intercambiar pantallas, el modo ratón y cerrar apps pasan por Shizuku, que da ese acceso sin rootear el Thor.</string>
+    <string name="shizuku_not_running_detail">Shizuku se detiene cada vez que el Thor se reinicia, así que hay que iniciarlo de nuevo tras reiniciar.</string>
+    <string name="shizuku_no_permission_detail">Shizuku se está ejecutando, pero aún no ha dado permiso a Pathfinder.</string>
+    <string name="fix">Arreglar</string>
+    <plurals name="combos_count">
+        <item quantity="one">%d combo</item>
+        <item quantity="many">%d combos</item>
+        <item quantity="other">%d combos</item>
+    </plurals>
+    <string name="works_as_usual">Funciona como siempre</string>
+    <string name="gamepad_subtitle">Los juegos siguen recibiendo cada pulsación, así que una pulsación simple no se puede cambiar.</string>
+    <string name="combos_heading">Combos</string>
+    <string name="combos_heading_detail">Mantén %1$s y pulsa uno o dos botones más, antes de que se active Mantener</string>
+    <string name="add_combo">Añadir combo</string>
+    <string name="text_open_pair">Abrir %1$s arriba, %2$s abajo</string>
+    <string name="text_close_specific">Cerrar %1$s</string>
+    <string name="an_app">una app</string>
+    <string name="about_title">Acerca de</string>
+    <string name="about_text">Thor Pathfinder es software libre bajo la GNU GPL v3, hecho en el espíritu de Thor Wayfinder, que abrió el camino. Es un proyecto independiente, sin relación con Wayfinder ni con AYN.</string>
+    <string name="whats_new_row">Novedades de la 1.0</string>
+    <string name="show">Mostrar</string>
+    <string name="licenses_row">Licencias de código abierto</string>
+    <string name="view">Ver</string>
+
+    <!-- Setup -->
+    <string name="nav_back">Atrás</string>
+    <string name="setup_get_started">Empezar</string>
+    <string name="setup_finish">Terminar</string>
+    <string name="setup_step">Paso %1$d de %2$d</string>
+    <string name="welcome_title">Te damos la bienvenida a Thor Pathfinder</string>
+    <string name="welcome_body">Pathfinder mueve apps entre las dos pantallas del Thor y pone atajos en sus botones. De serie funciona así:</string>
+    <string name="welcome_b1">Mantener Atrás: intercambia las apps de las dos pantallas</string>
+    <string name="welcome_b2">Doble pulsación de Atrás: apps recientes</string>
+    <string name="welcome_b3">Doble pulsación de Select: activa o desactiva el modo ratón</string>
+    <string name="welcome_later">Puedes cambiar todo esto más tarde. La configuración lleva unos dos minutos.</string>
+    <string name="device_title">Revisa tu Thor</string>
+    <string name="device_ok">%1$s, firmware %2$s</string>
+    <string name="device_untested">Pathfinder se hizo y se probó en el AYN Thor y el Thor Lite. El %1$s debería funcionar igual; si algo falla, avísanos.</string>
+    <string name="device_newer">Es más nuevo que el firmware con el que se probó Pathfinder (%1$s). Debería funcionar; si algo falla, avísanos.</string>
+    <string name="device_not_thor">Esto es un %1$s, no un AYN Thor</string>
+    <string name="device_not_thor_body">Pathfinder está hecho para las dos pantallas y los botones del Thor, así que aquí no funcionará.</string>
+    <string name="device_old">El firmware %1$s es anterior al %2$s</string>
+    <string name="device_unknown">No se pudo saber qué firmware tiene este Thor</string>
+    <string name="device_update_body">Pathfinder depende de partes del software de AYN tal como están en el firmware %1$s y posteriores. Actualiza tu Thor y vuelve a abrir Pathfinder.</string>
+    <string name="device_open_update">Abrir actualización del sistema</string>
+    <string name="wayfinder_title">Thor Wayfinder está instalado</string>
+    <string name="wayfinder_body">Pathfinder hace todo lo que hace Wayfinder, y los dos usan el botón Atrás, así que con ambos activos cada vez que mantuvieras Atrás las pantallas se intercambiarían dos veces. Desinstala Wayfinder, o al menos desactiva su servicio de accesibilidad.</string>
+    <string name="wayfinder_uninstalled">Wayfinder está desinstalado</string>
+    <string name="wayfinder_off">El servicio de Wayfinder está desactivado</string>
+    <string name="wayfinder_on">El servicio de Wayfinder sigue activado</string>
+    <string name="wayfinder_uninstall">Desinstalar Wayfinder</string>
+    <string name="wayfinder_turn_off">Desactivarlo en su lugar</string>
+    <string name="a11y_title">Deja que Pathfinder vea los botones</string>
+    <string name="a11y_body">Android solo comparte las pulsaciones de botones con los servicios de accesibilidad, así que Pathfinder tiene uno. Recibe pulsaciones de botones y nada más: no puede leer la pantalla ni nada de lo que escribes.</string>
+    <string name="a11y_on">El servicio de Pathfinder está activado</string>
+    <string name="a11y_stuck">Pathfinder está activado, pero Android no lo ha iniciado</string>
+    <string name="a11y_off">El servicio de Pathfinder está desactivado</string>
+    <string name="a11y_blocked_body">Thor Pathfinder está activado en APP Auto Launch Manage (Ajustes → Thor settings → Advanced Settings). A pesar del nombre, esa página impide que las apps activadas en ella se inicien en segundo plano, y Android no puede iniciar el servicio de Pathfinder mientras esté ahí, así que tras reiniciar ningún atajo funciona. Desactiva Thor Pathfinder en esa página y luego desactiva y vuelve a activar su servicio en la lista de abajo.</string>
+    <string name="a11y_blocked_body_fix">Thor Pathfinder está activado en APP Auto Launch Manage (Ajustes → Thor settings → Advanced Settings). A pesar del nombre, esa página impide que las apps activadas en ella se inicien en segundo plano, y Android no puede iniciar el servicio de Pathfinder mientras esté ahí, así que tras reiniciar ningún atajo funciona. Desactiva Thor Pathfinder en esa página y luego desactiva y vuelve a activar su servicio en la lista de abajo. O pulsa Arreglarlo, que hace las dos cosas.</string>
+    <string name="a11y_stuck_body">Android tiene el interruptor activado pero no ha iniciado el servicio, algo que puede pasar tras un fallo, un reinicio inesperado o una app que detiene otras en segundo plano. Abre la lista, desactiva Thor Pathfinder y vuelve a activarlo: así Android lo inicia.</string>
+    <string name="a11y_off_body">En la lista, abre Thor Pathfinder y actívalo.</string>
+    <string name="a11y_open">Abrir ajustes de accesibilidad</string>
+    <string name="a11y_fix_it">Arreglarlo</string>
+    <string name="a11y_off_on">Desactivarlo y activarlo</string>
+    <string name="a11y_turn_on">Volver a activarlo</string>
+    <string name="a11y_restricted">Si Android dice «Ajuste restringido»: abre la información de la app de Pathfinder, toca ⋮ en la esquina, elige «Permitir ajustes restringidos» y vuelve a intentarlo. Android lo pide a las apps instaladas desde fuera de Play Store.</string>
+    <string name="a11y_app_info">Abrir la información de la app</string>
+    <string name="shizuku_title">Conecta Shizuku</string>
+    <string name="shizuku_body">Intercambiar pantallas y cambiar el modo ratón necesitan algo más de acceso del que una app tiene por sí sola. Shizuku lo da sin rootear el Thor, y se configura solo.</string>
+    <string name="shizuku_not_installed">Shizuku no está instalado</string>
+    <string name="shizuku_install_body">Instala Shizuku desde Google Play o desde sus versiones en GitHub, ábrelo y sigue sus pasos para iniciarlo, y luego vuelve aquí.</string>
+    <string name="shizuku_play">Descargar de Google Play</string>
+    <string name="shizuku_github">Descargar de GitHub</string>
+    <string name="shizuku_not_running">Shizuku no se está ejecutando</string>
+    <string name="shizuku_start_body">Abre Shizuku e inícialo (te guía paso a paso), y luego vuelve aquí.</string>
+    <string name="shizuku_open">Abrir Shizuku</string>
+    <string name="shizuku_no_permission">Shizuku se está ejecutando, pero Pathfinder aún no tiene permiso</string>
+    <string name="shizuku_allow">Permitir a Pathfinder</string>
+    <string name="shizuku_connected">Shizuku está conectado</string>
+    <string name="done_title">Todo listo</string>
+    <string name="done_body1">Mantén Atrás para intercambiar pantallas, pulsa dos veces Atrás para las apps recientes y pulsa dos veces Select para el modo ratón.</string>
+    <string name="done_body2">Ahora verás los ajustes de Pathfinder, donde puedes poner otras acciones en Atrás, Inicio, el botón AYN, Select, Start, L3 y R3, y elegir hacia dónde desplaza el stick derecho en el modo ratón.</string>
+
+    <!-- Watchdog page -->
+    <string name="wd_title">Watchdog</string>
+    <string name="wd_subtitle">Mantiene activado el servicio de accesibilidad de Pathfinder, incluso cuando algo detiene el propio Pathfinder.</string>
+    <string name="wd_switch">Mantener el servicio activado</string>
+    <string name="wd_on_not_running">Activado, pero no se está ejecutando: desactívalo y vuelve a activarlo</string>
+    <string name="wd_holding">Activado, y deja el servicio desactivado porque se desactivó en los ajustes de Android</string>
+    <string name="on">Activado</string>
+    <string name="off">Desactivado</string>
+    <string name="wd_how_often">Cada cuánto revisa</string>
+    <string name="wd_every_short">cada %1$d s</string>
+    <string name="wd_every">Cada %1$d segundos</string>
+    <string name="wd_default_detail">Rápido, y casi sin trabajo</string>
+    <string name="wd_what_it_does">Qué hace</string>
+    <string name="wd_p1">Shizuku inicia un pequeño script que pertenece a Shizuku y no a Pathfinder, así que forzar la detención de Pathfinder o cerrarlo no lo detiene. Cada pocos segundos comprueba si Pathfinder sigue en la lista de accesibilidad de Android y lo vuelve a añadir si ha desaparecido. Cada comprobación cuesta unos 22 milisegundos, así que incluso el ajuste más rápido usa menos de medio por ciento de un núcleo del procesador.</string>
+    <string name="wd_p2">Solo añade el servicio de Pathfinder y nunca quita el de nadie más. Si desactivas Pathfinder tú mismo en los ajustes de Android, lo deja desactivado, también al cerrar Ajustes y tras reiniciar, hasta que el servicio se active de nuevo.</string>
+    <string name="wd_p3">También quita a Pathfinder, y a nada más, de la lista de la página APP Auto Launch Manage del Thor. A pesar del nombre, las apps activadas ahí no pueden iniciar nada en segundo plano, así que en esa lista el servicio de Pathfinder nunca se inicia tras reiniciar. Deja esa lista en paz mientras los ajustes del Thor estén abiertos.</string>
+    <string name="wd_p4">Un reinicio lo detiene junto con Shizuku, y vuelve a arrancar solo en cuanto Shizuku se ejecuta. Se detiene en el momento en que lo desactivas. El script es watchdog.sh en el código de Pathfinder, y es corto.</string>
+    <string name="wd_log">Lo que ha hecho</string>
+
+    <!-- The cog's menu -->
+    <string name="page_profiles">Gestionar perfiles</string>
+    <string name="page_profiles_detail">Tus conjuntos de atajos: añadir, renombrar, vincular apps, copia de seguridad o compartir</string>
+    <string name="page_close">Cerrar app(s)</string>
+    <string name="page_close_detail">Qué apps siguen ejecutándose al cerrar tareas</string>
+    <string name="page_mouse">Modo ratón</string>
+    <string name="page_mouse_detail">Hacia dónde desplaza el stick derecho</string>
+    <string name="page_timing">Tiempos</string>
+    <string name="page_timing_detail">Cuánto dura mantener, y el margen de la doble pulsación</string>
+    <string name="page_updates">Ajustes de actualización</string>
+    <string name="page_updates_detail">Buscar actualizaciones e instalarlas solo</string>
+    <string name="page_watchdog_detail">Mantener el servicio de accesibilidad activado cuando algo lo detiene</string>
+    <string name="page_language">Idioma (Language)</string>
+    <string name="page_diagnostics">Diagnóstico</string>
+    <string name="page_diagnostics_detail">Un informe sobre este Thor, para pegar en un reporte de error</string>
+    <string name="page_setup">Repetir la configuración</string>
+    <string name="page_setup_detail">Recorre las comprobaciones desde el principio</string>
+    <string name="mouse_subtitle">La velocidad del cursor y la sensibilidad del desplazamiento siguen en los ajustes del modo ratón del propio Thor.</string>
+    <string name="mouse_reverse">Invertir el desplazamiento del stick derecho</string>
+    <string name="mouse_needs_shizuku">Necesita Shizuku.</string>
+    <string name="mouse_unreadable">No se pudieron leer los ajustes del modo ratón del Thor.</string>
+    <string name="mouse_reverse_detail">Empujar arriba desplaza hacia arriba, empujar abajo hacia abajo. Se aplica tras reiniciar.</string>
+    <string name="mouse_couldnt_change">No se pudieron cambiar los ajustes del modo ratón del Thor.</string>
+    <string name="mouse_restart">Reinicia el Thor para aplicar la nueva dirección.</string>
+    <string name="mouse_restart_now">Reiniciar ahora</string>
+    <string name="updates_subtitle">Pathfinder pregunta a GitHub por la versión más reciente. No se envía nada sobre ti ni sobre tu Thor.</string>
+    <string name="updates_check_on_open">Buscar al abrir Pathfinder</string>
+    <string name="updates_check_on_open_detail">Un vistazo rápido a si hay una versión nueva cada vez que abres la app.</string>
+    <string name="updates_auto">Instalar actualizaciones automáticamente</string>
+    <string name="updates_auto_detail">Descarga el nuevo APK de las versiones de Pathfinder y lo instala mediante Shizuku, sin nada que confirmar. Desactivado salvo que lo actives.</string>
+    <string name="updates_auto_needs_shizuku">Necesita Shizuku: sin él no hay forma de instalar sin avisos.</string>
+    <string name="updates_none_seen">Aún no se ha visto ninguna versión.</string>
+    <string name="updates_seen">Versión más reciente vista: %1$s.</string>
+    <string name="updates_same_key">Las actualizaciones solo se instalan con la misma clave de firma, así que se rechaza una copia de cualquier otro sitio.</string>
+    <string name="setup_again_title">¿Repetir la configuración?</string>
+    <string name="setup_again_body">La configuración revisa el firmware del Thor, Thor Wayfinder, el servicio de accesibilidad de Pathfinder y Shizuku, una pantalla cada vez, y comprueba cada uno antes de seguir.</string>
+    <string name="setup_again_keeps">Tus atajos, tiempos y las apps que mantienes en ejecución se quedan como están.</string>
+    <string name="setup_again_run">Configurar</string>
+    <string name="timing_subtitle">Con un atajo de doble pulsación en Atrás, Inicio o el botón AYN, una pulsación simple espera a que pase el margen antes de actuar.</string>
+    <string name="timing_hold">Cuánto mantener</string>
+    <string name="timing_double">Margen de doble pulsación</string>
+    <string name="timing_ms">%1$d ms</string>
+    <string name="timing_vibrate">Vibrar al usar un atajo</string>
+    <string name="language_subtitle">El idioma de Pathfinder. Las demás apps del Thor se quedan como están.</string>
+    <string name="language_system">El mismo que el Thor</string>
+    <string name="language_system_detail">Sigue el idioma de los ajustes de Android</string>
+
+    <!-- Profiles -->
+    <string name="profile_main_default">Perfil principal</string>
+    <string name="profile_n">Perfil %1$d</string>
+    <string name="profile_create">Crear perfil</string>
+    <string name="profile_no_room">No caben más</string>
+    <string name="profile_fresh">Un conjunto de atajos propio, todos con sus valores por defecto</string>
+    <string name="active_profile">Perfil activo:</string>
+    <string name="choose_profile">Elegir un perfil</string>
+    <string name="for_app">para %1$s</string>
+    <string name="profiles_title">Perfiles</string>
+    <string name="create_body">Cada atajo empieza con su valor por defecto. El modo ratón se queda como está: es un ajuste del propio Thor, compartido por todos los perfiles.</string>
+    <string name="name">Nombre</string>
+    <string name="keep_list">Conservar la lista de apps en ejecución</string>
+    <string name="keep_list_detail">Copiar las apps que %1$s nunca fuerza a detener</string>
+    <string name="create">Crear</string>
+    <string name="rename_title">Renombrar perfil</string>
+    <string name="rename">Renombrar</string>
+    <string name="manage_subtitle">Un perfil guarda todos los atajos, la lista de apps en ejecución, los tiempos y la vibración. El modo ratón es un ajuste del propio Thor y lo comparten todos.</string>
+    <plurals name="profiles_count">
+        <item quantity="one">%d perfil</item>
+        <item quantity="many">%d perfiles</item>
+        <item quantity="other">%d perfiles</item>
+    </plurals>
+    <string name="profiles_row_detail">%1$s · en uso: %2$s</string>
+    <string name="show_buttons">Mostrar los botones al cambiar</string>
+    <string name="show_buttons_detail">Dibuja el Thor con los atajos del nuevo perfil, tanto si cambiaste tú como si lo hizo una app. Cualquier botón lo cierra</string>
+    <string name="backup_row">Copia de seguridad y compartir</string>
+    <string name="backup_row_detail">Guarda todos los perfiles en un archivo y recupéralos, o comparte uno</string>
+    <string name="profiles_subtitle">Toca un perfil para usarlo, renombrarlo, vincularle apps o borrarlo. El perfil principal es al que vuelve un atajo Activar, y el que no se puede borrar. Un perfil vinculado a apps se usa mientras una de ellas es la app que maneja el mando (necesita Shizuku).</string>
+    <string name="delete_title">¿Borrar %1$s?</string>
+    <string name="delete_body">Sus atajos se van con él y no se puede deshacer. Cualquier atajo que lo active pasará a rotar entre los perfiles.</string>
+    <string name="delete">Borrar</string>
+    <string name="delete_detail">Sus atajos se van con él</string>
+    <string name="apps_for">Apps para %1$s</string>
+    <string name="uses_now">Ahora usa %1$s</string>
+    <string name="list_sep">", "</string>
+    <string name="apps_tag">Apps: %1$s</string>
+    <plurals name="apps_tag_more">
+        <item quantity="one">Apps: %1$s y %2$d más</item>
+        <item quantity="many">Apps: %1$s y %2$d más</item>
+        <item quantity="other">Apps: %1$s y %2$d más</item>
+    </plurals>
+    <string name="tag_main_in_use_for">Perfil principal, en uso para %1$s</string>
+    <string name="tag_in_use_for">En uso para %1$s</string>
+    <string name="tag_main_in_use">Perfil principal, en uso</string>
+    <string name="tag_main">Perfil principal</string>
+    <string name="tag_in_use">En uso</string>
+    <string name="action_enable_detail">Usar sus atajos a partir de ahora</string>
+    <string name="action_back_to">Volver a %1$s</string>
+    <string name="action_back_to_detail">Este ya está en uso</string>
+    <string name="action_apps">Apps que lo usan</string>
+    <string name="action_apps_none">Úsalo mientras una app elegida está delante</string>
+    <string name="action_make_main">Hacerlo el perfil principal</string>
+    <string name="action_make_main_detail">Al que vuelve un atajo Activar</string>
+
+    <!-- Backup & share -->
+    <string name="backup_subtitle">Una copia de seguridad guarda todos los perfiles, con sus atajos, combos, tiempos, lista de apps en ejecución y apps vinculadas, además de la disposición de la lista de atajos y la búsqueda de actualizaciones. El watchdog y las actualizaciones automáticas se quedan como están, porque dependen del Shizuku de cada Thor.</string>
+    <string name="save_backup">Guardar una copia</string>
+    <string name="save_backup_detail">Todo lo anterior, en un archivo que puedes guardar donde quieras</string>
+    <string name="restore_backup">Restaurar una copia</string>
+    <string name="restore_backup_detail">Sustituye tus perfiles y ajustes por los de una copia</string>
+    <string name="share_profile">Compartir un perfil</string>
+    <string name="share_profile_detail">Un perfil como archivo, para otro Thor</string>
+    <string name="add_shared">Añadir un perfil compartido</string>
+    <string name="add_shared_detail">Añade el perfil de otra persona junto a los tuyos</string>
+    <string name="saved">%1$s guardado.</string>
+    <string name="backup_what">Copia de seguridad</string>
+    <string name="shared_what">%1$s (perfil compartido)</string>
+    <string name="save_failed">No se pudo guardar el archivo: %1$s</string>
+    <string name="too_big">Es demasiado grande para ser un archivo de Thor Pathfinder.</string>
+    <string name="read_failed">No se pudo leer: %1$s</string>
+    <string name="not_ours">No es una copia ni un perfil compartido de Thor Pathfinder.</string>
+    <string name="from_newer">Se guardó con un Thor Pathfinder más nuevo (%1$s). Actualiza Pathfinder y vuelve a intentarlo.</string>
+    <string name="damaged">Falta parte o está dañado, así que no se cambió nada.</string>
+    <string name="share_which">¿Qué perfil compartir?</string>
+    <plurals name="share_apps">
+        <item quantity="one">Su app vinculada va incluida</item>
+        <item quantity="many">Sus %d apps vinculadas van incluidas</item>
+        <item quantity="other">Sus %d apps vinculadas van incluidas</item>
+    </plurals>
+    <string name="cant_use">Ese archivo no se puede usar</string>
+    <string name="restore_title">¿Restaurar esta copia?</string>
+    <plurals name="linked_apps_count">
+        <item quantity="one">%d app vinculada</item>
+        <item quantity="many">%d apps vinculadas</item>
+        <item quantity="other">%d apps vinculadas</item>
+    </plurals>
+    <plurals name="shortcuts_count">
+        <item quantity="one">%d atajo</item>
+        <item quantity="many">%d atajos</item>
+        <item quantity="other">%d atajos</item>
+    </plurals>
+    <string name="restore_body">Guardada el %1$s con Thor Pathfinder %2$s. %3$s: %4$s, con %5$s y %6$s. Tus perfiles actuales, y sus atajos, se sustituyen por estos.</string>
+    <string name="restore">Restaurar</string>
+    <plurals name="restored">
+        <item quantity="one">Copia restaurada: %d perfil.</item>
+        <item quantity="many">Copia restaurada: %d perfiles.</item>
+        <item quantity="other">Copia restaurada: %d perfiles.</item>
+    </plurals>
+    <string name="restore_failed">No se pudo restaurar: %1$s</string>
+    <string name="add_title">¿Añadir %1$s?</string>
+    <string name="add_no_room">No hay sitio: Pathfinder guarda hasta %1$d perfiles. Borra uno en Gestionar perfiles y vuelve a intentarlo.</string>
+    <string name="add_body">Un perfil compartido de Thor Pathfinder %1$s, con %2$s, %3$s y %4$s. Se añade como un perfil nuevo, y los tuyos se quedan como están. Las apps vinculadas se incluyen si están instaladas y no están ya vinculadas a uno de tus perfiles.</string>
+    <string name="add">Añadir</string>
+    <string name="no_room_msg">No caben más perfiles.</string>
+    <string name="added">%1$s añadido.</string>
+    <string name="add_failed">No se pudo añadir: %1$s</string>
+
+    <!-- Keep apps running -->
+    <string name="keep_title">Mantener apps en ejecución</string>
+    <string name="keep_subtitle">Da igual cómo las cierre Cerrar app(s) (todas a la vez, todas menos lo que hay en pantalla, las de una pantalla o elegidas por nombre): estas salen de la vista de tareas como cualquier otra pero nunca se fuerzan a detener, así que la música, una descarga o una sincronización siguen adelante.</string>
+    <string name="keep_none">Ninguna app elegida: se fuerza a detener todo.</string>
+    <string name="keep_count">%1$d de %2$d apps siguen en ejecución.</string>
+    <string name="keep_recommended">Muy recomendadas</string>
+    <string name="keep_recommended_detail">Siguen trabajando en segundo plano mientras juegas, así que conviene dejarlas en ejecución.</string>
+    <string name="keep_all">Todas las apps</string>
+
+    <!-- Updates -->
+    <string name="upd_checking">Buscando…</string>
+    <string name="upd_available_button">Actualización disponible</string>
+    <string name="upd_up_to_date">Al día</string>
+    <string name="upd_check">Buscar actualizaciones</string>
+    <string name="upd_downloading">Descargando %1$d%%</string>
+    <string name="upd_installing">Instalando… Pathfinder se cierra un momento mientras Android lo sustituye.</string>
+    <string name="upd_update_now">Actualizar ahora</string>
+    <string name="dismiss">Descartar</string>
+    <string name="upd_dont_show">No volver a mostrar</string>
+    <string name="upd_bad_answer">La respuesta de GitHub no tenía sentido. Inténtalo más tarde.</string>
+    <string name="upd_no_releases">GitHub aún no muestra ninguna versión.</string>
+    <string name="upd_rate_limited">GitHub está limitando las consultas desde esta red. Inténtalo dentro de una hora.</string>
+    <string name="upd_error">GitHub respondió con el error %1$d. Inténtalo más tarde.</string>
+    <string name="upd_offline">No se pudo conectar con GitHub. Comprueba que el Thor tenga conexión.</string>
+    <string name="inst_no_apk">Esa versión no tiene un APK que descargar.</string>
+    <string name="inst_not_ours">Esa descarga no viene de las versiones de Pathfinder.</string>
+    <string name="inst_needs_shizuku">Instalar una actualización necesita Shizuku.</string>
+    <string name="inst_download_failed">No se pudo descargar la actualización. Comprueba que el Thor tenga conexión.</string>
+    <string name="inst_http">GitHub respondió con el error %1$d.</string>
+    <string name="inst_empty">La descarga estaba vacía.</string>
+    <string name="inst_broken">La descarga no es un APK válido.</string>
+    <string name="inst_not_pathfinder">Ese APK no es Thor Pathfinder.</string>
+    <string name="inst_other_key">Ese APK está firmado con otra clave, así que Android no lo instalaría.</string>
+    <string name="inst_not_newer">Ese APK no es más nuevo que la copia ya instalada.</string>
+    <string name="inst_start_failed">No se pudo iniciar la instalación: %1$s</string>
+    <string name="inst_write_failed">No se pudo escribir la actualización: %1$s</string>
+    <string name="inst_failed">No se pudo instalar la actualización: %1$s</string>
+
+    <!-- Diagnostics page -->
+    <string name="diag_subtitle">Lo que Pathfinder puede ver de este Thor. Pégalo en una incidencia y la mayoría de las preguntas quedan respondidas antes de hacerlas. El informe está en inglés.</string>
+    <string name="diag_failed">No se pudo reunir el informe: %1$s</string>
+    <string name="diag_copy">Copiar informe</string>
+    <string name="diag_gathering">Reuniendo…</string>
+
+    <!-- Choosing apps -->
+    <string name="choose_app">Elige una app</string>
+
+    <!-- The questions an Ask shortcut puts up -->
+    <string name="the_app">la app</string>
+    <string name="ask_open_on">Abrir %1$s en</string>
+    <string name="ask_top">Pantalla superior</string>
+    <string name="ask_top_detail">La pantalla principal</string>
+    <string name="ask_bottom">Pantalla inferior</string>
+    <string name="ask_bottom_detail">La segunda pantalla</string>
+    <string name="switch_to">Cambiar a</string>
+
+    <!-- Welcome to 1.0 -->
+    <string name="w_profiles">Perfiles por app</string>
+    <string name="w_profiles_text">Vincula apps a un perfil y Pathfinder cambia a él mientras esa sea la app con la que juegas.</string>
+    <string name="w_profiles_button">Configurarlo</string>
+    <string name="w_combos">Combos de botones</string>
+    <string name="w_combos_text">Mantén Atrás, Inicio o el botón AYN y pulsa uno o dos botones más, para decenas de atajos nuevos.</string>
+    <string name="w_combos_button">Añadir combo</string>
+    <string name="w_backup">Copia de seguridad y compartir</string>
+    <string name="w_backup_text">Guarda todos los perfiles en un archivo, recupéralos cuando quieras o comparte uno con un amigo.</string>
+    <string name="w_backup_button">Abrir</string>
+    <string name="w_languages">En tu idioma</string>
+    <string name="w_languages_text">Pathfinder ahora habla inglés, español, portugués (Brasil), chino simplificado y japonés. Elige uno, o sigue al Thor.</string>
+    <string name="w_languages_button">Elegir</string>
+    <string name="w_title">Te damos la bienvenida a Thor Pathfinder %1$s</string>
+    <string name="w_intro">La mayor actualización hasta ahora. Novedades para probar:</string>
+    <string name="w_notes">Leer las notas de la versión</string>
+    <string name="w_continue">Continuar</string>
+
+    <!-- Shared pieces of the interface -->
+    <string name="open">Abrir</string>
+    <string name="list_view">Vista de lista</string>
+    <string name="two_column_view">Vista de dos columnas</string>
+    <string name="wide_view">Vista ancha</string>
+</resources>

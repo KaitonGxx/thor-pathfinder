@@ -27,6 +27,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.unit.dp
 import com.thorpathfinder.app.LaunchScreen
+import com.thorpathfinder.app.R
 import com.thorpathfinder.app.Launcher
 import kotlin.concurrent.thread
 
@@ -46,7 +47,7 @@ class ScreenChoiceActivity : ComponentActivity() {
         }
         val name = runCatching {
             packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString()
-        }.getOrDefault("the app")
+        }.getOrDefault(getString(R.string.the_app))
 
         setContent {
             PathfinderTheme {
@@ -64,17 +65,19 @@ class ScreenChoiceActivity : ComponentActivity() {
                     Card(Modifier.widthIn(max = 420.dp).padding(16.dp).pointerInput(Unit) { detectTapGestures { } }) {
                         Column(Modifier.padding(vertical = 16.dp, horizontal = 12.dp)) {
                             Text(
-                                "Open $name on",
+                                getString(R.string.ask_open_on, name),
                                 style = MaterialTheme.typography.titleLarge,
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                             )
                             NavRow(
-                                "Top screen",
-                                "The main screen",
+                                getString(R.string.ask_top),
+                                getString(R.string.ask_top_detail),
                                 modifier = Modifier.focusRequester(top),
                                 onClick = { openOn(pkg, LaunchScreen.TOP) },
                             )
-                            NavRow("Bottom screen", "The second screen") { openOn(pkg, LaunchScreen.BOTTOM) }
+                            NavRow(getString(R.string.ask_bottom), getString(R.string.ask_bottom_detail)) {
+                                openOn(pkg, LaunchScreen.BOTTOM)
+                            }
                         }
                     }
                 }

@@ -16,6 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.thorpathfinder.app.PhysicalButton
 import com.thorpathfinder.app.ServiceLog
 import com.thorpathfinder.app.Shortcuts
 import com.thorpathfinder.app.SystemState
@@ -50,6 +51,13 @@ class MainActivity : ComponentActivity() {
                         mutableStateOf(preview?.step ?: if (shortcuts.setupDone) null else SetupStep.WELCOME)
                     }
                     var settings by rememberSaveable { mutableStateOf(false) }
+                    // Once, for someone updating: what 1.0 brings, before the main screen.
+                    var welcome by rememberSaveable {
+                        mutableStateOf(setupAt == null && Welcome.due(this@MainActivity, shortcuts.setupDone))
+                    }
+                    var settingsAt by rememberSaveable { mutableStateOf<ManagePage?>(null) }
+                    var languageAt by rememberSaveable { mutableStateOf(false) }
+                    var openCard by rememberSaveable { mutableStateOf<PhysicalButton?>(null) }
                     Box(Modifier.safeDrawingPadding()) {
                         val step = setupAt
                         if (step != null) {
@@ -59,13 +67,47 @@ class MainActivity : ComponentActivity() {
                                 onRequestShizuku = ::requestShizuku,
                                 onFinish = {
                                     shortcuts.setupDone = true
+                                    // Setup has shown them around; what's new is all new to them.
+                                    Welcome.markSeen(this@MainActivity)
                                     setupAt = null
+                                },
+                            )
+                        } else if (welcome) {
+                            WelcomeScreen(
+                                onOpen = { link ->
+                                    Welcome.markSeen(this@MainActivity)
+                                    welcome = false
+                                    when (link) {
+                                        WelcomeLink.PROFILES -> {
+                                            settingsAt = ManagePage.PROFILES
+                                            settings = true
+                                        }
+                                        WelcomeLink.BACKUP -> {
+                                            settingsAt = ManagePage.BACKUP
+                                            settings = true
+                                        }
+                                        WelcomeLink.COMBOS -> openCard = PhysicalButton.BACK
+                                        WelcomeLink.LANGUAGE -> {
+                                            languageAt = true
+                                            settings = true
+                                        }
+                                    }
+                                },
+                                onDone = {
+                                    Welcome.markSeen(this@MainActivity)
+                                    welcome = false
                                 },
                             )
                         } else if (settings) {
                             MoreSettingsScreen(
                                 current,
-                                onBack = { settings = false },
+                                openAt = settingsAt,
+                                openLanguage = languageAt,
+                                onBack = {
+                                    settings = false
+                                    settingsAt = null
+                                    languageAt = false
+                                },
                                 onRunSetup = {
                                     settings = false
                                     setupAt = SetupStep.WELCOME
@@ -76,6 +118,8 @@ class MainActivity : ComponentActivity() {
                                 current,
                                 onFix = { setupAt = it },
                                 onOpenSettings = { settings = true },
+                                openCard = openCard,
+                                onWhatsNew = { welcome = true },
                             )
                         }
                     }

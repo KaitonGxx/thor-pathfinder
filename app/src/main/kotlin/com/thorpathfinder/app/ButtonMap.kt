@@ -41,20 +41,56 @@ object ButtonMap {
 
     /**
      * One button's box, or null when nothing is on it. [mapped] is each
-     * changed gesture with what it does, in gesture order.
+     * changed gesture with what it does, in gesture order; [combos] are the
+     * lines for the combos this button is held for.
      */
-    fun callout(button: PhysicalButton, mapped: List<Pair<Gesture, String>>): Callout? =
-        if (mapped.isEmpty()) {
+    fun callout(
+        words: Words,
+        button: PhysicalButton,
+        mapped: List<Pair<Gesture, String>>,
+        combos: List<String> = emptyList(),
+    ): Callout? =
+        if (mapped.isEmpty() && combos.isEmpty()) {
             null
         } else {
-            Callout(button, button.label, mapped.map { (gesture, what) -> "${gesture.label}: $what" })
+            Callout(
+                button,
+                words.text(button.text),
+                mapped.map { (gesture, what) -> words.text(R.string.map_line, words.text(gesture.text), what) } + combos,
+            )
         }
 
+    /**
+     * A held button's combo lines: "+ A: Screenshot". Each combo is listed
+     * once, on the first of its buttons to hold, and a box shows at most
+     * [COMBO_LINES] of them so the picture keeps its shape.
+     */
+    fun comboLines(words: Words, button: PhysicalButton, combos: List<Pair<Set<ComboKey>, String>>): List<String> {
+        val key = ComboKey.of(button)
+        val mine = combos
+            .filter { (keys, _) -> keys.filter { it in ComboKey.ANCHORS }.minByOrNull { it.ordinal } == key }
+            .sortedWith(compareBy({ it.first.size }, { Combos.id(it.first) }))
+            .map { (keys, what) -> words.text(R.string.map_combo_line, Combos.label(words, keys - key), what) }
+        if (mine.size <= COMBO_LINES) return mine
+        val more = mine.size - COMBO_LINES + 1
+        return mine.take(COMBO_LINES - 1) + words.count(R.plurals.map_more_combos, more, more)
+    }
+
     /** Every button that carries something, in the order they are listed. */
-    fun callouts(context: Context, shortcuts: Shortcuts): List<Callout> =
-        PhysicalButton.entries.mapNotNull { button ->
-            callout(button, button.gestures.mapNotNull { gesture -> entry(context, shortcuts, button, gesture) })
+    fun callouts(context: Context, shortcuts: Shortcuts): List<Callout> {
+        val words = context.words()
+        val combos = shortcuts.combos.mapNotNull { keys ->
+            shortcuts.combo(keys)?.let { keys to describe(context, it) }
         }
+        return PhysicalButton.entries.mapNotNull { button ->
+            callout(
+                words,
+                button,
+                button.gestures.mapNotNull { gesture -> entry(context, shortcuts, button, gesture) },
+                comboLines(words, button, combos),
+            )
+        }
+    }
 
     private fun entry(
         context: Context,
@@ -62,44 +98,44 @@ object ButtonMap {
         button: PhysicalButton,
         gesture: Gesture,
     ): Pair<Gesture, String>? {
-        val action = shortcuts.action(button, gesture)
-        if (action == ButtonAction.NORMAL) return null
-        return gesture to describe(context, shortcuts, button, gesture, action)
+        val shortcut = shortcuts.shortcut(button, gesture)
+        if (shortcut.action == ButtonAction.NORMAL) return null
+        return gesture to describe(context, shortcut)
     }
 
     /**
-     * What one gesture does, in as few words as fit beside a picture. The
+     * What one shortcut does, in as few words as fit beside a picture. The
      * settings screen says the same thing at more length.
      */
-    fun describe(
-        context: Context,
-        shortcuts: Shortcuts,
-        button: PhysicalButton,
-        gesture: Gesture,
-        action: ButtonAction,
-    ): String = when (action) {
-        ButtonAction.HOME -> shortcuts.home(button, gesture)?.let { "Home (${it.short})" } ?: action.label
-        ButtonAction.CLOSE_ALL -> shortcuts.close(button, gesture).label
-        ButtonAction.LAUNCH_APP -> launchText(context, shortcuts, button, gesture)
-        ButtonAction.PROFILE -> when (shortcuts.profile(button, gesture)) {
-            ProfileSwitch.CYCLE -> ProfileSwitch.CYCLE.label
-            ProfileSwitch.ASK -> "Switch profile (ask)"
-            ProfileSwitch.ENABLE -> "Enable " + Profiles.name(context, shortcuts.profileId(button, gesture))
+    fun describe(context: Context, shortcut: Shortcut, words: Words = context.words()): String {
+        return when (shortcut.action) {
+            ButtonAction.HOME ->
+                shortcut.home?.let { words.text(R.string.map_home_to, words.text(it.short)) }
+                    ?: words.text(shortcut.action.text)
+            ButtonAction.CLOSE_ALL -> words.text(shortcut.close.text)
+            ButtonAction.LAUNCH_APP -> launchText(context, words, shortcut)
+            ButtonAction.PROFILE -> when (shortcut.profile) {
+                ProfileSwitch.CYCLE -> words.text(ProfileSwitch.CYCLE.text)
+                ProfileSwitch.ASK -> words.text(R.string.map_profile_ask)
+                ProfileSwitch.ENABLE -> words.text(R.string.map_profile_enable, Profiles.name(context, shortcut.profileId))
+            }
+            ButtonAction.FOCUS_MODE -> words.text(shortcut.focus.text)
+            else -> words.text(shortcut.action.text)
         }
-        ButtonAction.FOCUS_MODE -> shortcuts.focus(button, gesture).label
-        else -> action.label
     }
 
-    private fun launchText(
-        context: Context,
-        shortcuts: Shortcuts,
-        button: PhysicalButton,
-        gesture: Gesture,
-    ): String {
-        val app = appLabel(context, shortcuts.app(button, gesture)) ?: return ButtonAction.LAUNCH_APP.label
-        val second = appLabel(context, shortcuts.second(button, gesture))
-        return if (second != null) "Open $app + $second" else "Open $app (${shortcuts.screen(button, gesture).short})"
+    private fun launchText(context: Context, words: Words, shortcut: Shortcut): String {
+        val app = appLabel(context, shortcut.app) ?: return words.text(ButtonAction.LAUNCH_APP.text)
+        val second = appLabel(context, shortcut.second)
+        return if (second != null) {
+            words.text(R.string.map_open_pair, app, second)
+        } else {
+            words.text(R.string.map_open_one, app, words.text(shortcut.screen.short))
+        }
     }
+
+    /** Combo lines a box shows before it sums up the rest. */
+    const val COMBO_LINES = 3
 
     private fun appLabel(context: Context, pkg: String?): String? = pkg?.let {
         runCatching {

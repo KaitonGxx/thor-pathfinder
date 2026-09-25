@@ -31,13 +31,12 @@ class ButtonMapTest {
 
     @Test
     fun aButtonWithNothingOnItGetsNoBox() {
-        assertNull(ButtonMap.callout(PhysicalButton.START, emptyList()))
+        assertNull(ButtonMap.callout(English, PhysicalButton.START, emptyList()))
     }
 
     @Test
     fun aBoxNamesTheButtonAndSaysWhatEachGestureDoes() {
-        val callout = ButtonMap.callout(
-            PhysicalButton.BACK,
+        val callout = ButtonMap.callout(English, PhysicalButton.BACK,
             listOf(Gesture.DOUBLE to "Recent apps", Gesture.HOLD to "Swap screens"),
         )
         assertEquals("Back", callout!!.title)

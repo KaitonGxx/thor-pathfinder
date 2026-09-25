@@ -24,10 +24,10 @@ object Launcher {
 
     /** Opens [pkg] on [screen] (top or bottom; "ask" is the caller's to resolve). */
     fun open(context: Context, pkg: String, screen: LaunchScreen): String? {
-        val display = display(context, screen) ?: return "No second screen found"
+        val display = display(context, screen) ?: return context.getString(R.string.msg_no_second_screen)
         val hint = if (screen == LaunchScreen.BOTTOM && ScreenSwap.otherDisplay(context)?.state == Display.STATE_OFF) {
             // It still opens there; this says why nothing shows up.
-            "The other screen is off"
+            context.getString(R.string.msg_other_screen_off)
         } else {
             null
         }
@@ -43,15 +43,16 @@ object Launcher {
 
     private fun open(context: Context, pkg: String, display: Int): String? {
         val intent = context.packageManager.getLaunchIntentForPackage(pkg)
-            ?: return "That app isn't installed"
+            ?: return context.getString(R.string.msg_app_not_installed)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         val options = ActivityOptions.makeBasic().setLaunchDisplayId(display).toBundle()
         if (runCatching { context.startActivity(intent, options) }.isSuccess) return null
         // Shizuku can start it as the shell instead, the way a swap moves one.
-        val component = intent.component?.flattenToShortString() ?: return "Couldn't open that app"
-        if (!Shell.ready) return "Couldn't open that app"
+        val failed = context.getString(R.string.msg_couldnt_open_app)
+        val component = intent.component?.flattenToShortString() ?: return failed
+        if (!Shell.ready) return failed
         val started = Shell.run("am", "start", "--display", display.toString(), "-n", component)
-        return if (started.ok) null else "Couldn't open that app"
+        return if (started.ok) null else failed
     }
 
     /**
@@ -74,7 +75,7 @@ object Launcher {
             HomeTarget.BOTTOM -> listOfNotNull(other)
             HomeTarget.BOTH -> listOfNotNull(Display.DEFAULT_DISPLAY, other)
         }
-        val missing = if (target != HomeTarget.TOP && other == null) "No second screen found" else null
+        val missing = if (target != HomeTarget.TOP && other == null) context.getString(R.string.msg_no_second_screen) else null
         if (displays.isEmpty()) return missing
         // Every screen is tried, so one bad screen cannot strand the other.
         val failed = displays.mapNotNull { home(context, it) }
@@ -90,7 +91,7 @@ object Launcher {
         }
         // Injected keys carry scan code 0, so Pathfinder's own service ignores them.
         if (Shell.ready && Shell.run("input", "-d", display.toString(), "keyevent", "KEYCODE_HOME").ok) return null
-        return if (home == null) "Couldn't find a home screen for that screen" else "Couldn't go home"
+        return context.getString(if (home == null) R.string.msg_no_home_found else R.string.msg_couldnt_go_home)
     }
 
     /**

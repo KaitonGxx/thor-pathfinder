@@ -1,5 +1,568 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Thor Pathfinder</string>
+    <string name="app_name" translatable="false">Thor Pathfinder</string>
     <string name="accessibility_description">Thor Pathfinder watches the Back, Home, AYN, Select, Start, L3 and R3 buttons for your shortcuts: swapping screens, recent apps, mouse mode and more. It only receives button presses. It cannot read the screen or anything you type.</string>
+
+    <!-- The Thor's buttons -->
+    <string name="button_back">Back</string>
+    <string name="button_home">Home</string>
+    <string name="button_ayn">AYN button</string>
+    <string name="button_select">Select</string>
+    <string name="button_start">Start</string>
+    <string name="button_l3">L3 (click left stick)</string>
+    <string name="button_r3">R3 (click right stick)</string>
+    <string name="normal_ayn_menu">AYN menu</string>
+
+    <!-- Gestures -->
+    <string name="gesture_press">Press</string>
+    <string name="gesture_double">Double-press</string>
+    <string name="gesture_hold">Hold</string>
+
+    <!-- Where "Open an app" opens it -->
+    <string name="launch_top">Top screen</string>
+    <string name="launch_bottom">Bottom screen</string>
+    <string name="launch_ask">Ask</string>
+    <string name="launch_top_short">top</string>
+    <string name="launch_bottom_short">bottom</string>
+    <string name="launch_ask_short">ask</string>
+
+    <!-- What "Close app(s)" closes -->
+    <string name="close_all">Close all apps</string>
+    <string name="close_background">Close background apps</string>
+    <string name="close_focused">Close focused app</string>
+    <string name="close_top">Close top app</string>
+    <string name="close_bottom">Close bottom app</string>
+    <string name="close_specific">Close specific apps</string>
+
+    <!-- What a Profile switcher does -->
+    <string name="profile_switch_cycle">Cycle profiles</string>
+    <string name="profile_switch_enable">Enable a profile</string>
+    <string name="profile_switch_ask">Ask each time</string>
+
+    <!-- Which screens a Home shortcut sends home -->
+    <string name="home_top">Top screen only</string>
+    <string name="home_bottom">Bottom screen only</string>
+    <string name="home_both">Both screens</string>
+    <string name="home_top_short">top</string>
+    <string name="home_bottom_short">bottom</string>
+    <string name="home_both_short">both</string>
+
+    <!-- What a Focus Mode shortcut does -->
+    <string name="focus_top">Top screen focus</string>
+    <string name="focus_bottom">Bottom screen focus</string>
+    <string name="focus_cycle">Cycle focus modes</string>
+    <string name="focus_swap">Top/Bottom focus swap</string>
+
+    <!-- Actions -->
+    <string name="action_normal">Normal</string>
+    <string name="action_nothing">Do nothing</string>
+    <string name="action_back">Back</string>
+    <string name="action_home">Home</string>
+    <string name="action_recents">Recent apps</string>
+    <string name="action_close_all">Close app(s)</string>
+    <string name="action_swap_screens">Swap screens</string>
+    <string name="action_mouse_mode">Mouse mode on/off</string>
+    <string name="action_focus_mode">Focus Mode</string>
+    <string name="action_notifications">Notifications</string>
+    <string name="action_quick_settings">Quick settings</string>
+    <string name="action_screenshot">Screenshot</string>
+    <string name="action_screen_record">Screen record (Testing)</string>
+    <string name="action_power_menu">Power menu</string>
+    <string name="action_lock_screen">Lock screen</string>
+    <string name="action_shortcut_menu">Shortcut menu</string>
+    <string name="action_launch_app">Open an app</string>
+    <string name="action_profile">Profile switcher</string>
+
+    <!-- A gesture left on Normal -->
+    <string name="normal_nothing_extra">Nothing extra</string>
+    <string name="normal_is">Normal (%1$s)</string>
+    <string name="normal_two_presses">Normal (two presses)</string>
+    <string name="normal_long_press">Normal (long press)</string>
+    <string name="normal_a_press">Normal (a press)</string>
+
+    <!-- Combo buttons (letters as printed; words translated) -->
+    <string name="key_a" translatable="false">A</string>
+    <string name="key_b" translatable="false">B</string>
+    <string name="key_x" translatable="false">X</string>
+    <string name="key_y" translatable="false">Y</string>
+    <string name="key_l1" translatable="false">L1</string>
+    <string name="key_r1" translatable="false">R1</string>
+    <string name="key_l2" translatable="false">L2</string>
+    <string name="key_r2" translatable="false">R2</string>
+    <string name="key_l3" translatable="false">L3</string>
+    <string name="key_r3" translatable="false">R3</string>
+    <string name="key_ayn" translatable="false">AYN</string>
+    <string name="key_up">D-pad up</string>
+    <string name="key_down">D-pad down</string>
+    <string name="key_left">D-pad left</string>
+    <string name="key_right">D-pad right</string>
+    <string name="key_up_short">Up</string>
+    <string name="key_down_short">Down</string>
+    <string name="key_left_short">Left</string>
+    <string name="key_right_short">Right</string>
+    <string name="combo_join" translatable="false">%1$s + %2$s</string>
+
+    <!-- The Thor picture shown on a profile switch -->
+    <string name="map_line">%1$s: %2$s</string>
+    <string name="map_combo_line">+ %1$s: %2$s</string>
+    <plurals name="map_more_combos">
+        <item quantity="one">and %d more combo</item>
+        <item quantity="other">and %d more combos</item>
+    </plurals>
+    <string name="map_home_to">Home (%1$s)</string>
+    <string name="map_profile_ask">Switch profile (ask)</string>
+    <string name="map_profile_enable">Enable %1$s</string>
+    <string name="map_open_pair">Open %1$s + %2$s</string>
+    <string name="map_open_one">Open %1$s (%2$s)</string>
+    <string name="map_dismiss">Dismiss</string>
+
+    <!-- Messages over the screen when a shortcut runs -->
+    <string name="msg_mouse_needs_shizuku">Mouse mode needs Shizuku</string>
+    <string name="msg_button_menu_needs_shizuku">The %1$s\'s own menu needs Shizuku</string>
+    <string name="msg_couldnt_press">Couldn\'t press the %1$s</string>
+    <string name="msg_app_not_installed">That app isn\'t installed</string>
+    <string name="msg_couldnt_ask_screen">Couldn\'t ask which screen</string>
+    <string name="msg_couldnt_ask_profile">Couldn\'t ask which profile</string>
+    <string name="msg_couldnt_open_menu">Couldn\'t open the shortcut menu</string>
+    <string name="msg_swap_nothing">No app to move</string>
+    <string name="msg_no_second_screen">No second screen found</string>
+    <string name="msg_other_screen_off">The other screen is off</string>
+    <string name="msg_swap_needs_shizuku">Swapping screens needs Shizuku</string>
+    <string name="msg_swap_failed">Couldn\'t swap: %1$s</string>
+    <string name="msg_closed">%1$s closed</string>
+    <string name="msg_no_app_top">No app on the top screen</string>
+    <string name="msg_no_app_bottom">No app on the bottom screen</string>
+    <string name="msg_no_app_to_close">No app to close</string>
+    <string name="msg_none_running">No selected task(s) running</string>
+    <string name="msg_close_apps_needs_shizuku">Closing apps needs Shizuku</string>
+    <string name="msg_close_failed">Couldn\'t close it: %1$s</string>
+    <string name="msg_background_closed">Background tasks closed</string>
+    <string name="msg_no_background">No background tasks</string>
+    <string name="msg_all_closed">All tasks closed</string>
+    <string name="msg_no_tasks">No tasks to close</string>
+    <string name="msg_close_tasks_needs_shizuku">Closing tasks needs Shizuku</string>
+    <string name="msg_close_tasks_failed">Couldn\'t close tasks: %1$s</string>
+    <string name="list_none">No apps</string>
+    <string name="list_two">%1$s and %2$s</string>
+    <plurals name="list_apps">
+        <item quantity="one">%d app</item>
+        <item quantity="other">%d apps</item>
+    </plurals>
+    <string name="msg_add_record_tile">Add the Screen record tile to Quick Settings</string>
+    <string name="msg_record_needs_shizuku">Screen record needs Shizuku</string>
+    <string name="msg_record_failed">Couldn\'t open screen record: %1$s</string>
+    <string name="msg_switched_on">Switched back on</string>
+    <string name="msg_switch_needs_shizuku">Switching it on from here needs Shizuku</string>
+    <string name="msg_switch_failed">Couldn\'t switch it on: %1$s</string>
+    <string name="msg_watchdog_on">Watchdog on</string>
+    <string name="msg_watchdog_off">Watchdog off</string>
+    <string name="msg_watchdog_needs_shizuku">The watchdog needs Shizuku</string>
+    <string name="msg_watchdog_failed">Couldn\'t change the watchdog: %1$s</string>
+    <string name="msg_couldnt_open_app">Couldn\'t open that app</string>
+    <string name="msg_no_home_found">Couldn\'t find a home screen for that screen</string>
+    <string name="msg_couldnt_go_home">Couldn\'t go home</string>
+    <string name="focus_mode_auto">Auto-lock</string>
+    <string name="focus_mode_top">Top screen</string>
+    <string name="focus_mode_bottom">Bottom screen</string>
+    <string name="msg_focus_mode">Focus Mode: %1$s</string>
+    <string name="msg_focus_needs_shizuku">Focus Mode needs Shizuku</string>
+    <string name="msg_focus_failed">Couldn\'t change Focus Mode: %1$s</string>
+    <string name="msg_profile">Profile: %1$s</string>
+    <string name="msg_profile_for">Profile: %1$s (%2$s)</string>
+
+    <!-- Choosing a shortcut -->
+    <string name="needs_shizuku">Needs Shizuku</string>
+    <string name="picker_open_one">Open 1 App</string>
+    <string name="picker_open_one_detail">On the top screen, the bottom one, or ask each time</string>
+    <string name="picker_open_two">Open 2 Apps</string>
+    <string name="picker_open_two_detail">One on each screen, both at once</string>
+    <string name="picker_open_on">Open %1$s on</string>
+    <string name="picker_ask_detail">Choose top or bottom each time the shortcut runs</string>
+    <string name="picker_app_top">App for the top screen</string>
+    <string name="picker_app_bottom">App for the bottom screen</string>
+    <string name="picker_apps_to_close">Apps to close</string>
+    <string name="picker_cycle_detail">Move to the next profile each press</string>
+    <string name="picker_ask_profile_detail">Choose from a list when the shortcut runs</string>
+    <string name="picker_enable_detail">Press again to go back to the main profile</string>
+    <string name="picker_home_on">Send home on</string>
+    <string name="picker_focus_top_detail">Lock the controller to the top screen</string>
+    <string name="picker_focus_bottom_detail">Lock the controller to the bottom screen</string>
+    <string name="picker_focus_cycle_detail">Auto-lock, Top screen, Bottom screen, one each press</string>
+    <string name="picker_focus_swap_detail">Top to bottom and back; from Auto-lock, the top first</string>
+
+    <!-- Common buttons -->
+    <string name="cancel">Cancel</string>
+    <string name="next">Next</string>
+    <string name="next_with">Next: %1$s</string>
+    <string name="ok">OK</string>
+    <string name="done">Done</string>
+    <string name="done_count">Done (%1$d)</string>
+
+    <!-- Combos -->
+    <string name="combos_badge">Combos</string>
+    <string name="group_face">Face buttons</string>
+    <string name="group_dpad">D-pad</string>
+    <string name="group_shoulders">Shoulders</string>
+    <string name="group_sticks">Sticks</string>
+    <string name="group_select_start">Select &amp; Start</string>
+    <string name="group_system">System</string>
+    <string name="combo_hold_press">Hold %1$s, and press…</string>
+    <string name="combo_pick_detail">One button, or two pressed together. They\'re kept from the app while you hold %1$s. Combos always match the letters printed on the buttons, whatever the controller style.</string>
+
+    <!-- The main screen -->
+    <string name="main_intro">Tap a gesture to change what it does. On Back, Home and the AYN button, Pathfinder handles the button once any gesture is changed, and Normal still does its usual job.</string>
+    <string name="edit_title">%1$s: %2$s</string>
+    <string name="combo_change">Change what it does</string>
+    <string name="combo_remove">Remove this combo</string>
+    <string name="combo_remove_detail">The buttons go back to working on their own</string>
+    <string name="settings">Settings</string>
+    <string name="update_available_title">Update available</string>
+    <string name="update_available_msg">Version %1$s is out. You have %2$s.</string>
+    <string name="up_to_date_title">You\'re up to date</string>
+    <string name="up_to_date_newer">You have %1$s, which is newer than the latest release (%2$s).</string>
+    <string name="up_to_date_latest">%1$s is the latest version.</string>
+    <string name="check_failed_title">Couldn\'t check for updates</string>
+    <string name="whats_new">What\'s New</string>
+    <string name="open_release_page">Open release page</string>
+    <string name="not_now">Not now</string>
+    <string name="close">Close</string>
+    <string name="attention_title">Something needs attention</string>
+    <string name="problem_firmware">This Thor\'s firmware isn\'t supported</string>
+    <string name="problem_wayfinder">Thor Wayfinder is also handling the Back button</string>
+    <string name="problem_autolaunch">AYN\'s APP Auto Launch Manage is blocking Pathfinder</string>
+    <string name="problem_autolaunch_detail">Thor Pathfinder is switched on in that page (Settings → Thor settings → Advanced Settings), which stops Android from starting its service, so after a restart no shortcut works. Switch it off there, or let Pathfinder fix it.</string>
+    <string name="problem_stuck">Pathfinder is switched on but isn\'t running</string>
+    <string name="problem_stuck_detail">Android has the switch on but hasn\'t started the service, so no shortcut works. It can happen after a crash, an unexpected restart, or an app that stops others in the background. Switch it off and on again to fix it.</string>
+    <string name="problem_off">Pathfinder\'s accessibility service is off</string>
+    <string name="problem_off_detail">Android switches accessibility services off whenever their app is updated. Turn it back on and your shortcuts work again.</string>
+    <string name="problem_shizuku">Shizuku isn\'t connected</string>
+    <string name="shizuku_not_installed_detail">Swapping screens, mouse mode and closing apps go through Shizuku, which grants that access without rooting the Thor.</string>
+    <string name="shizuku_not_running_detail">Shizuku stops whenever the Thor restarts, so it needs starting again after a reboot.</string>
+    <string name="shizuku_no_permission_detail">Shizuku is running, but hasn\'t let Pathfinder in yet.</string>
+    <string name="fix">Fix</string>
+    <plurals name="combos_count">
+        <item quantity="one">%d combo</item>
+        <item quantity="other">%d combos</item>
+    </plurals>
+    <string name="works_as_usual">Works as usual</string>
+    <string name="gamepad_subtitle">Games still get every press, so a plain press can\'t be changed.</string>
+    <string name="combos_heading">Combos</string>
+    <string name="combos_heading_detail">Hold %1$s and press one or two other buttons, before a Hold would run</string>
+    <string name="add_combo">Add combo</string>
+    <string name="text_open_pair">Open %1$s top, %2$s bottom</string>
+    <string name="text_close_specific">Close %1$s</string>
+    <string name="an_app">an app</string>
+    <string name="about_title">About</string>
+    <string name="about_text">Thor Pathfinder is free software under the GNU GPL v3, made in the spirit of Thor Wayfinder, which found the way first. It\'s an independent project, not affiliated with Wayfinder or AYN.</string>
+    <string name="whats_new_row">What\'s new in 1.0</string>
+    <string name="show">Show</string>
+    <string name="licenses_row">Open-source licenses</string>
+    <string name="view">View</string>
+
+    <!-- Setup -->
+    <string name="nav_back">Back</string>
+    <string name="setup_get_started">Get started</string>
+    <string name="setup_finish">Finish</string>
+    <string name="setup_step">Step %1$d of %2$d</string>
+    <string name="welcome_title">Welcome to Thor Pathfinder</string>
+    <string name="welcome_body">Pathfinder moves apps between the Thor\'s two screens and puts shortcuts on its buttons. Out of the box it works like this:</string>
+    <string name="welcome_b1">Hold Back: swap the apps on the two screens</string>
+    <string name="welcome_b2">Double-press Back: recent apps</string>
+    <string name="welcome_b3">Double-press Select: mouse mode on or off</string>
+    <string name="welcome_later">You can change all of these later. Setup takes about two minutes.</string>
+    <string name="device_title">Check your Thor</string>
+    <string name="device_ok">%1$s, firmware %2$s</string>
+    <string name="device_untested">Pathfinder was made and tested on the AYN Thor and Thor Lite. The %1$s should work the same way; if something doesn\'t, please report it.</string>
+    <string name="device_newer">That\'s newer than the firmware Pathfinder was tested on (%1$s). It should work; if something doesn\'t, please report it.</string>
+    <string name="device_not_thor">This is a %1$s, not an AYN Thor</string>
+    <string name="device_not_thor_body">Pathfinder is made for the Thor\'s two screens and its buttons, so it won\'t run here.</string>
+    <string name="device_old">Firmware %1$s is older than %2$s</string>
+    <string name="device_unknown">Couldn\'t tell which firmware this Thor runs</string>
+    <string name="device_update_body">Pathfinder relies on parts of AYN\'s software as they are in firmware %1$s and newer. Update your Thor, then open Pathfinder again.</string>
+    <string name="device_open_update">Open system update</string>
+    <string name="wayfinder_title">Thor Wayfinder is installed</string>
+    <string name="wayfinder_body">Pathfinder does everything Wayfinder does, and both use the Back button, so with both on every hold of Back would swap the screens twice. Uninstall Wayfinder, or at least turn off its accessibility service.</string>
+    <string name="wayfinder_uninstalled">Wayfinder is uninstalled</string>
+    <string name="wayfinder_off">Wayfinder\'s service is off</string>
+    <string name="wayfinder_on">Wayfinder\'s service is still on</string>
+    <string name="wayfinder_uninstall">Uninstall Wayfinder</string>
+    <string name="wayfinder_turn_off">Turn it off instead</string>
+    <string name="a11y_title">Let Pathfinder see the buttons</string>
+    <string name="a11y_body">Android only shares button presses with accessibility services, so Pathfinder has one. It receives button presses and nothing else: it cannot read the screen or anything you type.</string>
+    <string name="a11y_on">Pathfinder\'s service is on</string>
+    <string name="a11y_stuck">Pathfinder is switched on, but Android hasn\'t started it</string>
+    <string name="a11y_off">Pathfinder\'s service is off</string>
+    <string name="a11y_blocked_body">Thor Pathfinder is switched on in APP Auto Launch Manage (Settings → Thor settings → Advanced Settings). Despite the name, that page stops the apps switched on in it from starting in the background, and Android can\'t start Pathfinder\'s service while it\'s there, so after a restart no shortcut works. Switch Thor Pathfinder off on that page, then switch its service off and on in the list below.</string>
+    <string name="a11y_blocked_body_fix">Thor Pathfinder is switched on in APP Auto Launch Manage (Settings → Thor settings → Advanced Settings). Despite the name, that page stops the apps switched on in it from starting in the background, and Android can\'t start Pathfinder\'s service while it\'s there, so after a restart no shortcut works. Switch Thor Pathfinder off on that page, then switch its service off and on in the list below. Or press Fix it, which does both.</string>
+    <string name="a11y_stuck_body">Android has the switch on but hasn\'t started the service, which can happen after a crash, an unexpected restart, or an app that stops others in the background. Open the list, switch Thor Pathfinder off, then on again — that makes Android start it.</string>
+    <string name="a11y_off_body">In the list, open Thor Pathfinder and turn it on.</string>
+    <string name="a11y_open">Open accessibility settings</string>
+    <string name="a11y_fix_it">Fix it</string>
+    <string name="a11y_off_on">Switch it off and on</string>
+    <string name="a11y_turn_on">Turn it back on</string>
+    <string name="a11y_restricted">If Android says “Restricted setting”: open Pathfinder\'s app info, tap ⋮ in the corner, choose “Allow restricted settings”, then try again. Android asks this of apps installed from outside the Play Store.</string>
+    <string name="a11y_app_info">Open Pathfinder\'s app info</string>
+    <string name="shizuku_title">Connect Shizuku</string>
+    <string name="shizuku_body">Swapping screens and switching mouse mode need a little more access than an app gets on its own. Shizuku grants it without rooting the Thor, and sets itself up.</string>
+    <string name="shizuku_not_installed">Shizuku isn\'t installed</string>
+    <string name="shizuku_install_body">Install Shizuku from Google Play or from its GitHub releases, open it and follow its steps to start it, then come back here.</string>
+    <string name="shizuku_play">Get it on Google Play</string>
+    <string name="shizuku_github">Download from GitHub</string>
+    <string name="shizuku_not_running">Shizuku isn\'t running</string>
+    <string name="shizuku_start_body">Open Shizuku and start it (it walks you through it), then come back here.</string>
+    <string name="shizuku_open">Open Shizuku</string>
+    <string name="shizuku_no_permission">Shizuku is running, but Pathfinder isn\'t allowed yet</string>
+    <string name="shizuku_allow">Allow Pathfinder</string>
+    <string name="shizuku_connected">Shizuku is connected</string>
+    <string name="done_title">You\'re all set</string>
+    <string name="done_body1">Hold Back to swap screens, double-press Back for recent apps, and double-press Select for mouse mode.</string>
+    <string name="done_body2">Next you\'ll see Pathfinder\'s settings, where you can put other actions on Back, Home, the AYN button, Select, Start, L3 and R3, and choose which way the right stick scrolls in mouse mode.</string>
+
+    <!-- Watchdog page -->
+    <string name="wd_title">Watchdog</string>
+    <string name="wd_subtitle">Keeps Pathfinder\'s accessibility service switched on, even when something stops Pathfinder itself.</string>
+    <string name="wd_switch">Keep the service switched on</string>
+    <string name="wd_on_not_running">On, but not running — turn it off and on again</string>
+    <string name="wd_holding">On, and leaving the service off, since it was switched off in Android\'s settings</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
+    <string name="wd_how_often">How often it looks</string>
+    <string name="wd_every_short">every %1$ds</string>
+    <string name="wd_every">Every %1$d seconds</string>
+    <string name="wd_default_detail">Quick, and still barely any work</string>
+    <string name="wd_what_it_does">What it does</string>
+    <string name="wd_p1">Shizuku starts a small script that belongs to Shizuku rather than to Pathfinder, so force-stopping or killing Pathfinder doesn\'t stop it. Every few seconds it checks whether Pathfinder is still in Android\'s accessibility list, and puts it back if it has gone. A check costs about 22 milliseconds, so even the quickest setting is under half a percent of one processor core.</string>
+    <string name="wd_p2">It only ever adds Pathfinder\'s own service, and never removes anyone else\'s. If you switch Pathfinder off yourself in Android\'s settings, it leaves it off, after you close Settings and after a restart, until the service is switched on again.</string>
+    <string name="wd_p3">It also takes Pathfinder, and nothing else, off the list in the Thor\'s APP Auto Launch Manage page. Despite the name, the apps switched on there can\'t have anything started in the background, so on that list Pathfinder\'s service never starts after a restart. It leaves that list alone while the Thor\'s settings are open.</string>
+    <string name="wd_p4">A restart stops it along with Shizuku, and it starts again by itself once Shizuku is running. It stops the moment you turn this off. The script is watchdog.sh in Pathfinder\'s source, and it is short.</string>
+    <string name="wd_log">What it has done</string>
+
+    <!-- The cog's menu -->
+    <string name="page_profiles">Manage profiles</string>
+    <string name="page_profiles_detail">Your sets of shortcuts: add, rename, link apps, back up or share</string>
+    <string name="page_close">Close app(s)</string>
+    <string name="page_close_detail">Which apps keep running when tasks are closed</string>
+    <string name="page_mouse">Mouse mode</string>
+    <string name="page_mouse_detail">Which way the right stick scrolls</string>
+    <string name="page_timing">Timing</string>
+    <string name="page_timing_detail">How long a hold takes, and the double-press gap</string>
+    <string name="page_updates">Update settings</string>
+    <string name="page_updates_detail">Checking for updates, and installing them by itself</string>
+    <string name="page_watchdog_detail">Keep the accessibility service on when something stops it</string>
+    <string name="page_language">Language</string>
+    <string name="page_diagnostics">Diagnostics</string>
+    <string name="page_diagnostics_detail">A report about this Thor, to paste into a bug report</string>
+    <string name="page_setup">Run setup again</string>
+    <string name="page_setup_detail">Walk through the checks from the start</string>
+    <string name="mouse_subtitle">Cursor speed and scroll sensitivity stay in the Thor\'s own mouse mode settings.</string>
+    <string name="mouse_reverse">Reverse right-stick scrolling</string>
+    <string name="mouse_needs_shizuku">Needs Shizuku.</string>
+    <string name="mouse_unreadable">Couldn\'t read the Thor\'s mouse mode settings.</string>
+    <string name="mouse_reverse_detail">Pushing up scrolls up, pushing down scrolls down. Takes effect after a restart.</string>
+    <string name="mouse_couldnt_change">Couldn\'t change the Thor\'s mouse mode settings.</string>
+    <string name="mouse_restart">Restart the Thor to apply the new direction.</string>
+    <string name="mouse_restart_now">Restart now</string>
+    <string name="updates_subtitle">Pathfinder asks GitHub for the newest release. Nothing about you or your Thor is sent.</string>
+    <string name="updates_check_on_open">Check when Pathfinder opens</string>
+    <string name="updates_check_on_open_detail">A quick look for a newer release each time you open the app.</string>
+    <string name="updates_auto">Install updates automatically</string>
+    <string name="updates_auto_detail">Downloads the new APK from Pathfinder\'s releases and installs it through Shizuku, with nothing to confirm. Off unless you turn it on.</string>
+    <string name="updates_auto_needs_shizuku">Needs Shizuku: without it there is no way to install without prompts.</string>
+    <string name="updates_none_seen">No release seen yet.</string>
+    <string name="updates_seen">Newest release seen: %1$s.</string>
+    <string name="updates_same_key">Updates install only over the same signing key, so a copy from anywhere else is refused.</string>
+    <string name="setup_again_title">Run setup again?</string>
+    <string name="setup_again_body">Setup goes through the Thor\'s firmware, Thor Wayfinder, Pathfinder\'s accessibility service and Shizuku, one screen at a time, and checks each one before it moves on.</string>
+    <string name="setup_again_keeps">Your shortcuts, timings and the apps you keep running all stay as they are.</string>
+    <string name="setup_again_run">Run setup</string>
+    <string name="timing_subtitle">With a double-press shortcut on Back, Home or the AYN button, a single press waits for the gap to pass before it acts.</string>
+    <string name="timing_hold">How long to hold</string>
+    <string name="timing_double">Double-press gap</string>
+    <string name="timing_ms">%1$d ms</string>
+    <string name="timing_vibrate">Vibrate when a shortcut runs</string>
+    <string name="language_subtitle">Pathfinder\'s own language. The Thor\'s other apps stay as they are.</string>
+    <string name="language_system">Same as the Thor</string>
+    <string name="language_system_detail">Follows the language in Android\'s settings</string>
+
+    <!-- Profiles -->
+    <string name="profile_main_default">Main profile</string>
+    <string name="profile_n">Profile %1$d</string>
+    <string name="profile_create">Create profile</string>
+    <string name="profile_no_room">No room for another one</string>
+    <string name="profile_fresh">A set of shortcuts of its own, all at their defaults</string>
+    <string name="active_profile">Active Profile:</string>
+    <string name="choose_profile">Choose a profile</string>
+    <string name="for_app">for %1$s</string>
+    <string name="profiles_title">Profiles</string>
+    <string name="create_body">Every shortcut starts at its default. Mouse mode stays as it is: that one is the Thor\'s own setting, shared by every profile.</string>
+    <string name="name">Name</string>
+    <string name="keep_list">Keep the keep-running list</string>
+    <string name="keep_list_detail">Copy the apps %1$s never force-stops</string>
+    <string name="create">Create</string>
+    <string name="rename_title">Rename profile</string>
+    <string name="rename">Rename</string>
+    <string name="manage_subtitle">A profile holds every shortcut, the keep-running list, the timings and vibration. Mouse mode is the Thor\'s own setting and is shared by all of them.</string>
+    <plurals name="profiles_count">
+        <item quantity="one">%d profile</item>
+        <item quantity="other">%d profiles</item>
+    </plurals>
+    <string name="profiles_row_detail">%1$s · %2$s in use</string>
+    <string name="show_buttons">Show the buttons on switching</string>
+    <string name="show_buttons_detail">Draw the Thor with the new profile\'s shortcuts, whether you switched or an app did. Any button puts it away</string>
+    <string name="backup_row">Backup &amp; share</string>
+    <string name="backup_row_detail">Save every profile to a file and bring it back, or share one</string>
+    <string name="profiles_subtitle">Tap a profile to use it, rename it, link apps to it or delete it. The main profile is the one an Enable shortcut goes back to, and the one that stays. A profile linked to apps is used while one of them is the app the controller drives (this needs Shizuku).</string>
+    <string name="delete_title">Delete %1$s?</string>
+    <string name="delete_body">Its shortcuts go with it, and this can\'t be undone. Any shortcut set to enable it cycles through the profiles instead.</string>
+    <string name="delete">Delete</string>
+    <string name="delete_detail">Its shortcuts go with it</string>
+    <string name="apps_for">Apps for %1$s</string>
+    <string name="uses_now">Uses %1$s now</string>
+    <string name="list_sep">", "</string>
+    <string name="apps_tag">Apps: %1$s</string>
+    <plurals name="apps_tag_more">
+        <item quantity="one">Apps: %1$s and %2$d more</item>
+        <item quantity="other">Apps: %1$s and %2$d more</item>
+    </plurals>
+    <string name="tag_main_in_use_for">Main profile, in use for %1$s</string>
+    <string name="tag_in_use_for">In use for %1$s</string>
+    <string name="tag_main_in_use">Main profile, in use</string>
+    <string name="tag_main">Main profile</string>
+    <string name="tag_in_use">In use</string>
+    <string name="action_enable_detail">Use its shortcuts from now on</string>
+    <string name="action_back_to">Back to %1$s</string>
+    <string name="action_back_to_detail">This one is already in use</string>
+    <string name="action_apps">Apps that use it</string>
+    <string name="action_apps_none">Use it while a chosen app is in front</string>
+    <string name="action_make_main">Make this the main profile</string>
+    <string name="action_make_main_detail">Where an Enable shortcut goes back to</string>
+
+    <!-- Backup & share -->
+    <string name="backup_subtitle">A backup holds every profile, with its shortcuts, combos, timings, keep-running list and linked apps, plus the shortcut list\'s layout and the update check. The watchdog and automatic updates stay as they are, since they depend on each Thor\'s Shizuku.</string>
+    <string name="save_backup">Save a backup</string>
+    <string name="save_backup_detail">Everything above, in one file you can keep anywhere</string>
+    <string name="restore_backup">Restore a backup</string>
+    <string name="restore_backup_detail">Replaces your profiles and settings with a backup\'s</string>
+    <string name="share_profile">Share a profile</string>
+    <string name="share_profile_detail">One profile as a file, for another Thor</string>
+    <string name="add_shared">Add a shared profile</string>
+    <string name="add_shared_detail">Adds someone\'s profile beside your own</string>
+    <string name="saved">%1$s saved.</string>
+    <string name="backup_what">Backup</string>
+    <string name="shared_what">%1$s (shared profile)</string>
+    <string name="save_failed">Couldn\'t save the file: %1$s</string>
+    <string name="too_big">It\'s far too big to be a Thor Pathfinder file.</string>
+    <string name="read_failed">It couldn\'t be read: %1$s</string>
+    <string name="not_ours">It isn\'t a Thor Pathfinder backup or shared profile.</string>
+    <string name="from_newer">It was saved by a newer Thor Pathfinder (%1$s). Update Pathfinder, then try again.</string>
+    <string name="damaged">Part of it is missing or damaged, so nothing was changed.</string>
+    <string name="share_which">Share which profile?</string>
+    <plurals name="share_apps">
+        <item quantity="one">Its linked app comes along</item>
+        <item quantity="other">Its %d linked apps come along</item>
+    </plurals>
+    <string name="cant_use">That file can\'t be used</string>
+    <string name="restore_title">Restore this backup?</string>
+    <plurals name="linked_apps_count">
+        <item quantity="one">%d linked app</item>
+        <item quantity="other">%d linked apps</item>
+    </plurals>
+    <plurals name="shortcuts_count">
+        <item quantity="one">%d shortcut</item>
+        <item quantity="other">%d shortcuts</item>
+    </plurals>
+    <string name="restore_body">Saved %1$s by Thor Pathfinder %2$s. %3$s: %4$s, with %5$s and %6$s. Your profiles now, and their shortcuts, are replaced by these.</string>
+    <string name="restore">Restore</string>
+    <plurals name="restored">
+        <item quantity="one">Backup restored: %d profile.</item>
+        <item quantity="other">Backup restored: %d profiles.</item>
+    </plurals>
+    <string name="restore_failed">Couldn\'t restore it: %1$s</string>
+    <string name="add_title">Add %1$s?</string>
+    <string name="add_no_room">There\'s no room: Pathfinder keeps up to %1$d profiles. Delete one under Manage profiles, then try again.</string>
+    <string name="add_body">A shared profile from Thor Pathfinder %1$s, with %2$s, %3$s and %4$s. It\'s added as a new profile, and yours stay as they are. Linked apps come along if they\'re installed and not linked to one of your profiles already.</string>
+    <string name="add">Add</string>
+    <string name="no_room_msg">There\'s no room for another profile.</string>
+    <string name="added">Added %1$s.</string>
+    <string name="add_failed">Couldn\'t add it: %1$s</string>
+
+    <!-- Keep apps running -->
+    <string name="keep_title">Keep apps running</string>
+    <string name="keep_subtitle">However Close app(s) closes them, all at once, all but what\'s on screen, one screen\'s, or picked by name, these leave the task view like any other but are never force-stopped, so music, a download or a sync keeps going.</string>
+    <string name="keep_none">No apps chosen: everything is force-stopped.</string>
+    <string name="keep_count">%1$d of %2$d apps kept running.</string>
+    <string name="keep_recommended">Highly recommended</string>
+    <string name="keep_recommended_detail">These keep working in the background while you play, so they are best left running.</string>
+    <string name="keep_all">All apps</string>
+
+    <!-- Updates -->
+    <string name="upd_checking">Checking…</string>
+    <string name="upd_available_button">Update Available</string>
+    <string name="upd_up_to_date">Up to date</string>
+    <string name="upd_check">Check For Updates</string>
+    <string name="upd_downloading">Downloading %1$d%%</string>
+    <string name="upd_installing">Installing… Pathfinder closes for a moment while Android swaps it over.</string>
+    <string name="upd_update_now">Update now</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="upd_dont_show">Don\'t show again</string>
+    <string name="upd_bad_answer">GitHub\'s answer didn\'t make sense. Try again later.</string>
+    <string name="upd_no_releases">GitHub doesn\'t list any releases yet.</string>
+    <string name="upd_rate_limited">GitHub is limiting checks from this network. Try again in an hour.</string>
+    <string name="upd_error">GitHub answered with error %1$d. Try again later.</string>
+    <string name="upd_offline">Couldn\'t reach GitHub. Check that the Thor is online.</string>
+    <string name="inst_no_apk">That release has no APK to download.</string>
+    <string name="inst_not_ours">That download isn\'t from Pathfinder\'s releases.</string>
+    <string name="inst_needs_shizuku">Installing an update needs Shizuku.</string>
+    <string name="inst_download_failed">Couldn\'t download the update. Check that the Thor is online.</string>
+    <string name="inst_http">GitHub answered with error %1$d.</string>
+    <string name="inst_empty">The download was empty.</string>
+    <string name="inst_broken">The download isn\'t a working APK.</string>
+    <string name="inst_not_pathfinder">That APK isn\'t Thor Pathfinder.</string>
+    <string name="inst_other_key">That APK is signed with a different key, so Android wouldn\'t install it.</string>
+    <string name="inst_not_newer">That APK isn\'t newer than the copy already installed.</string>
+    <string name="inst_start_failed">Couldn\'t start the install: %1$s</string>
+    <string name="inst_write_failed">Couldn\'t write the update: %1$s</string>
+    <string name="inst_failed">Couldn\'t install the update: %1$s</string>
+
+    <!-- Diagnostics page (the report itself stays in English) -->
+    <string name="diag_subtitle">What Pathfinder can see about this Thor. Paste it into an issue and most questions are answered before they\'re asked.</string>
+    <string name="diag_failed">Couldn\'t gather the report: %1$s</string>
+    <string name="diag_copy">Copy report</string>
+    <string name="diag_gathering">Gathering…</string>
+
+    <!-- Choosing apps -->
+    <string name="choose_app">Choose an app</string>
+
+    <!-- The questions an Ask shortcut puts up -->
+    <string name="the_app">the app</string>
+    <string name="ask_open_on">Open %1$s on</string>
+    <string name="ask_top">Top screen</string>
+    <string name="ask_top_detail">The main screen</string>
+    <string name="ask_bottom">Bottom screen</string>
+    <string name="ask_bottom_detail">The second screen</string>
+    <string name="switch_to">Switch to</string>
+
+    <!-- Welcome to 1.0 -->
+    <string name="w_profiles">App profiles</string>
+    <string name="w_profiles_text">Link apps to a profile, and Pathfinder switches to it while that app is the one you\'re playing.</string>
+    <string name="w_profiles_button">Set it up</string>
+    <string name="w_combos">Button combos</string>
+    <string name="w_combos_text">Hold Back, Home or the AYN button and press one or two more buttons, for dozens of new shortcuts.</string>
+    <string name="w_combos_button">Add a combo</string>
+    <string name="w_backup">Backup &amp; share</string>
+    <string name="w_backup_text">Save every profile to a file, bring them back any time, or share one with a friend.</string>
+    <string name="w_backup_button">Open it</string>
+    <string name="w_languages">In your language</string>
+    <string name="w_languages_text">Pathfinder now speaks English, Spanish, Portuguese (Brazil), Simplified Chinese and Japanese. Pick one, or follow the Thor.</string>
+    <string name="w_languages_button">Choose</string>
+    <string name="w_title">Welcome to Thor Pathfinder %1$s</string>
+    <string name="w_intro">The biggest update yet. New things to try:</string>
+    <string name="w_notes">Read the release notes</string>
+    <string name="w_continue">Continue</string>
+
+    <!-- Shared pieces of the interface -->
+    <string name="open">Open</string>
+    <string name="list_view">List view</string>
+    <string name="two_column_view">Two-column view</string>
+    <string name="wide_view">Wide view</string>
 </resources>

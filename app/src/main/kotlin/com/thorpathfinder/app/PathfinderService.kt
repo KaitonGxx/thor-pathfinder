@@ -13,6 +13,7 @@ import android.os.VibratorManager
 import android.view.Display
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
+import androidx.annotation.StringRes
 import com.thorpathfinder.app.ui.ProfileChoiceActivity
 import com.thorpathfinder.app.ui.ScreenChoiceActivity
 import com.thorpathfinder.app.ui.ShortcutMenuActivity
@@ -34,6 +35,7 @@ class PathfinderService : AccessibilityService() {
     private lateinit var engine: GestureEngine
     private lateinit var worker: ExecutorService
     private lateinit var overlay: Overlay
+    private lateinit var apps: AppWatcher
 
     /** Keys whose press closed the map, so that their release is kept from the app as well. */
     private val closedMap = mutableSetOf<Int>()
@@ -61,8 +63,11 @@ class PathfinderService : AccessibilityService() {
             // Back and Home have Android's own action to fall back on; the AYN
             // button has only its real key, which takes Shizuku to press.
             canRestore = { it.normalAction != null || Shell.ready },
+            fireCombo = ::performCombo,
             fire = ::perform,
         )
+        apps = AppWatcher(this, ::announceApp)
+        apps.start()
         running = true
         current = this
     }
@@ -71,14 +76,23 @@ class PathfinderService : AccessibilityService() {
         if (!::engine.isInitialized) return false
         if (keptForMap(event)) return true
         if (event.action != KeyEvent.ACTION_DOWN && event.action != KeyEvent.ACTION_UP) return false
-        val button = PhysicalButton.of(event.keyCode, event.scanCode) ?: return false
+        val key = ComboKey.of(event.keyCode, event.scanCode, xboxStyle(event))
+        val button = PhysicalButton.of(event.keyCode, event.scanCode)
+        if (key == null && button == null) return false
         return engine.onKey(
+            key = key,
             button = button,
             down = event.action == KeyEvent.ACTION_DOWN,
             repeat = event.repeatCount,
             time = event.eventTime,
             canceled = event.isCanceled,
         )
+    }
+
+    /** Whether [event] came from the Thor's controller in AYN's Xbox style (see [ComboKey.XBOX_STYLE_PRODUCT]). */
+    private fun xboxStyle(event: KeyEvent): Boolean {
+        val device = event.device ?: return false
+        return device.vendorId == ComboKey.AYN_VENDOR && device.productId == ComboKey.XBOX_STYLE_PRODUCT
     }
 
     /**
@@ -126,7 +140,14 @@ class PathfinderService : AccessibilityService() {
         run(shortcuts.shortcut(button, gesture).copy(action = resolved))
     }
 
-    /** Carries out one shortcut, whether a button's or one picked from the Shortcut menu. */
+    /** A combo was pressed: only combos that do something are ever looked for. */
+    private fun performCombo(keys: Set<ComboKey>) {
+        val shortcut = shortcuts.combo(keys) ?: return
+        if (shortcuts.vibrate) buzz()
+        run(shortcut)
+    }
+
+    /** Carries out one shortcut, whether a button's, a combo's or one picked from the Shortcut menu. */
     private fun run(shortcut: Shortcut) {
         when (shortcut.action) {
             ButtonAction.NORMAL, ButtonAction.NOTHING -> Unit
@@ -138,40 +159,48 @@ class PathfinderService : AccessibilityService() {
             ButtonAction.SCREENSHOT -> performGlobalAction(GLOBAL_ACTION_TAKE_SCREENSHOT)
             ButtonAction.POWER_MENU -> performGlobalAction(GLOBAL_ACTION_POWER_DIALOG)
             ButtonAction.LOCK_SCREEN -> performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
-            ButtonAction.SWAP_SCREENS -> worker.execute { swapOutcomeMessage(ScreenSwap.swap(this))?.let(::toast) }
+            ButtonAction.SWAP_SCREENS -> worker.execute { swapOutcomeMessage(words(), ScreenSwap.swap(this))?.let(::toast) }
             ButtonAction.CLOSE_ALL -> worker.execute {
                 // Every way of closing shares the keep-running list: closed, never force-stopped.
                 val keep = shortcuts.keepRunning
+                val words = words()
                 toast(
                     when (shortcut.close) {
-                        CloseTarget.ALL -> closeAllOutcomeMessage(RecentTasks.closeAll(this, keep))
+                        CloseTarget.ALL -> closeAllOutcomeMessage(words, RecentTasks.closeAll(this, keep))
                         CloseTarget.BACKGROUND ->
-                            closeBackgroundOutcomeMessage(RecentTasks.closeBackground(this, keep))
-                        CloseTarget.FOCUSED -> closeAppsOutcomeMessage(RecentTasks.closeFocused(this, keep))
+                            closeBackgroundOutcomeMessage(words, RecentTasks.closeBackground(this, keep))
+                        CloseTarget.FOCUSED -> closeAppsOutcomeMessage(words, RecentTasks.closeFocused(this, keep))
                         CloseTarget.TOP -> closeAppsOutcomeMessage(
-                            RecentTasks.closeOnScreen(this, Display.DEFAULT_DISPLAY, "the top screen", keep)
+                            words,
+                            RecentTasks.closeOnScreen(this, Display.DEFAULT_DISPLAY, top = true, keep),
                         )
                         CloseTarget.BOTTOM -> closeAppsOutcomeMessage(
-                            RecentTasks.closeOnScreen(this, ScreenSwap.otherDisplay(this)?.displayId, "the bottom screen", keep)
+                            words,
+                            RecentTasks.closeOnScreen(this, ScreenSwap.otherDisplay(this)?.displayId, top = false, keep),
                         )
                         CloseTarget.SPECIFIC -> closeAppsOutcomeMessage(
-                            RecentTasks.closeApps(this, shortcut.closeApps, keep)
+                            words,
+                            RecentTasks.closeApps(this, shortcut.closeApps, keep),
                         )
                     }
                 )
             }
-            ButtonAction.SCREEN_RECORD -> worker.execute { screenRecordOutcomeMessage(ScreenRecord.open(this))?.let(::toast) }
+            ButtonAction.SCREEN_RECORD -> worker.execute {
+                screenRecordOutcomeMessage(words(), ScreenRecord.open(this))?.let(::toast)
+            }
             ButtonAction.MOUSE_MODE -> worker.execute {
                 // The Thor puts up its own message when mouse mode changes, so
                 // Pathfinder only speaks when it couldn't change it.
-                if (MouseMode.toggle() == null) toast("Mouse mode needs Shizuku")
+                if (MouseMode.toggle() == null) toast(getString(R.string.msg_mouse_needs_shizuku))
             }
             // Unlike mouse mode, AYN says nothing when Focus Mode changes, so Pathfinder does.
-            ButtonAction.FOCUS_MODE -> worker.execute { toast(focusModeMessage(FocusMode.apply(this, shortcut.focus))) }
+            ButtonAction.FOCUS_MODE -> worker.execute {
+                toast(focusModeMessage(words(), FocusMode.apply(this, shortcut.focus)))
+            }
             ButtonAction.LAUNCH_APP -> openApps(shortcut)
             ButtonAction.PROFILE -> switchProfile(shortcut)
             ButtonAction.SHORTCUT_MENU ->
-                ask(Intent(this, ShortcutMenuActivity::class.java), "Couldn't open the shortcut menu")
+                ask(Intent(this, ShortcutMenuActivity::class.java), R.string.msg_couldnt_open_menu)
         }
     }
 
@@ -186,7 +215,11 @@ class PathfinderService : AccessibilityService() {
         val scanCode = button.scanCode ?: return
         val fallback = button.normalAction
         if (!Shell.ready) {
-            if (fallback != null) global(fallback) else toast("The ${button.label}'s own menu needs Shizuku")
+            if (fallback != null) {
+                global(fallback)
+            } else {
+                toast(getString(R.string.msg_button_menu_needs_shizuku, getString(button.text)))
+            }
             return
         }
         engine.letThrough(button, SystemClock.uptimeMillis() + REPLAY_WINDOW_MS)
@@ -194,7 +227,7 @@ class PathfinderService : AccessibilityService() {
             if (!KeyReplay.press(device, scanCode, if (long) LONG_PRESS_MS else SHORT_PRESS_MS)) {
                 handler.post {
                     engine.letThrough(button, Long.MIN_VALUE)
-                    if (fallback != null) global(fallback) else toast("Couldn't press the ${button.label}")
+                    if (fallback != null) global(fallback) else toast(getString(R.string.msg_couldnt_press, getString(button.text)))
                 }
             }
         }
@@ -221,7 +254,7 @@ class PathfinderService : AccessibilityService() {
     /** "Open an app": one app on its screen, one on each screen, or ask which. */
     private fun openApps(shortcut: Shortcut) {
         val app = shortcut.app ?: run {
-            toast("That app isn't installed")
+            toast(getString(R.string.msg_app_not_installed))
             return
         }
         val second = shortcut.second
@@ -242,7 +275,7 @@ class PathfinderService : AccessibilityService() {
         val id = shortcut.profileId
         val mode = shortcut.profile
         when {
-            mode == ProfileSwitch.ASK -> ask(Intent(this, ProfileChoiceActivity::class.java), "Couldn't ask which profile")
+            mode == ProfileSwitch.ASK -> ask(Intent(this, ProfileChoiceActivity::class.java), R.string.msg_couldnt_ask_profile)
             mode == ProfileSwitch.ENABLE && Profiles.has(this, id) -> announce(Profiles.enable(this, id))
             else -> announce(Profiles.cycle(this))
         }
@@ -257,17 +290,35 @@ class PathfinderService : AccessibilityService() {
         }
     }
 
+    /**
+     * A switch made for an app, or back to the chosen profile on leaving it:
+     * a message, which is also the title of the Thor picture when switching
+     * shows it.
+     */
+    private fun announceApp(profile: Profiles.Profile, app: String?) {
+        val name = app?.let { pkg ->
+            runCatching { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString() }
+                .getOrDefault(pkg)
+        }
+        val message = AppProfiles.switchMessage(words(), profile.name, name)
+        if (Profiles.showMap(this)) {
+            overlay.showMap(message, ButtonMap.callouts(this, shortcuts))
+        } else {
+            overlay.show(message)
+        }
+    }
+
     /** Puts "top or bottom?" on the top screen, for a shortcut set to ask. */
     private fun ask(pkg: String) = ask(
         Intent(this, ScreenChoiceActivity::class.java).putExtra(ScreenChoiceActivity.EXTRA_PACKAGE, pkg),
-        "Couldn't ask which screen",
+        R.string.msg_couldnt_ask_screen,
     )
 
     /** Puts one of Pathfinder's questions on the top screen. */
-    private fun ask(question: Intent, problem: String) {
+    private fun ask(question: Intent, @StringRes problem: Int) {
         question.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         val options = ActivityOptions.makeBasic().setLaunchDisplayId(Display.DEFAULT_DISPLAY).toBundle()
-        if (runCatching { startActivity(question, options) }.isFailure) toast(problem)
+        if (runCatching { startActivity(question, options) }.isFailure) toast(getString(problem))
     }
 
     private fun buzz() {
@@ -289,6 +340,7 @@ class PathfinderService : AccessibilityService() {
         running = false
         current = null
         if (::engine.isInitialized) engine.reset()
+        if (::apps.isInitialized) apps.stop()
         if (::overlay.isInitialized) overlay.dismiss()
         closedMap.clear()
         handler.removeCallbacksAndMessages(null)
@@ -305,6 +357,10 @@ class PathfinderService : AccessibilityService() {
         @Volatile
         var running = false
             private set
+
+        /** Whether app profiles are watching which app is in front, for the diagnostics report. */
+        val watchingApps: Boolean
+            get() = current?.let { it::apps.isInitialized && it.apps.watching } == true
 
         /** The connected service, so a switch made in the app can be shown too. */
         @Volatile
@@ -352,11 +408,11 @@ class PathfinderService : AccessibilityService() {
 }
 
 /** A message for the user, or null when the swap simply worked. */
-fun swapOutcomeMessage(outcome: ScreenSwap.Outcome): String? = when (outcome) {
+fun swapOutcomeMessage(words: Words, outcome: ScreenSwap.Outcome): String? = when (outcome) {
     ScreenSwap.Outcome.Swapped, ScreenSwap.Outcome.Moved -> null
-    ScreenSwap.Outcome.NothingToMove -> "No app to move"
-    ScreenSwap.Outcome.NoSecondScreen -> "No second screen found"
-    ScreenSwap.Outcome.SecondScreenOff -> "The other screen is off"
-    ScreenSwap.Outcome.NeedsShizuku -> "Swapping screens needs Shizuku"
-    is ScreenSwap.Outcome.Failed -> "Couldn't swap: ${outcome.message}"
+    ScreenSwap.Outcome.NothingToMove -> words.text(R.string.msg_swap_nothing)
+    ScreenSwap.Outcome.NoSecondScreen -> words.text(R.string.msg_no_second_screen)
+    ScreenSwap.Outcome.SecondScreenOff -> words.text(R.string.msg_other_screen_off)
+    ScreenSwap.Outcome.NeedsShizuku -> words.text(R.string.msg_swap_needs_shizuku)
+    is ScreenSwap.Outcome.Failed -> words.text(R.string.msg_swap_failed, outcome.message)
 }

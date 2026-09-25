@@ -76,27 +76,27 @@ object Updater {
 
     /** Blocking: downloads, checks and installs. [onProgress] gets 0..100. */
     fun install(context: Context, release: UpdateCheck.Release, onProgress: (Int) -> Unit): Outcome {
-        val url = release.apk ?: return Outcome.Failed("That release has no APK to download.")
+        val url = release.apk ?: return Outcome.Failed(context.getString(R.string.inst_no_apk))
         if (!url.startsWith(UpdateCheck.DOWNLOAD_PREFIX)) {
-            return Outcome.Failed("That download isn't from Pathfinder's releases.")
+            return Outcome.Failed(context.getString(R.string.inst_not_ours))
         }
-        if (!Shell.ready) return Outcome.Failed("Installing an update needs Shizuku.")
+        if (!Shell.ready) return Outcome.Failed(context.getString(R.string.inst_needs_shizuku))
 
         val file = File(context.cacheDir, "update.apk")
         try {
-            download(url, file, onProgress)?.let { return Outcome.Failed(it) }
+            download(context, url, file, onProgress)?.let { return Outcome.Failed(it) }
             check(context, file)?.let { return Outcome.Failed(it) }
-            return handOver(file)
+            return handOver(context, file)
         } catch (e: IOException) {
             Log.w(TAG, "update failed", e)
-            return Outcome.Failed("Couldn't download the update. Check that the Thor is online.")
+            return Outcome.Failed(context.getString(R.string.inst_download_failed))
         } finally {
             file.delete()
         }
     }
 
     /** Null when the file arrived, a message when it didn't. */
-    private fun download(url: String, into: File, onProgress: (Int) -> Unit): String? {
+    private fun download(context: Context, url: String, into: File, onProgress: (Int) -> Unit): String? {
         val connection = (URL(url).openConnection() as HttpURLConnection).apply {
             connectTimeout = TIMEOUT_MS
             readTimeout = TIMEOUT_MS
@@ -104,7 +104,7 @@ object Updater {
         }
         try {
             if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                return "GitHub answered with error ${connection.responseCode}."
+                return context.getString(R.string.inst_http, connection.responseCode)
             }
             val total = connection.contentLengthLong
             var read = 0L
@@ -120,7 +120,7 @@ object Updater {
                     }
                 }
             }
-            return if (into.length() == 0L) "The download was empty." else null
+            return if (into.length() == 0L) context.getString(R.string.inst_empty) else null
         } finally {
             connection.disconnect()
         }
@@ -130,14 +130,14 @@ object Updater {
     private fun check(context: Context, file: File): String? {
         val pm = context.packageManager
         val downloaded = pm.getPackageArchiveInfo(file.path, PackageManager.GET_SIGNING_CERTIFICATES)
-            ?: return "The download isn't a working APK."
-        if (downloaded.packageName != context.packageName) return "That APK isn't Thor Pathfinder."
+            ?: return context.getString(R.string.inst_broken)
+        if (downloaded.packageName != context.packageName) return context.getString(R.string.inst_not_pathfinder)
         val installed = pm.getPackageInfo(context.packageName, PackageManager.GET_SIGNING_CERTIFICATES)
         if (fingerprints(downloaded.signingInfo) != fingerprints(installed.signingInfo)) {
-            return "That APK is signed with a different key, so Android wouldn't install it."
+            return context.getString(R.string.inst_other_key)
         }
         if (downloaded.longVersionCode <= installed.longVersionCode) {
-            return "That APK isn't newer than the copy already installed."
+            return context.getString(R.string.inst_not_newer)
         }
         return null
     }
@@ -153,21 +153,23 @@ object Updater {
      * replaces this very app, so it usually never returns: Android stops the
      * process as it installs.
      */
-    private fun handOver(file: File): Outcome {
+    private fun handOver(context: Context, file: File): Outcome {
         val size = file.length().toString()
         val created = Shell.run("pm", "install-create", "-r", "-S", size)
         val session = Regex("""\[(\d+)]""").find(created.out)?.groupValues?.get(1)
-            ?: return Outcome.Failed("Couldn't start the install: ${created.err.trim().ifBlank { created.out.trim() }}")
+            ?: return Outcome.Failed(
+                context.getString(R.string.inst_start_failed, created.err.trim().ifBlank { created.out.trim() }),
+            )
         val written = Shell.pipe("pm", "install-write", "-S", size, session, "base", "-") { out ->
             file.inputStream().use { it.copyTo(out) }
         }
         if (!written.ok) {
             Shell.run("pm", "install-abandon", session)
-            return Outcome.Failed("Couldn't write the update: ${written.err.trim()}")
+            return Outcome.Failed(context.getString(R.string.inst_write_failed, written.err.trim()))
         }
         val committed = Shell.run("pm", "install-commit", session)
         if (!committed.ok) {
-            return Outcome.Failed("Couldn't install the update: ${committed.err.trim()}")
+            return Outcome.Failed(context.getString(R.string.inst_failed, committed.err.trim()))
         }
         return Outcome.Installing
     }

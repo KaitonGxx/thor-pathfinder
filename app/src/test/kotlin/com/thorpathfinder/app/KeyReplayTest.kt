@@ -17,6 +17,16 @@ class KeyReplayTest {
     }
 
     @Test
+    fun findsTheControllerInEveryStyle() {
+        // AYN's Xbox style makes the controller anew under another name, on the same node.
+        val xbox = devices.replace("N: Name=\"Odin Controller\"", "N: Name=\"Xbox Wireless Controller\"")
+        assertEquals("/dev/input/event9", KeyReplay.devicePath(xbox, "Odin Controller"))
+        val none = devices.replace("N: Name=\"Odin Controller\"", "N: Name=\"None Controller\"")
+        assertEquals("/dev/input/event9", KeyReplay.devicePath(none, "Odin Controller"))
+        assertEquals(listOf("gpio-keys"), KeyReplay.names("gpio-keys"))
+    }
+
+    @Test
     fun needsTheWholeName() {
         // "fts_ts" is a prefix of "fts_ts_3", and the two are different screens.
         assertEquals("/dev/input/event6", KeyReplay.devicePath(devices, "fts_ts"))
@@ -44,10 +54,10 @@ class KeyReplayTest {
 
     @Test
     fun labelsSayWhatNormalDoes() {
-        assertEquals("Normal (AYN menu)", normalLabel(PhysicalButton.AYN, Gesture.PRESS))
-        assertEquals("Normal (long press)", normalLabel(PhysicalButton.AYN, Gesture.HOLD))
-        assertEquals("Normal (Back)", normalLabel(PhysicalButton.BACK, Gesture.PRESS))
-        assertEquals("Normal (Home)", normalLabel(PhysicalButton.HOME, Gesture.PRESS))
-        assertEquals("Normal (a press)", normalLabel(PhysicalButton.HOME, Gesture.HOLD))
+        assertEquals("Normal (AYN menu)", normalLabel(English, PhysicalButton.AYN, Gesture.PRESS))
+        assertEquals("Normal (long press)", normalLabel(English, PhysicalButton.AYN, Gesture.HOLD))
+        assertEquals("Normal (Back)", normalLabel(English, PhysicalButton.BACK, Gesture.PRESS))
+        assertEquals("Normal (Home)", normalLabel(English, PhysicalButton.HOME, Gesture.PRESS))
+        assertEquals("Normal (a press)", normalLabel(English, PhysicalButton.HOME, Gesture.HOLD))
     }
 }

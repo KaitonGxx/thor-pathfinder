@@ -25,6 +25,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.thorpathfinder.app.R
 import com.thorpathfinder.app.Diagnostics
 import com.thorpathfinder.app.SystemState
 import kotlinx.coroutines.Dispatchers
@@ -47,15 +49,14 @@ fun DiagnosticsPage(state: SystemState, onBack: () -> Unit) {
     LaunchedEffect(Unit) {
         report = withContext(Dispatchers.IO) {
             runCatching { Diagnostics.report(context, state) }
-                .getOrElse { "Couldn't gather the report: ${it.message}" }
+                .getOrElse { context.getString(R.string.diag_failed, it.message.orEmpty()) }
         }
     }
     LaunchedEffect(inputMode, report) { runCatching { copy.requestFocus() } }
 
     PageScaffold(
-        "Diagnostics",
-        "What Pathfinder can see about this Thor. Paste it into an issue and most questions " +
-            "are answered before they're asked.",
+        stringResource(R.string.page_diagnostics),
+        stringResource(R.string.diag_subtitle),
         onBack = onBack,
     ) {
         val text = report
@@ -68,7 +69,7 @@ fun DiagnosticsPage(state: SystemState, onBack: () -> Unit) {
                 enabled = text != null,
                 modifier = Modifier.focusRequester(copy).focusOutline(PillShape),
             ) {
-                Text("Copy report")
+                Text(stringResource(R.string.diag_copy))
             }
         }
         ScrollingColumn(
@@ -77,7 +78,7 @@ fun DiagnosticsPage(state: SystemState, onBack: () -> Unit) {
             contentPadding = PaddingValues(vertical = 8.dp),
         ) {
             Text(
-                text ?: "Gathering…",
+                text ?: stringResource(R.string.diag_gathering),
                 style = MaterialTheme.typography.bodySmall,
                 fontFamily = FontFamily.Monospace,
                 // Long lines are kept whole so the report pastes as it reads.

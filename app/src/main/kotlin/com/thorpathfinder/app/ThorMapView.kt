@@ -126,7 +126,7 @@ class ThorMapView(
 
         // The A button beside the word, the way consoles show what to press.
         // Any button closes the map, so A is right wherever the Thor puts it.
-        val label = "Dismiss"
+        val label = context.getString(R.string.map_dismiss)
         val glyphRadius = 11f * density
         val gap = 8f * density
         val labelWidth = buttonText.measureText(label)

@@ -34,11 +34,11 @@ object UpdateCheck {
     }
 
     /** Blocks for up to [TIMEOUT_MS] twice over: run it off the main thread. */
-    fun check(installed: String): Outcome {
+    fun check(words: Words, installed: String): Outcome {
         val connection = try {
             URL(API).openConnection() as HttpURLConnection
         } catch (e: IOException) {
-            return Outcome.Failed(OFFLINE)
+            return Outcome.Failed(words.text(R.string.upd_offline))
         }
         connection.connectTimeout = TIMEOUT_MS
         connection.readTimeout = TIMEOUT_MS
@@ -50,19 +50,19 @@ object UpdateCheck {
                 HttpURLConnection.HTTP_OK -> {
                     val release = parse(connection.inputStream.bufferedReader().use { it.readText() })
                     when {
-                        release == null -> Outcome.Failed("GitHub's answer didn't make sense. Try again later.")
+                        release == null -> Outcome.Failed(words.text(R.string.upd_bad_answer))
                         isNewer(release.version, installed) -> Outcome.Available(release)
                         else -> Outcome.UpToDate(release)
                     }
                 }
-                HttpURLConnection.HTTP_NOT_FOUND -> Outcome.Failed("GitHub doesn't list any releases yet.")
+                HttpURLConnection.HTTP_NOT_FOUND -> Outcome.Failed(words.text(R.string.upd_no_releases))
                 // Unsigned requests are limited to 60 an hour per network.
                 HttpURLConnection.HTTP_FORBIDDEN, 429 ->
-                    Outcome.Failed("GitHub is limiting checks from this network. Try again in an hour.")
-                else -> Outcome.Failed("GitHub answered with error $code. Try again later.")
+                    Outcome.Failed(words.text(R.string.upd_rate_limited))
+                else -> Outcome.Failed(words.text(R.string.upd_error, code))
             }
         } catch (e: IOException) {
-            Outcome.Failed(OFFLINE)
+            Outcome.Failed(words.text(R.string.upd_offline))
         } finally {
             connection.disconnect()
         }
@@ -114,5 +114,4 @@ object UpdateCheck {
             .map { part -> part.takeWhile(Char::isDigit).toIntOrNull() ?: 0 }
 
     private const val TIMEOUT_MS = 10_000
-    private const val OFFLINE = "Couldn't reach GitHub. Check that the Thor is online."
 }

@@ -1,0 +1,547 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simplified Chinese. Written with AI help; corrections are welcome. -->
+<resources>
+    <string name="accessibility_description">Thor Pathfinder 监听返回、主页、AYN、Select、Start、L3 和 R3 按键，用来执行你的快捷操作：交换屏幕、最近任务、鼠标模式等。它只接收按键操作，无法读取屏幕内容，也无法读取你输入的任何内容。</string>
+
+    <!-- The Thor's buttons -->
+    <string name="button_back">返回</string>
+    <string name="button_home">主页</string>
+    <string name="button_ayn">AYN 键</string>
+    <string name="button_select">Select</string>
+    <string name="button_start">Start</string>
+    <string name="button_l3">L3（按下左摇杆）</string>
+    <string name="button_r3">R3（按下右摇杆）</string>
+    <string name="normal_ayn_menu">AYN 菜单</string>
+
+    <!-- Gestures -->
+    <string name="gesture_press">单击</string>
+    <string name="gesture_double">双击</string>
+    <string name="gesture_hold">长按</string>
+
+    <!-- Where "Open an app" opens it -->
+    <string name="launch_top">上屏</string>
+    <string name="launch_bottom">下屏</string>
+    <string name="launch_ask">询问</string>
+    <string name="launch_top_short">上屏</string>
+    <string name="launch_bottom_short">下屏</string>
+    <string name="launch_ask_short">询问</string>
+
+    <!-- What "Close app(s)" closes -->
+    <string name="close_all">关闭所有应用</string>
+    <string name="close_background">关闭后台应用</string>
+    <string name="close_focused">关闭当前焦点应用</string>
+    <string name="close_top">关闭上屏应用</string>
+    <string name="close_bottom">关闭下屏应用</string>
+    <string name="close_specific">关闭指定应用</string>
+
+    <!-- What a Profile switcher does -->
+    <string name="profile_switch_cycle">循环切换配置</string>
+    <string name="profile_switch_enable">启用某个配置</string>
+    <string name="profile_switch_ask">每次询问</string>
+
+    <!-- Which screens a Home shortcut sends home -->
+    <string name="home_top">仅上屏</string>
+    <string name="home_bottom">仅下屏</string>
+    <string name="home_both">两块屏幕</string>
+    <string name="home_top_short">上屏</string>
+    <string name="home_bottom_short">下屏</string>
+    <string name="home_both_short">双屏</string>
+
+    <!-- What a Focus Mode shortcut does -->
+    <string name="focus_top">焦点锁定上屏</string>
+    <string name="focus_bottom">焦点锁定下屏</string>
+    <string name="focus_cycle">循环切换焦点模式</string>
+    <string name="focus_swap">上下屏焦点互换</string>
+
+    <!-- Actions -->
+    <string name="action_normal">默认</string>
+    <string name="action_nothing">无操作</string>
+    <string name="action_back">返回</string>
+    <string name="action_home">主页</string>
+    <string name="action_recents">最近任务</string>
+    <string name="action_close_all">关闭应用</string>
+    <string name="action_swap_screens">交换屏幕</string>
+    <string name="action_mouse_mode">开关鼠标模式</string>
+    <string name="action_focus_mode">焦点模式</string>
+    <string name="action_notifications">通知</string>
+    <string name="action_quick_settings">快捷设置</string>
+    <string name="action_screenshot">截屏</string>
+    <string name="action_screen_record">录屏（测试中）</string>
+    <string name="action_power_menu">电源菜单</string>
+    <string name="action_lock_screen">锁屏</string>
+    <string name="action_shortcut_menu">快捷操作菜单</string>
+    <string name="action_launch_app">打开应用</string>
+    <string name="action_profile">切换配置</string>
+
+    <!-- A gesture left on Normal -->
+    <string name="normal_nothing_extra">无额外操作</string>
+    <string name="normal_is">默认（%1$s）</string>
+    <string name="normal_two_presses">默认（按两次）</string>
+    <string name="normal_long_press">默认（长按）</string>
+    <string name="normal_a_press">默认（按一次）</string>
+
+    <!-- Combo buttons -->
+    <string name="key_up">方向键上</string>
+    <string name="key_down">方向键下</string>
+    <string name="key_left">方向键左</string>
+    <string name="key_right">方向键右</string>
+    <string name="key_up_short">上</string>
+    <string name="key_down_short">下</string>
+    <string name="key_left_short">左</string>
+    <string name="key_right_short">右</string>
+
+    <!-- The Thor picture shown on a profile switch -->
+    <string name="map_line">%1$s：%2$s</string>
+    <string name="map_combo_line">+ %1$s：%2$s</string>
+    <plurals name="map_more_combos">
+        <item quantity="other">还有 %d 个组合键</item>
+    </plurals>
+    <string name="map_home_to">主页（%1$s）</string>
+    <string name="map_profile_ask">切换配置（询问）</string>
+    <string name="map_profile_enable">启用 %1$s</string>
+    <string name="map_open_pair">打开 %1$s + %2$s</string>
+    <string name="map_open_one">打开 %1$s（%2$s）</string>
+    <string name="map_dismiss">关闭</string>
+
+    <!-- Messages over the screen when a shortcut runs -->
+    <string name="msg_mouse_needs_shizuku">鼠标模式需要 Shizuku</string>
+    <string name="msg_button_menu_needs_shizuku">%1$s自带的菜单需要 Shizuku</string>
+    <string name="msg_couldnt_press">无法按下%1$s</string>
+    <string name="msg_app_not_installed">未安装该应用</string>
+    <string name="msg_couldnt_ask_screen">无法询问使用哪块屏幕</string>
+    <string name="msg_couldnt_ask_profile">无法询问使用哪个配置</string>
+    <string name="msg_couldnt_open_menu">无法打开快捷操作菜单</string>
+    <string name="msg_swap_nothing">没有可移动的应用</string>
+    <string name="msg_no_second_screen">未找到第二块屏幕</string>
+    <string name="msg_other_screen_off">另一块屏幕已关闭</string>
+    <string name="msg_swap_needs_shizuku">交换屏幕需要 Shizuku</string>
+    <string name="msg_swap_failed">无法交换：%1$s</string>
+    <string name="msg_closed">已关闭：%1$s</string>
+    <string name="msg_no_app_top">上屏没有应用</string>
+    <string name="msg_no_app_bottom">下屏没有应用</string>
+    <string name="msg_no_app_to_close">没有可关闭的应用</string>
+    <string name="msg_none_running">所选应用都未在运行</string>
+    <string name="msg_close_apps_needs_shizuku">关闭应用需要 Shizuku</string>
+    <string name="msg_close_failed">无法关闭：%1$s</string>
+    <string name="msg_background_closed">已关闭后台任务</string>
+    <string name="msg_no_background">没有后台任务</string>
+    <string name="msg_all_closed">已关闭所有任务</string>
+    <string name="msg_no_tasks">没有可关闭的任务</string>
+    <string name="msg_close_tasks_needs_shizuku">关闭任务需要 Shizuku</string>
+    <string name="msg_close_tasks_failed">无法关闭任务：%1$s</string>
+    <string name="list_none">没有应用</string>
+    <string name="list_two">%1$s 和 %2$s</string>
+    <plurals name="list_apps">
+        <item quantity="other">%d 个应用</item>
+    </plurals>
+    <string name="msg_add_record_tile">请把“屏幕录制”图块添加到快捷设置</string>
+    <string name="msg_record_needs_shizuku">录屏需要 Shizuku</string>
+    <string name="msg_record_failed">无法打开录屏：%1$s</string>
+    <string name="msg_switched_on">已重新开启</string>
+    <string name="msg_switch_needs_shizuku">在这里开启需要 Shizuku</string>
+    <string name="msg_switch_failed">无法开启：%1$s</string>
+    <string name="msg_watchdog_on">看门狗已开启</string>
+    <string name="msg_watchdog_off">看门狗已关闭</string>
+    <string name="msg_watchdog_needs_shizuku">看门狗需要 Shizuku</string>
+    <string name="msg_watchdog_failed">无法更改看门狗：%1$s</string>
+    <string name="msg_couldnt_open_app">无法打开该应用</string>
+    <string name="msg_no_home_found">找不到该屏幕的主屏幕</string>
+    <string name="msg_couldnt_go_home">无法回到主页</string>
+    <string name="focus_mode_auto">自动锁定</string>
+    <string name="focus_mode_top">上屏</string>
+    <string name="focus_mode_bottom">下屏</string>
+    <string name="msg_focus_mode">焦点模式：%1$s</string>
+    <string name="msg_focus_needs_shizuku">焦点模式需要 Shizuku</string>
+    <string name="msg_focus_failed">无法更改焦点模式：%1$s</string>
+    <string name="msg_profile">配置：%1$s</string>
+    <string name="msg_profile_for">配置：%1$s（%2$s）</string>
+
+    <!-- Choosing a shortcut -->
+    <string name="needs_shizuku">需要 Shizuku</string>
+    <string name="picker_open_one">打开 1 个应用</string>
+    <string name="picker_open_one_detail">在上屏、下屏打开，或每次询问</string>
+    <string name="picker_open_two">打开 2 个应用</string>
+    <string name="picker_open_two_detail">每块屏幕一个，同时打开</string>
+    <string name="picker_open_on">在哪块屏幕打开 %1$s</string>
+    <string name="picker_ask_detail">每次运行快捷操作时选择上屏或下屏</string>
+    <string name="picker_app_top">上屏的应用</string>
+    <string name="picker_app_bottom">下屏的应用</string>
+    <string name="picker_apps_to_close">要关闭的应用</string>
+    <string name="picker_cycle_detail">每按一次切换到下一个配置</string>
+    <string name="picker_ask_profile_detail">运行快捷操作时从列表中选择</string>
+    <string name="picker_enable_detail">再按一次回到主配置</string>
+    <string name="picker_home_on">回到主页的屏幕</string>
+    <string name="picker_focus_top_detail">把手柄锁定到上屏</string>
+    <string name="picker_focus_bottom_detail">把手柄锁定到下屏</string>
+    <string name="picker_focus_cycle_detail">自动锁定、上屏、下屏，每按一次切换一个</string>
+    <string name="picker_focus_swap_detail">上屏和下屏之间来回切换；从自动锁定开始时先切到上屏</string>
+
+    <!-- Common buttons -->
+    <string name="cancel">取消</string>
+    <string name="next">下一步</string>
+    <string name="next_with">下一步：%1$s</string>
+    <string name="ok">确定</string>
+    <string name="done">完成</string>
+    <string name="done_count">完成（%1$d）</string>
+
+    <!-- Combos -->
+    <string name="combos_badge">组合键</string>
+    <string name="group_face">ABXY 键</string>
+    <string name="group_dpad">方向键</string>
+    <string name="group_shoulders">肩键</string>
+    <string name="group_sticks">摇杆</string>
+    <string name="group_select_start">Select 和 Start</string>
+    <string name="group_system">系统</string>
+    <string name="combo_hold_press">按住%1$s，再按…</string>
+    <string name="combo_pick_detail">一个按键，或同时按下两个。按住%1$s时，应用收不到这些按键。组合键始终以按键上印的字母为准，与手柄风格无关。</string>
+
+    <!-- The main screen -->
+    <string name="main_intro">点按某个手势可更改它的功能。对于返回、主页和 AYN 键，只要改动了任一手势，就由 Pathfinder 接管该按键，“默认”仍执行它原本的功能。</string>
+    <string name="edit_title">%1$s：%2$s</string>
+    <string name="combo_change">更改功能</string>
+    <string name="combo_remove">删除此组合键</string>
+    <string name="combo_remove_detail">这些按键恢复各自单独使用</string>
+    <string name="settings">设置</string>
+    <string name="update_available_title">有可用更新</string>
+    <string name="update_available_msg">%1$s 版已发布。你当前是 %2$s 版。</string>
+    <string name="up_to_date_title">已是最新版本</string>
+    <string name="up_to_date_newer">你当前是 %1$s 版，比最新发布的版本（%2$s）还新。</string>
+    <string name="up_to_date_latest">%1$s 是最新版本。</string>
+    <string name="check_failed_title">无法检查更新</string>
+    <string name="whats_new">更新内容</string>
+    <string name="open_release_page">打开发布页面</string>
+    <string name="not_now">以后再说</string>
+    <string name="close">关闭</string>
+    <string name="attention_title">有问题需要处理</string>
+    <string name="problem_firmware">不支持此 Thor 的固件</string>
+    <string name="problem_wayfinder">Thor Wayfinder 也在接管返回键</string>
+    <string name="problem_autolaunch">AYN 的 APP Auto Launch Manage 正在阻止 Pathfinder</string>
+    <string name="problem_autolaunch_detail">Thor Pathfinder 在该页面（设置 → Thor settings → Advanced Settings）中是开启状态，这会阻止 Android 启动它的服务，因此重启后所有快捷操作都会失效。请在那里将其关闭，或让 Pathfinder 来修复。</string>
+    <string name="problem_stuck">Pathfinder 已开启，但没有在运行</string>
+    <string name="problem_stuck_detail">Android 中的开关是开启的，但服务没有启动，所以快捷操作都不起作用。这可能发生在崩溃、意外重启之后，或是有应用在后台结束了其他应用。关闭后再重新开启即可修复。</string>
+    <string name="problem_off">Pathfinder 的无障碍服务已关闭</string>
+    <string name="problem_off_detail">应用每次更新时，Android 都会关闭它的无障碍服务。重新开启后，你的快捷操作就能再次使用。</string>
+    <string name="problem_shizuku">Shizuku 未连接</string>
+    <string name="shizuku_not_installed_detail">交换屏幕、鼠标模式和关闭应用都要通过 Shizuku，它无需 root 就能授予这些权限。</string>
+    <string name="shizuku_not_running_detail">Thor 每次重启后 Shizuku 都会停止，所以重启后需要再次启动它。</string>
+    <string name="shizuku_no_permission_detail">Shizuku 正在运行，但还没有授权 Pathfinder。</string>
+    <string name="fix">修复</string>
+    <plurals name="combos_count">
+        <item quantity="other">%d 个组合键</item>
+    </plurals>
+    <string name="works_as_usual">保持原样</string>
+    <string name="gamepad_subtitle">游戏仍会收到每一次按键，所以单击无法更改。</string>
+    <string name="combos_heading">组合键</string>
+    <string name="combos_heading_detail">按住%1$s，在长按触发之前再按一两个其他按键</string>
+    <string name="add_combo">添加组合键</string>
+    <string name="text_open_pair">上屏打开 %1$s，下屏打开 %2$s</string>
+    <string name="text_close_specific">关闭 %1$s</string>
+    <string name="an_app">某个应用</string>
+    <string name="about_title">关于</string>
+    <string name="about_text">Thor Pathfinder 是依照 GNU GPL v3 发布的自由软件，秉承了率先开路的 Thor Wayfinder 的精神。这是一个独立项目，与 Wayfinder 和 AYN 均无关联。</string>
+    <string name="whats_new_row">1.0 版新功能</string>
+    <string name="show">查看</string>
+    <string name="licenses_row">开源许可</string>
+    <string name="view">查看</string>
+
+    <!-- Setup -->
+    <string name="nav_back">上一步</string>
+    <string name="setup_get_started">开始</string>
+    <string name="setup_finish">完成</string>
+    <string name="setup_step">第 %1$d 步，共 %2$d 步</string>
+    <string name="welcome_title">欢迎使用 Thor Pathfinder</string>
+    <string name="welcome_body">Pathfinder 能在 Thor 的两块屏幕之间移动应用，并为按键设置快捷操作。默认设置如下：</string>
+    <string name="welcome_b1">长按返回：交换两块屏幕上的应用</string>
+    <string name="welcome_b2">双击返回：最近任务</string>
+    <string name="welcome_b3">双击 Select：开关鼠标模式</string>
+    <string name="welcome_later">这些之后都可以更改。设置大约需要两分钟。</string>
+    <string name="device_title">检查你的 Thor</string>
+    <string name="device_ok">%1$s，固件 %2$s</string>
+    <string name="device_untested">Pathfinder 是在 AYN Thor 和 Thor Lite 上开发和测试的。%1$s 应该也能正常使用；如有问题，请告诉我们。</string>
+    <string name="device_newer">这比 Pathfinder 测试所用的固件（%1$s）更新。应该可以正常使用；如有问题，请告诉我们。</string>
+    <string name="device_not_thor">这是 %1$s，不是 AYN Thor</string>
+    <string name="device_not_thor_body">Pathfinder 是为 Thor 的双屏和按键设计的，无法在这里运行。</string>
+    <string name="device_old">固件 %1$s 早于 %2$s</string>
+    <string name="device_unknown">无法确定这台 Thor 的固件版本</string>
+    <string name="device_update_body">Pathfinder 依赖 %1$s 及更新固件中 AYN 软件的部分功能。请更新你的 Thor，然后再次打开 Pathfinder。</string>
+    <string name="device_open_update">打开系统更新</string>
+    <string name="wayfinder_title">已安装 Thor Wayfinder</string>
+    <string name="wayfinder_body">Wayfinder 的功能 Pathfinder 都有，而且两者都使用返回键；如果同时开启，每次长按返回都会交换两次屏幕。请卸载 Wayfinder，或至少关闭它的无障碍服务。</string>
+    <string name="wayfinder_uninstalled">已卸载 Wayfinder</string>
+    <string name="wayfinder_off">Wayfinder 的服务已关闭</string>
+    <string name="wayfinder_on">Wayfinder 的服务仍然开启</string>
+    <string name="wayfinder_uninstall">卸载 Wayfinder</string>
+    <string name="wayfinder_turn_off">改为关闭它</string>
+    <string name="a11y_title">让 Pathfinder 接收按键</string>
+    <string name="a11y_body">Android 只把按键操作提供给无障碍服务，所以 Pathfinder 带有一个。它只接收按键操作：无法读取屏幕内容，也无法读取你输入的任何内容。</string>
+    <string name="a11y_on">Pathfinder 的服务已开启</string>
+    <string name="a11y_stuck">Pathfinder 已开启，但 Android 还没有启动它</string>
+    <string name="a11y_off">Pathfinder 的服务已关闭</string>
+    <string name="a11y_blocked_body">Thor Pathfinder 在 APP Auto Launch Manage（设置 → Thor settings → Advanced Settings）中是开启状态。与名字相反，这个页面会阻止其中开启的应用在后台启动；只要 Pathfinder 在里面，Android 就无法启动它的服务，因此重启后所有快捷操作都会失效。请在该页面关闭 Thor Pathfinder，然后在下面的列表中关闭再重新开启它的服务。</string>
+    <string name="a11y_blocked_body_fix">Thor Pathfinder 在 APP Auto Launch Manage（设置 → Thor settings → Advanced Settings）中是开启状态。与名字相反，这个页面会阻止其中开启的应用在后台启动；只要 Pathfinder 在里面，Android 就无法启动它的服务，因此重启后所有快捷操作都会失效。请在该页面关闭 Thor Pathfinder，然后在下面的列表中关闭再重新开启它的服务。也可以点按“修复”，两步一次完成。</string>
+    <string name="a11y_stuck_body">Android 中的开关是开启的，但服务没有启动，这可能发生在崩溃、意外重启之后，或是有应用在后台结束了其他应用。打开列表，关闭 Thor Pathfinder 后再重新开启，Android 就会启动它。</string>
+    <string name="a11y_off_body">在列表中打开 Thor Pathfinder 并将其开启。</string>
+    <string name="a11y_open">打开无障碍设置</string>
+    <string name="a11y_fix_it">修复</string>
+    <string name="a11y_off_on">关闭后重新开启</string>
+    <string name="a11y_turn_on">重新开启</string>
+    <string name="a11y_restricted">如果 Android 提示“受限设置”：打开 Pathfinder 的应用信息，点按角落里的 ⋮，选择“允许受限设置”，然后重试。对于不是从 Play 商店安装的应用，Android 会要求这一步。</string>
+    <string name="a11y_app_info">打开 Pathfinder 的应用信息</string>
+    <string name="shizuku_title">连接 Shizuku</string>
+    <string name="shizuku_body">交换屏幕和切换鼠标模式需要比普通应用更多一点的权限。Shizuku 无需 root 就能授予这些权限，并会引导你完成设置。</string>
+    <string name="shizuku_not_installed">未安装 Shizuku</string>
+    <string name="shizuku_install_body">从 Google Play 或 GitHub 发布页安装 Shizuku，打开它并按照步骤启动，然后回到这里。</string>
+    <string name="shizuku_play">在 Google Play 获取</string>
+    <string name="shizuku_github">从 GitHub 下载</string>
+    <string name="shizuku_not_running">Shizuku 未运行</string>
+    <string name="shizuku_start_body">打开 Shizuku 并启动它（它会一步步引导你），然后回到这里。</string>
+    <string name="shizuku_open">打开 Shizuku</string>
+    <string name="shizuku_no_permission">Shizuku 正在运行，但还没有授权 Pathfinder</string>
+    <string name="shizuku_allow">授权 Pathfinder</string>
+    <string name="shizuku_connected">Shizuku 已连接</string>
+    <string name="done_title">一切就绪</string>
+    <string name="done_body1">长按返回交换屏幕，双击返回打开最近任务，双击 Select 开关鼠标模式。</string>
+    <string name="done_body2">接下来是 Pathfinder 的设置界面，你可以在返回、主页、AYN 键、Select、Start、L3 和 R3 上设置其他操作，并选择鼠标模式下右摇杆的滚动方向。</string>
+
+    <!-- Watchdog page -->
+    <string name="wd_title">看门狗</string>
+    <string name="wd_subtitle">让 Pathfinder 的无障碍服务保持开启，即使 Pathfinder 本身被结束也一样。</string>
+    <string name="wd_switch">保持服务开启</string>
+    <string name="wd_on_not_running">已开启，但没有在运行——请关闭后重新开启</string>
+    <string name="wd_holding">已开启，并保持服务关闭，因为它是在 Android 设置中被关闭的</string>
+    <string name="on">开启</string>
+    <string name="off">关闭</string>
+    <string name="wd_how_often">检查频率</string>
+    <string name="wd_every_short">每 %1$d 秒</string>
+    <string name="wd_every">每 %1$d 秒</string>
+    <string name="wd_default_detail">反应快，几乎不耗资源</string>
+    <string name="wd_what_it_does">它的作用</string>
+    <string name="wd_p1">Shizuku 会启动一个小脚本，它属于 Shizuku 而不是 Pathfinder，所以强行停止或结束 Pathfinder 都不会停止它。它每隔几秒检查一次 Pathfinder 是否还在 Android 的无障碍列表中，不在就把它加回去。每次检查大约耗时 22 毫秒，所以即使是最快的设置，也只占用不到一个处理器核心的百分之零点五。</string>
+    <string name="wd_p2">它只会添加 Pathfinder 自己的服务，从不移除其他应用的服务。如果你在 Android 设置中亲自关闭了 Pathfinder，它会保持关闭状态，关闭设置后和重启后都是如此，直到服务被再次开启。</string>
+    <string name="wd_p3">它还会把 Pathfinder（且仅限 Pathfinder）从 Thor 的 APP Auto Launch Manage 页面列表中移除。与名字相反，在那里开启的应用无法在后台启动任何东西，所以在该列表中时，Pathfinder 的服务重启后永远不会启动。Thor 的设置界面打开时，它不会动这个列表。</string>
+    <string name="wd_p4">重启会让它和 Shizuku 一起停止，Shizuku 运行后它会自动重新启动。关闭此开关后它会立即停止。脚本是 Pathfinder 源代码中的 watchdog.sh，内容很短。</string>
+    <string name="wd_log">运行记录</string>
+
+    <!-- The cog's menu -->
+    <string name="page_profiles">管理配置</string>
+    <string name="page_profiles_detail">你的快捷操作组合：添加、重命名、关联应用、备份或分享</string>
+    <string name="page_close">关闭应用</string>
+    <string name="page_close_detail">关闭任务时保持运行的应用</string>
+    <string name="page_mouse">鼠标模式</string>
+    <string name="page_mouse_detail">右摇杆的滚动方向</string>
+    <string name="page_timing">时间</string>
+    <string name="page_timing_detail">长按所需时间，以及双击间隔</string>
+    <string name="page_updates">更新设置</string>
+    <string name="page_updates_detail">检查更新，以及自动安装</string>
+    <string name="page_watchdog_detail">在无障碍服务被停止时让它保持开启</string>
+    <string name="page_language">语言 (Language)</string>
+    <string name="page_diagnostics">诊断</string>
+    <string name="page_diagnostics_detail">关于这台 Thor 的报告，可粘贴到问题反馈中</string>
+    <string name="page_setup">重新运行设置</string>
+    <string name="page_setup_detail">从头进行各项检查</string>
+    <string name="mouse_subtitle">光标速度和滚动灵敏度仍在 Thor 自带的鼠标模式设置中调整。</string>
+    <string name="mouse_reverse">反转右摇杆滚动方向</string>
+    <string name="mouse_needs_shizuku">需要 Shizuku。</string>
+    <string name="mouse_unreadable">无法读取 Thor 的鼠标模式设置。</string>
+    <string name="mouse_reverse_detail">向上推向上滚动，向下推向下滚动。重启后生效。</string>
+    <string name="mouse_couldnt_change">无法更改 Thor 的鼠标模式设置。</string>
+    <string name="mouse_restart">重启 Thor 以应用新的方向。</string>
+    <string name="mouse_restart_now">立即重启</string>
+    <string name="updates_subtitle">Pathfinder 会向 GitHub 查询最新版本，不会发送任何关于你或你的 Thor 的信息。</string>
+    <string name="updates_check_on_open">打开 Pathfinder 时检查</string>
+    <string name="updates_check_on_open_detail">每次打开应用时快速检查一下是否有新版本。</string>
+    <string name="updates_auto">自动安装更新</string>
+    <string name="updates_auto_detail">从 Pathfinder 的发布页下载新的 APK，并通过 Shizuku 安装，无需任何确认。默认关闭。</string>
+    <string name="updates_auto_needs_shizuku">需要 Shizuku：没有它就无法免确认安装。</string>
+    <string name="updates_none_seen">尚未发现任何版本。</string>
+    <string name="updates_seen">已知最新版本：%1$s。</string>
+    <string name="updates_same_key">更新只会在签名密钥相同时安装，所以来自其他地方的副本会被拒绝。</string>
+    <string name="setup_again_title">重新运行设置？</string>
+    <string name="setup_again_body">设置会依次检查 Thor 的固件、Thor Wayfinder、Pathfinder 的无障碍服务和 Shizuku，每页一项，逐一检查通过后再继续。</string>
+    <string name="setup_again_keeps">你的快捷操作、时间设置和保持运行的应用都会保持不变。</string>
+    <string name="setup_again_run">运行设置</string>
+    <string name="timing_subtitle">如果返回、主页或 AYN 键设置了双击快捷操作，单击时会等待双击间隔过去后才执行。</string>
+    <string name="timing_hold">长按时间</string>
+    <string name="timing_double">双击间隔</string>
+    <string name="timing_ms">%1$d 毫秒</string>
+    <string name="timing_vibrate">执行快捷操作时振动</string>
+    <string name="language_subtitle">Pathfinder 自己的语言。Thor 上的其他应用不受影响。</string>
+    <string name="language_system">与 Thor 相同</string>
+    <string name="language_system_detail">跟随 Android 设置中的语言</string>
+
+    <!-- Profiles -->
+    <string name="profile_main_default">主配置</string>
+    <string name="profile_n">配置 %1$d</string>
+    <string name="profile_create">新建配置</string>
+    <string name="profile_no_room">已达上限</string>
+    <string name="profile_fresh">一套独立的快捷操作，全部为默认值</string>
+    <string name="active_profile">当前配置：</string>
+    <string name="choose_profile">选择配置</string>
+    <string name="for_app">用于 %1$s</string>
+    <string name="profiles_title">配置</string>
+    <string name="create_body">每个快捷操作都从默认值开始。鼠标模式保持不变：那是 Thor 自己的设置，所有配置共用。</string>
+    <string name="name">名称</string>
+    <string name="keep_list">沿用保持运行列表</string>
+    <string name="keep_list_detail">复制 %1$s 中从不强行停止的应用</string>
+    <string name="create">新建</string>
+    <string name="rename_title">重命名配置</string>
+    <string name="rename">重命名</string>
+    <string name="manage_subtitle">一个配置包含所有快捷操作、保持运行列表、时间设置和振动。鼠标模式是 Thor 自己的设置，所有配置共用。</string>
+    <plurals name="profiles_count">
+        <item quantity="other">%d 个配置</item>
+    </plurals>
+    <string name="profiles_row_detail">%1$s · 使用中：%2$s</string>
+    <string name="show_buttons">切换时显示按键图</string>
+    <string name="show_buttons_detail">切换配置时（无论是你还是应用触发的）显示带有新配置快捷操作的 Thor 图示。按任意键即可关闭</string>
+    <string name="backup_row">备份与分享</string>
+    <string name="backup_row_detail">把所有配置保存到文件并随时恢复，或分享其中一个</string>
+    <string name="profiles_subtitle">点按配置即可使用、重命名、关联应用或删除它。主配置是“启用”快捷操作返回的配置，也是无法删除的那一个。关联了应用的配置会在其中某个应用成为手柄当前操作的应用时启用（需要 Shizuku）。</string>
+    <string name="delete_title">删除 %1$s？</string>
+    <string name="delete_body">它的快捷操作也会一起删除，且无法撤销。任何设置为启用它的快捷操作都会改为循环切换配置。</string>
+    <string name="delete">删除</string>
+    <string name="delete_detail">它的快捷操作也会一起删除</string>
+    <string name="apps_for">%1$s 关联的应用</string>
+    <string name="uses_now">当前使用 %1$s</string>
+    <string name="list_sep">、</string>
+    <string name="apps_tag">应用：%1$s</string>
+    <plurals name="apps_tag_more">
+        <item quantity="other">应用：%1$s 及另外 %2$d 个</item>
+    </plurals>
+    <string name="tag_main_in_use_for">主配置，正用于 %1$s</string>
+    <string name="tag_in_use_for">正用于 %1$s</string>
+    <string name="tag_main_in_use">主配置，使用中</string>
+    <string name="tag_main">主配置</string>
+    <string name="tag_in_use">使用中</string>
+    <string name="action_enable_detail">从现在起使用它的快捷操作</string>
+    <string name="action_back_to">返回 %1$s</string>
+    <string name="action_back_to_detail">这个配置已在使用中</string>
+    <string name="action_apps">使用它的应用</string>
+    <string name="action_apps_none">当所选应用在前台时使用它</string>
+    <string name="action_make_main">设为主配置</string>
+    <string name="action_make_main_detail">“启用”快捷操作返回的配置</string>
+
+    <!-- Backup & share -->
+    <string name="backup_subtitle">备份包含所有配置，以及它们的快捷操作、组合键、时间设置、保持运行列表和关联应用，还有快捷操作列表的布局和更新检查设置。看门狗和自动更新保持不变，因为它们取决于每台 Thor 上的 Shizuku。</string>
+    <string name="save_backup">保存备份</string>
+    <string name="save_backup_detail">以上全部内容，保存在一个可以放在任何地方的文件里</string>
+    <string name="restore_backup">恢复备份</string>
+    <string name="restore_backup_detail">用备份中的内容替换你的配置和设置</string>
+    <string name="share_profile">分享配置</string>
+    <string name="share_profile_detail">把一个配置存为文件，供另一台 Thor 使用</string>
+    <string name="add_shared">添加分享的配置</string>
+    <string name="add_shared_detail">把别人的配置添加到你的配置旁边</string>
+    <string name="saved">已保存%1$s。</string>
+    <string name="backup_what">备份</string>
+    <string name="shared_what">%1$s（分享的配置）</string>
+    <string name="save_failed">无法保存文件：%1$s</string>
+    <string name="too_big">文件太大，不可能是 Thor Pathfinder 的文件。</string>
+    <string name="read_failed">无法读取：%1$s</string>
+    <string name="not_ours">这不是 Thor Pathfinder 的备份或分享的配置。</string>
+    <string name="from_newer">它是由更新版本的 Thor Pathfinder（%1$s）保存的。请先更新 Pathfinder，然后重试。</string>
+    <string name="damaged">文件有部分缺失或已损坏，因此没有做任何更改。</string>
+    <string name="share_which">分享哪个配置？</string>
+    <plurals name="share_apps">
+        <item quantity="other">%d 个关联应用会一起带上</item>
+    </plurals>
+    <string name="cant_use">无法使用该文件</string>
+    <string name="restore_title">恢复这个备份？</string>
+    <plurals name="linked_apps_count">
+        <item quantity="other">%d 个关联应用</item>
+    </plurals>
+    <plurals name="shortcuts_count">
+        <item quantity="other">%d 个快捷操作</item>
+    </plurals>
+    <string name="restore_body">于 %1$s 由 Thor Pathfinder %2$s 保存。%3$s：%4$s，含 %5$s 和 %6$s。你现在的配置及其快捷操作将被这些替换。</string>
+    <string name="restore">恢复</string>
+    <plurals name="restored">
+        <item quantity="other">已恢复备份：%d 个配置。</item>
+    </plurals>
+    <string name="restore_failed">无法恢复：%1$s</string>
+    <string name="add_title">添加 %1$s？</string>
+    <string name="add_no_room">没有空位了：Pathfinder 最多保留 %1$d 个配置。请先在“管理配置”中删除一个，然后重试。</string>
+    <string name="add_body">来自 Thor Pathfinder %1$s 的分享配置，含 %2$s、%3$s 和 %4$s。它会作为新配置添加，你自己的配置保持不变。关联的应用若已安装且尚未关联到你的某个配置，也会一起带上。</string>
+    <string name="add">添加</string>
+    <string name="no_room_msg">没有空位再添加配置了。</string>
+    <string name="added">已添加 %1$s。</string>
+    <string name="add_failed">无法添加：%1$s</string>
+
+    <!-- Keep apps running -->
+    <string name="keep_title">保持应用运行</string>
+    <string name="keep_subtitle">无论“关闭应用”以哪种方式关闭它们（全部关闭、只保留屏幕上的、关闭某块屏幕的，还是按名称选择），这些应用都会像其他应用一样从任务视图中移除，但绝不会被强行停止，所以音乐、下载或同步都会继续进行。</string>
+    <string name="keep_none">未选择应用：所有应用都会被强行停止。</string>
+    <string name="keep_count">%2$d 个应用中有 %1$d 个保持运行。</string>
+    <string name="keep_recommended">强烈推荐</string>
+    <string name="keep_recommended_detail">它们会在你玩游戏时在后台持续工作，最好让它们保持运行。</string>
+    <string name="keep_all">所有应用</string>
+
+    <!-- Updates -->
+    <string name="upd_checking">正在检查…</string>
+    <string name="upd_available_button">有可用更新</string>
+    <string name="upd_up_to_date">已是最新</string>
+    <string name="upd_check">检查更新</string>
+    <string name="upd_downloading">正在下载 %1$d%%</string>
+    <string name="upd_installing">正在安装… Android 替换新版本时，Pathfinder 会短暂关闭。</string>
+    <string name="upd_update_now">立即更新</string>
+    <string name="dismiss">忽略</string>
+    <string name="upd_dont_show">不再显示</string>
+    <string name="upd_bad_answer">GitHub 返回的内容无法识别。请稍后重试。</string>
+    <string name="upd_no_releases">GitHub 上还没有任何发布版本。</string>
+    <string name="upd_rate_limited">GitHub 正在限制来自此网络的查询。请一小时后重试。</string>
+    <string name="upd_error">GitHub 返回错误 %1$d。请稍后重试。</string>
+    <string name="upd_offline">无法连接到 GitHub。请检查 Thor 是否已联网。</string>
+    <string name="inst_no_apk">该版本没有可下载的 APK。</string>
+    <string name="inst_not_ours">该下载不是来自 Pathfinder 的发布页。</string>
+    <string name="inst_needs_shizuku">安装更新需要 Shizuku。</string>
+    <string name="inst_download_failed">无法下载更新。请检查 Thor 是否已联网。</string>
+    <string name="inst_http">GitHub 返回错误 %1$d。</string>
+    <string name="inst_empty">下载的文件是空的。</string>
+    <string name="inst_broken">下载的文件不是可用的 APK。</string>
+    <string name="inst_not_pathfinder">该 APK 不是 Thor Pathfinder。</string>
+    <string name="inst_other_key">该 APK 使用了不同的密钥签名，Android 不会安装它。</string>
+    <string name="inst_not_newer">该 APK 并不比已安装的版本新。</string>
+    <string name="inst_start_failed">无法开始安装：%1$s</string>
+    <string name="inst_write_failed">无法写入更新：%1$s</string>
+    <string name="inst_failed">无法安装更新：%1$s</string>
+
+    <!-- Diagnostics page -->
+    <string name="diag_subtitle">Pathfinder 能看到的这台 Thor 的情况。把它粘贴到问题反馈中，大多数问题在被问到之前就有了答案。报告内容为英文。</string>
+    <string name="diag_failed">无法生成报告：%1$s</string>
+    <string name="diag_copy">复制报告</string>
+    <string name="diag_gathering">正在收集…</string>
+
+    <!-- Choosing apps -->
+    <string name="choose_app">选择应用</string>
+
+    <!-- The questions an Ask shortcut puts up -->
+    <string name="the_app">该应用</string>
+    <string name="ask_open_on">在哪块屏幕打开 %1$s</string>
+    <string name="ask_top">上屏</string>
+    <string name="ask_top_detail">主屏幕</string>
+    <string name="ask_bottom">下屏</string>
+    <string name="ask_bottom_detail">第二块屏幕</string>
+    <string name="switch_to">切换到</string>
+
+    <!-- Welcome to 1.0 -->
+    <string name="w_profiles">应用专属配置</string>
+    <string name="w_profiles_text">把应用关联到某个配置，当你正在玩这个应用时，Pathfinder 就会切换到该配置。</string>
+    <string name="w_profiles_button">去设置</string>
+    <string name="w_combos">按键组合</string>
+    <string name="w_combos_text">按住返回、主页或 AYN 键，再按一两个其他按键，就有几十个新的快捷操作。</string>
+    <string name="w_combos_button">添加组合键</string>
+    <string name="w_backup">备份与分享</string>
+    <string name="w_backup_text">把所有配置保存到文件，随时恢复，或分享给朋友。</string>
+    <string name="w_backup_button">打开</string>
+    <string name="w_languages">支持你的语言</string>
+    <string name="w_languages_text">Pathfinder 现在支持英语、西班牙语、葡萄牙语（巴西）、简体中文和日语。可以任选一种，或跟随 Thor 的语言。</string>
+    <string name="w_languages_button">选择</string>
+    <string name="w_title">欢迎使用 Thor Pathfinder %1$s</string>
+    <string name="w_intro">迄今为止最大的一次更新。快来试试这些新功能：</string>
+    <string name="w_notes">阅读发布说明</string>
+    <string name="w_continue">继续</string>
+
+    <!-- Shared pieces of the interface -->
+    <string name="open">打开</string>
+    <string name="list_view">列表视图</string>
+    <string name="two_column_view">双列视图</string>
+    <string name="wide_view">宽屏视图</string>
+</resources>

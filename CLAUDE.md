@@ -10,6 +10,93 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
 
 ## Status (2026-09-25)
 
+- v1.0.0 (versionCode 20), released 2026-09-25. README screenshots retaken
+  from it (1280x653: a 1920x1080 capture, y 55..1035, scaled by 2/3; setup
+  through the debug build's preview extras). **App profiles**: a profile
+  can be linked to apps (`apps.<id>` string sets in the `profiles` prefs;
+  `Profiles.setLinkedApps` keeps each app on one profile). The profile in use
+  (`Profiles.activeId`) is now `Profiles.inUse(chosen, now.app, now.held)`:
+  the profile linked to the app the controller drives, unless a switch was
+  made while in that app (`now.held`, set by `switchTo` whenever an app's
+  profile is in use, cleared when the app changes); otherwise the chosen one
+  (`chosenId`, the old stored `active`). `now.app` is runtime state kept in
+  the prefs so the screens' listeners follow it, cleared in
+  `PathfinderApp.onCreate`. `AppWatcher` (owned by the service) binds
+  `TaskWatcher` as a Shizuku user service (`:tasks`, non-daemon, versioned by
+  versionCode) only while some app is linked and Shizuku is up; it reads
+  Focus Mode (TOP: display 0's shown app; BOTTOM: `ScreenSwap.otherDisplay`'s;
+  AUTO: the focused root task) and ignores Recents (activity type 3) and
+  Pathfinder's own question activities (`AppProfiles.passing`). A change of
+  profile calls `announceApp`: "Profile: <name> (<app>)" as a message, or as
+  the Thor picture's title when `showMap` is on (a separate message would
+  sit on the picture's Dismiss button). See "App profiles hear tasks through
+  Shizuku" for the helper. The overlay's message timer only removes the
+  message (`hideMessage`); the map goes only by a press, a tap, or the
+  service stopping (before, a message shown over the map closed it too).
+  **Button combos**: two or three buttons, one of them Back, Home or AYN
+  (`ComboKey.ANCHORS`) held first. `ComboKey` covers every key in the Odin
+  Controller's layout (`Vendor_2020_Product_0111.kl`: A B X Y, D-pad, L1 R1
+  L2 R2, thumbs, Select, Start, Back, Home) plus the AYN button; members
+  need a real scan code. A combo is a set, stored as `combo.<Combos.id>`
+  (e.g. `combo.BACK+L1+R1`) with the same extras as a gesture
+  (`Shortcuts.write`). `GestureEngine.join` runs in `onKey(key, button, …)`
+  before a button's own handling: with an anchor held (taken over, Hold not
+  yet fired) and some combo containing the keys so far, the key is consumed
+  (`swallowed` until its up), the anchor's hold timer is cancelled and its
+  release does nothing (`combined`). A complete combo fires at once, or
+  after `CHORD_MS` (150 ms) or on a member's release when a bigger combo
+  could still follow; the anchor stays in, so combos repeat while it is
+  held. A button in any combo is taken over even with every gesture on
+  Normal, and its plain press handed back as before. `join` looks for a
+  held anchor before reading the combos, since every game key comes through.
+  Cards: a Combos list and Add combo (`ComboKeysDialog`, then the
+  `ShortcutPicker` with `ButtonAction.comboChoices`); a `ComboBadge` on
+  Back, Home and AYN (right of the header, beside the arrow, level with the
+  title), A + B as two tiny round buttons in a thin pill, only a mark.
+  **Backup & share** (`Backup`, `ui/BackupPage.kt`). Manage profiles is now
+  three rows: Profiles (a page with the list and Create profile, where each
+  profile's actions live), Show the buttons on switching, and Backup & share
+  (a page); back from either page lands on its row. Backups are JSON through the
+  Storage Access Framework (CreateDocument / OpenDocument), no permission.
+  Every preference is stored as `[type, value]` (`s b i l f S`) so it reads
+  back typed. A backup has `list` (the `profiles` prefs), `profiles` (each
+  id's shortcuts file), `ui` and `updates.checkOnOpen`; `setupDone`,
+  `now.app`, `now.held`, the watchdog, automatic updates, the screen-record
+  cache and the service log are left out and kept on restore. Restore
+  empties then deletes profile files not in the backup. A shared profile
+  (`kind: profile`) carries its old id, so `retarget` points its own Enable
+  shortcuts at the new id and turns any other Enable into Cycle; its linked
+  apps come along only if installed and unlinked here. `format` is 1; a
+  higher one is refused with the version that wrote it. Tested on the Thor:
+  save, share, add (a clashing name gets " (2)"), restore.
+  The Thor picture
+  lists each combo once, in the box of its first anchor, at most
+  `ButtonMap.COMBO_LINES` (3) lines. Tested on the Thor with Back + A and
+  Back + L1 + R1.
+  **Translations**: Spanish (`values-es`), Portuguese (Brazil,
+  `values-pt-rBR`), Simplified Chinese (`values-zh-rCN`) and Japanese
+  (`values-ja`), made with AI (the README says so and asks for corrections).
+  Every UI string is in `res/values/strings.xml` (473, of which 13 are
+  `translatable="false"`: the app name, printed button letters, `combo_join`;
+  plus 9 plurals). Code outside Compose gets text through `Words`
+  (`Words.kt`: `text(id, args)`, `count(id, n, args)`; `Context.words()`), so
+  message and label functions stay pure; the tests pass `English`
+  (`app/src/test/.../English.kt`, which parses the English strings.xml and
+  strips a quoted value's quotes). The Diagnostics report uses
+  `Context.englishWords()` and stays English whatever the language.
+  `list_sep` is written `", "` in quotes, since Android trims a value's edge
+  whitespace. `res/xml/locales_config.xml` (manifest `localeConfig`) lists
+  the five, so Android 13's App Language page offers them; the cog's
+  Language page (`Language.kt`, `ui/LanguagePage.kt`) sets the same per-app
+  locale through `LocaleManager` (none = follow the Thor) and the activity
+  recreates in place. Release `lintVital` fails on a missing translation;
+  placeholders, bare apostrophes and stray `%` were checked by script against
+  English (a lone `%` in a value breaks once it is formatted, so write it
+  out). Longer languages needed two changes: the collapsed card summary may
+  take two lines (`CollapsibleCard`), and the welcome page's Continue row
+  sits below its scroll. Checked on the Thor in all five: main screen,
+  Language page, welcome page (fits without scrolling), and the combo picker
+  in Japanese.
 - v0.9.0 (versionCode 19), released 2026-09-25: a new app icon, and
   `.gitattributes` pins `*.sh` to LF. The icon is an adaptive icon whose
   foreground is a bitmap (`drawable-nodpi/ic_launcher_foreground.png`,
@@ -218,10 +305,16 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
 ```
 app/src/main/kotlin/com/thorpathfinder/app/
   Buttons.kt            PhysicalButton (scan codes), Gesture, ButtonAction
-  GestureEngine.kt      press / double-press / hold state machine (pure, tested)
+  GestureEngine.kt      press / double-press / hold state machine, and combos (pure, tested)
+  Combos.kt             ComboKey (the buttons a combo is made of) and Combos (ids, labels)
+  Words.kt              strings for code outside Compose (tests pass English)
+  Language.kt           the per-app language: choices, LocaleManager
+  Backup.kt             backups and shared profiles as typed JSON (pure rules, tested)
   Shortcuts.kt          SharedPreferences store + defaults; implements GestureConfig
   Shortcut.kt           one shortcut: an action and its choices (stored or from the menu)
   FocusMode.kt          AYN's Focus Mode: which screen the controller drives
+  AppProfiles.kt        app profiles: the rules, and AppWatcher (binds TaskWatcher)
+  TaskWatcher.kt        Shizuku user service: task stack listener -> task lines
   PathfinderService.kt  accessibility service: key events -> engine -> actions
   ScreenSwap.kt         parse `am stack list`, plan, script, covered-app fix-up
   RecentTasks.kt        Close all apps: parse `dumpsys activity recents`, `am stack remove`
@@ -246,10 +339,16 @@ app/src/main/kotlin/com/thorpathfinder/app/
   ui/ShortcutPicker.kt  choosing a shortcut: the list, then the arrow ones' questions
   ui/ShortcutMenuActivity.kt  the Shortcut menu: the picker, the pick run once
   ui/ButtonSymbols.kt   the symbols beside each button card's name
+  ui/CombosUi.kt        adding a combo (which buttons), and the A+B badge
+  ui/BackupPage.kt      Backup & share: save, restore, share and add through the file picker
+  ui/WelcomeScreen.kt   the once-only Welcome to 1.0 page, and when it is due
+  ui/LanguagePage.kt    the cog's Language page
   ui/Updates.kt         update state for the screen: button wording, notice card
   ui/KeepRunning.kt     the cog's Close all apps page: what not to force-stop
   ui/Licenses.kt        About → Open-source licenses (texts in assets/licenses)
   ui/Preview.kt         debug builds only: fake states for screenshots
+app/src/main/aidl/      ITaskWatcher / ITaskListener: Pathfinder <-> TaskWatcher
+app/src/main/res/values*/strings.xml  English, es, pt-BR, zh-CN, ja
 app/src/test/           JVM tests; resources are real captures from the Thor
 tools/icon/             icon-source.png (the artwork) and make_icon.py, which
                         writes drawable-nodpi/ic_launcher_foreground.png
@@ -258,6 +357,57 @@ tools/fix-accessibility.sh  the root-script fallback (not a release asset)
 ```
 
 ## Facts learned on the Thor (firmware 1.0.0.377)
+
+- **App profiles hear tasks through Shizuku.** The accessibility service
+  stays key events only; instead `TaskWatcher` runs in a Shizuku user service
+  (app_process as the shell user, where hidden APIs are not restricted) and
+  reaches `ActivityTaskManager.getService()` by reflection. It registers an
+  `android.app.ITaskStackListener` made of a `java.lang.reflect.Proxy` whose
+  `asBinder()` is a plain `Binder`: any transaction on it (25 kinds on this
+  firmware) just schedules a report 120 ms later, since one change arrives as
+  a burst of 10 or more callbacks. A report is `getFocusedRootTaskInfo()` and
+  `getAllRootTaskInfos()` (fields `displayId`, `visible`, `topActivityType`,
+  `topActivity`, read by reflection up the class chain) as
+  `display|visible|type|component` lines, sent only when they differ from the
+  last. Checked with a probe on the Thor: `onTaskFocusChanged` fires when
+  focus moves by a touch alone (Auto-lock), a swap shows as
+  `onTaskDisplayChanged`, and reports land within about 250 ms of an app
+  opening. The shell user may register the listener (MANAGE_ACTIVITY_TASKS).
+- **The welcome page** (`ui/WelcomeScreen.kt`): shown once before the main
+  screen to someone updating (`Welcome.due`: setup done and `ui.welcomeSeen`
+  below `Welcome.EDITION`, 1 for 1.0). Finishing setup marks it seen, so a
+  fresh install never gets it. Four cards (App profiles, Button combos,
+  Backup & share, In your language) whose buttons open Manage profiles at a
+  page (`MoreSettingsScreen(openAt)`, `ManageProfilesPage(openAt)`), the
+  Language page (`openLanguage`) or the main screen with Back's card open
+  (`SettingsScreen(openCard)`); any of them, or Continue or Back, marks it
+  seen. The release notes and Continue row is outside the scrolling part, so
+  it stays on screen when a language's text runs long. About → What's new in 1.0 shows it again.
+  A later big release can bump `EDITION` and rewrite the cards.
+- **AYN's controller styles** (the Quick Settings "Controller style" tile,
+  SystemUI `ControllerStyleTile`, cycling `Settings.System
+  temp_abxy_layout_mode`, which sets `flip_button_layout` and
+  `no_create_gamepad_button_layout`; TouchMapping turns those into
+  `persist.sys.gamepad.type` 0/1/2). Each style makes the virtual controller
+  anew on the same node (`/dev/input/event9` on the test Thor): Standard is
+  "Odin Controller", vendor 0x2020 product 0x0111; Xbox is "Xbox Wireless
+  Controller", 0x2020/0x0112; Disconnected (for a Bluetooth pad) is "None
+  Controller". Both layouts' `.kl` files map the same scan codes, but in Xbox
+  style the printed A sends 0x131 (BUTTON_B), B 0x130, X 0x134 (BUTTON_Y) and
+  Y 0x133, captured with `getevent` while pressing each. So combos read face
+  buttons by printed letter: `ComboKey.of(…, xboxStyle)` swaps them back when
+  the event's `InputDevice` is 0x2020/0x0112. `KeyReplay` finds the
+  controller under any of the three names (`KeyReplay.ALIASES`); before, a
+  process started in Xbox style could not find "Odin Controller" and fell
+  back to Android's own Back and Home. Note that the ODIN Station Virtual
+  Mouse also reports 0x2020/0x0111, so vendor and product alone don't pick
+  out the controller.
+- **Shizuku keeps a dead user service's record.** After the `:tasks` process
+  dies, `bindUserService` with the same args waits on that record and never
+  starts a new process. `AppWatcher` therefore unbinds with `remove = true`
+  before binding again (2 s later, at most 3 times until Shizuku restarts; a
+  report resets the count). Killing the helper by hand on the Thor brought a
+  new one up 2 s later each time.
 
 - **AYN's auto-launch list blocks the accessibility bind** (read from this
   firmware's `services.jar` and `OdinSettings.apk`; found through issue #1).
@@ -670,7 +820,6 @@ carriage return as part of the command (`x=1\r` does not set `x` to `1`).
 - A GitHub Actions build (it would need the key as repository secrets).
 - Per-app exclusions (for example, leave Select alone in emulators).
 - An atomic swap (WindowContainerTransaction) to remove the brief cover.
-- Button combinations; opening an app on a chosen screen; translations.
 - Faster Screen record. The recorder panel still opens only from its QS tile
   (rechecked in this firmware's SystemUI: `ScreenRecordDialog` is built only
   in `ScreenRecordTile.handleClick`). Skip the `uiautomator dump` reads when

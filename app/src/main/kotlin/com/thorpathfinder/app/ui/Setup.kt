@@ -1,6 +1,10 @@
 package com.thorpathfinder.app.ui
 
 import android.content.Context
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
+import com.thorpathfinder.app.R
+import com.thorpathfinder.app.words
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
@@ -128,7 +132,9 @@ fun SetupWizard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (index > 0) {
-                    OutlinedButton(onClick = { index-- }, modifier = Modifier.focusOutline(PillShape)) { Text("Back") }
+                    OutlinedButton(onClick = { index-- }, modifier = Modifier.focusOutline(PillShape)) {
+                        Text(stringResource(R.string.nav_back))
+                    }
                 }
                 Spacer(Modifier.weight(1f))
                 Button(
@@ -137,11 +143,13 @@ fun SetupWizard(
                     modifier = Modifier.focusRequester(next).focusOutline(PillShape),
                 ) {
                     Text(
-                        when (step) {
-                            SetupStep.WELCOME -> "Get started"
-                            SetupStep.DONE -> "Finish"
-                            else -> "Next"
-                        }
+                        stringResource(
+                            when (step) {
+                                SetupStep.WELCOME -> R.string.setup_get_started
+                                SetupStep.DONE -> R.string.setup_finish
+                                else -> R.string.next
+                            },
+                        ),
                     )
                 }
             }
@@ -164,7 +172,7 @@ private fun StepDots(count: Int, current: Int) {
             )
         }
         Text(
-            "Step ${current + 1} of $count",
+            stringResource(R.string.setup_step, current + 1, count),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(start = 8.dp),
@@ -173,16 +181,20 @@ private fun StepDots(count: Int, current: Int) {
 }
 
 @Composable
-private fun Title(text: String) =
-    Text(text, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
+private fun Title(@StringRes text: Int, vararg args: Any) =
+    Text(stringResource(text, *args), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
 
 @Composable
-private fun Body(text: String) =
-    Text(text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun Body(@StringRes text: Int, vararg args: Any) =
+    Text(
+        stringResource(text, *args),
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 
 /** ✓ or • with a short status line. */
 @Composable
-private fun Check(ok: Boolean, text: String) {
+private fun Check(ok: Boolean, @StringRes text: Int, vararg args: Any) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             if (ok) "✓" else "•",
@@ -190,64 +202,55 @@ private fun Check(ok: Boolean, text: String) {
             color = if (ok) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
             modifier = Modifier.padding(end = 8.dp),
         )
-        Text(text, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+        Text(stringResource(text, *args), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
     }
 }
 
 @Composable
-private fun ActionButton(text: String, focus: FocusRequester?, onClick: () -> Unit) {
+private fun ActionButton(@StringRes text: Int, focus: FocusRequester?, onClick: () -> Unit) {
     Button(
         onClick = onClick,
         modifier = (if (focus != null) Modifier.focusRequester(focus) else Modifier).focusOutline(PillShape),
-    ) { Text(text) }
+    ) { Text(stringResource(text)) }
 }
 
 @Composable
 private fun Welcome() {
-    Title("Welcome to Thor Pathfinder")
-    Body(
-        "Pathfinder moves apps between the Thor's two screens and puts shortcuts on its buttons. " +
-            "Out of the box it works like this:"
-    )
+    Title(R.string.welcome_title)
+    Body(R.string.welcome_body)
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Bullet("Hold Back: swap the apps on the two screens")
-        Bullet("Double-press Back: recent apps")
-        Bullet("Double-press Select: mouse mode on or off")
+        Bullet(R.string.welcome_b1)
+        Bullet(R.string.welcome_b2)
+        Bullet(R.string.welcome_b3)
     }
-    Body("You can change all of these later. Setup takes about two minutes.")
+    Body(R.string.welcome_later)
 }
 
 @Composable
-private fun Bullet(text: String) = Text("•  $text", style = MaterialTheme.typography.bodyLarge)
+private fun Bullet(@StringRes text: Int) = Text("•  " + stringResource(text), style = MaterialTheme.typography.bodyLarge)
 
 @Composable
 private fun DeviceStep(device: Device.Support, context: Context, focus: FocusRequester) {
-    Title("Check your Thor")
+    Title(R.string.device_title)
     when (device) {
         is Device.Support.Supported -> {
-            Check(true, "${device.model}, firmware ${device.firmware}")
+            Check(true, R.string.device_ok, device.model, device.firmware)
             if (!Device.tested(device.model)) {
-                Body(
-                    "Pathfinder was made and tested on the AYN Thor and Thor Lite. The ${device.model} " +
-                        "should work the same way; if something doesn't, please report it."
-                )
+                Body(R.string.device_untested, device.model)
             } else if (device.model == Device.THOR && device.firmware != Device.MIN_FIRMWARE_TEXT) {
-                Body(
-                    "That's newer than the firmware Pathfinder was tested on (${Device.MIN_FIRMWARE_TEXT}). " +
-                        "It should work; if something doesn't, please report it."
-                )
+                Body(R.string.device_newer, Device.MIN_FIRMWARE_TEXT)
             }
         }
         is Device.Support.NotAThor -> {
-            Check(false, "This is a ${device.model}, not an AYN Thor")
-            Body("Pathfinder is made for the Thor's two screens and its buttons, so it won't run here.")
+            Check(false, R.string.device_not_thor, device.model)
+            Body(R.string.device_not_thor_body)
         }
         is Device.Support.OldFirmware -> {
-            Check(false, "Firmware ${device.firmware} is older than ${Device.MIN_FIRMWARE_TEXT}")
+            Check(false, R.string.device_old, device.firmware, Device.MIN_FIRMWARE_TEXT)
             UpdateAdvice(context, focus)
         }
         Device.Support.UnknownFirmware -> {
-            Check(false, "Couldn't tell which firmware this Thor runs")
+            Check(false, R.string.device_unknown)
             UpdateAdvice(context, focus)
         }
     }
@@ -255,12 +258,9 @@ private fun DeviceStep(device: Device.Support, context: Context, focus: FocusReq
 
 @Composable
 private fun UpdateAdvice(context: Context, focus: FocusRequester) {
-    Body(
-        "Pathfinder relies on parts of AYN's software as they are in firmware ${Device.MIN_FIRMWARE_TEXT} " +
-            "and newer. Update your Thor, then open Pathfinder again."
-    )
+    Body(R.string.device_update_body, Device.MIN_FIRMWARE_TEXT)
     // Not in the public SDK, but AYN's updater (com.odin.fota) answers it.
-    ActionButton("Open system update", focus) {
+    ActionButton(R.string.device_open_update, focus) {
         runCatching {
             context.startActivity(
                 Intent("android.settings.SYSTEM_UPDATE_SETTINGS").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -271,69 +271,49 @@ private fun UpdateAdvice(context: Context, focus: FocusRequester) {
 
 @Composable
 private fun WayfinderStep(state: SystemState, context: Context, focus: FocusRequester) {
-    Title("Thor Wayfinder is installed")
-    Body(
-        "Pathfinder does everything Wayfinder does, and both use the Back button, so with both on " +
-            "every hold of Back would swap the screens twice. Uninstall Wayfinder, or at least turn " +
-            "off its accessibility service."
-    )
+    Title(R.string.wayfinder_title)
+    Body(R.string.wayfinder_body)
     Check(
         !state.wayfinderOn,
         when {
-            !state.wayfinderInstalled -> "Wayfinder is uninstalled"
-            !state.wayfinderOn -> "Wayfinder's service is off"
-            else -> "Wayfinder's service is still on"
+            !state.wayfinderInstalled -> R.string.wayfinder_uninstalled
+            !state.wayfinderOn -> R.string.wayfinder_off
+            else -> R.string.wayfinder_on
         },
     )
     if (state.wayfinderOn) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            ActionButton("Uninstall Wayfinder", focus) { context.openAppInfo(SystemState.WAYFINDER_PACKAGE) }
+            ActionButton(R.string.wayfinder_uninstall, focus) { context.openAppInfo(SystemState.WAYFINDER_PACKAGE) }
             OutlinedButton(
                 onClick = { context.openAccessibilitySettings() },
                 modifier = Modifier.focusOutline(PillShape),
-            ) { Text("Turn it off instead") }
+            ) { Text(stringResource(R.string.wayfinder_turn_off)) }
         }
     }
 }
 
 @Composable
 private fun AccessibilityStep(state: SystemState, context: Context, focus: FocusRequester) {
-    Title("Let Pathfinder see the buttons")
-    Body(
-        "Android only shares button presses with accessibility services, so Pathfinder has one. " +
-            "It receives button presses and nothing else: it cannot read the screen or anything you type."
-    )
+    Title(R.string.a11y_title)
+    Body(R.string.a11y_body)
     Check(
         state.serviceOn && !state.autoLaunchBlocked,
         when {
-            state.autoLaunchBlocked -> "AYN's APP Auto Launch Manage is blocking Pathfinder"
-            state.serviceOn -> "Pathfinder's service is on"
-            state.serviceStuck -> "Pathfinder is switched on, but Android hasn't started it"
-            else -> "Pathfinder's service is off"
+            state.autoLaunchBlocked -> R.string.problem_autolaunch
+            state.serviceOn -> R.string.a11y_on
+            state.serviceStuck -> R.string.a11y_stuck
+            else -> R.string.a11y_off
         },
     )
     if (!state.serviceOn || state.autoLaunchBlocked) {
         if (state.autoLaunchBlocked) {
-            Body(
-                "Thor Pathfinder is switched on in APP Auto Launch Manage (Settings → Thor " +
-                    "settings → Advanced Settings). Despite the name, that page stops the apps " +
-                    "switched on in it from starting in the background, and Android can't start " +
-                    "Pathfinder's service while it's there, so after a restart no shortcut works. " +
-                    "Switch Thor Pathfinder off on that page, then switch its service off and on in " +
-                    "the list below." +
-                    if (state.shizuku == Shell.Status.READY) " Or press Fix it, which does both." else "",
-            )
+            Body(if (state.shizuku == Shell.Status.READY) R.string.a11y_blocked_body_fix else R.string.a11y_blocked_body)
         } else if (state.serviceStuck) {
-            Body(
-                "Android has the switch on but hasn't started the service, which can happen after " +
-                    "a crash, an unexpected restart, or an app that stops others in the background. " +
-                    "Open the list, switch Thor Pathfinder off, then on again — that makes Android " +
-                    "start it.",
-            )
+            Body(R.string.a11y_stuck_body)
         } else {
-            Body("In the list, open Thor Pathfinder and turn it on.")
+            Body(R.string.a11y_off_body)
         }
-        ActionButton("Open accessibility settings", focus) { context.openAccessibilitySettings() }
+        ActionButton(R.string.a11y_open, focus) { context.openAccessibilitySettings() }
         // Shizuku is the shell user, which is the only one allowed to write this
         // setting, so with it connected the off-and-on can happen right here.
         if (state.shizuku == Shell.Status.READY) {
@@ -345,7 +325,7 @@ private fun AccessibilityStep(state: SystemState, context: Context, focus: Focus
                     busy = true
                     scope.launch {
                         val outcome = withContext(Dispatchers.IO) { ServiceSwitch.turnOn(context) }
-                        said = serviceSwitchMessage(outcome)
+                        said = serviceSwitchMessage(context.words(), outcome)
                         busy = false
                     }
                 },
@@ -353,11 +333,13 @@ private fun AccessibilityStep(state: SystemState, context: Context, focus: Focus
                 modifier = Modifier.focusOutline(PillShape),
             ) {
                 Text(
-                    when {
-                        state.autoLaunchBlocked -> "Fix it"
-                        state.serviceStuck -> "Switch it off and on"
-                        else -> "Turn it back on"
-                    },
+                    stringResource(
+                        when {
+                            state.autoLaunchBlocked -> R.string.a11y_fix_it
+                            state.serviceStuck -> R.string.a11y_off_on
+                            else -> R.string.a11y_turn_on
+                        },
+                    ),
                 )
             }
             said?.let {
@@ -365,66 +347,55 @@ private fun AccessibilityStep(state: SystemState, context: Context, focus: Focus
             }
         }
         Text(
-            "If Android says “Restricted setting”: open Pathfinder's app info, tap ⋮ in the corner, " +
-                "choose “Allow restricted settings”, then try again. Android asks this of apps " +
-                "installed from outside the Play Store.",
+            stringResource(R.string.a11y_restricted),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         OutlinedButton(
             onClick = { context.openAppInfo(context.packageName) },
             modifier = Modifier.focusOutline(PillShape),
-        ) { Text("Open Pathfinder's app info") }
+        ) { Text(stringResource(R.string.a11y_app_info)) }
     }
 }
 
 @Composable
 private fun ShizukuStep(state: SystemState, context: Context, focus: FocusRequester, onRequest: () -> Unit) {
-    Title("Connect Shizuku")
-    Body(
-        "Swapping screens and switching mouse mode need a little more access than an app gets on " +
-            "its own. Shizuku grants it without rooting the Thor, and sets itself up."
-    )
+    Title(R.string.shizuku_title)
+    Body(R.string.shizuku_body)
     when (state.shizuku) {
         Shell.Status.NOT_INSTALLED -> {
-            Check(false, "Shizuku isn't installed")
-            Body(
-                "Install Shizuku from Google Play or from its GitHub releases, open it and follow " +
-                    "its steps to start it, then come back here."
-            )
+            Check(false, R.string.shizuku_not_installed)
+            Body(R.string.shizuku_install_body)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                ActionButton("Get it on Google Play", focus) {
+                ActionButton(R.string.shizuku_play, focus) {
                     context.openUrl("https://play.google.com/store/apps/details?id=${Shell.SHIZUKU_PACKAGE}")
                 }
                 OutlinedButton(
                     onClick = { context.openUrl(SHIZUKU_RELEASES) },
                     modifier = Modifier.focusOutline(PillShape),
-                ) { Text("Download from GitHub") }
+                ) { Text(stringResource(R.string.shizuku_github)) }
             }
         }
         Shell.Status.NOT_RUNNING -> {
-            Check(false, "Shizuku isn't running")
-            Body("Open Shizuku and start it (it walks you through it), then come back here.")
-            ActionButton("Open Shizuku", focus) {
+            Check(false, R.string.shizuku_not_running)
+            Body(R.string.shizuku_start_body)
+            ActionButton(R.string.shizuku_open, focus) {
                 context.packageManager.getLaunchIntentForPackage(Shell.SHIZUKU_PACKAGE)?.let(context::startActivity)
             }
         }
         Shell.Status.NO_PERMISSION -> {
-            Check(false, "Shizuku is running, but Pathfinder isn't allowed yet")
-            ActionButton("Allow Pathfinder", focus, onRequest)
+            Check(false, R.string.shizuku_no_permission)
+            ActionButton(R.string.shizuku_allow, focus, onRequest)
         }
-        Shell.Status.READY -> Check(true, "Shizuku is connected")
+        Shell.Status.READY -> Check(true, R.string.shizuku_connected)
     }
 }
 
 @Composable
 private fun Done() {
-    Title("You're all set")
-    Body("Hold Back to swap screens, double-press Back for recent apps, and double-press Select for mouse mode.")
-    Body(
-        "Next you'll see Pathfinder's settings, where you can put other actions on Back, Home, " +
-            "the AYN button, Select, Start, L3 and R3, and choose which way the right stick scrolls in mouse mode."
-    )
+    Title(R.string.done_title)
+    Body(R.string.done_body1)
+    Body(R.string.done_body2)
     Spacer(Modifier.height(4.dp))
 }
 

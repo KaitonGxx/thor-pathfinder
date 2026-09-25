@@ -137,8 +137,8 @@ object RecentTasks {
         /** [what] names what went: an app, two apps, or a count. */
         data class Closed(val what: String) : AppsOutcome
 
-        /** Nothing there to close; [where] when the question was about one screen. */
-        data class NothingToClose(val where: String? = null) : AppsOutcome
+        /** Nothing there to close; [top] says which screen, when the question was about one. */
+        data class NothingToClose(val top: Boolean? = null) : AppsOutcome
 
         /** None of the chosen apps had a task open. */
         data object NoneRunning : AppsOutcome
@@ -148,11 +148,11 @@ object RecentTasks {
     }
 
     /** "Discord", "Discord and Firefox", or "3 apps". */
-    fun names(labels: List<String>): String = when (labels.size) {
-        0 -> "No apps"
+    fun names(words: Words, labels: List<String>): String = when (labels.size) {
+        0 -> words.text(R.string.list_none)
         1 -> labels[0]
-        2 -> "${labels[0]} and ${labels[1]}"
-        else -> "${labels.size} apps"
+        2 -> words.text(R.string.list_two, labels[0], labels[1])
+        else -> words.count(R.plurals.list_apps, labels.size, labels.size)
     }
 
     /** The chosen packages that may be closed at all: never a home screen or System UI. */
@@ -182,14 +182,14 @@ object RecentTasks {
      * move (the top visible task that isn't a home screen). [where] names the
      * screen in messages. A null [display] means there is no second screen.
      */
-    fun closeOnScreen(context: Context, display: Int?, where: String, keepRunning: Set<String>): AppsOutcome {
+    fun closeOnScreen(context: Context, display: Int?, top: Boolean, keepRunning: Set<String>): AppsOutcome {
         if (!Shell.ready) return AppsOutcome.NeedsShizuku
         if (display == null) return AppsOutcome.Failed("no second screen found")
         val list = Shell.run("am", "stack", "list")
         if (!list.ok) return AppsOutcome.Failed(list.err.ifBlank { "am stack list failed" })
         val app = ScreenSwap.visibleApp(ScreenSwap.parse(list.out), display, ScreenSwap.exclusions(context))
         val pkg = app?.topPackage
-        if (app == null || pkg == null || pkg == SYSTEM_UI) return AppsOutcome.NothingToClose(where)
+        if (app == null || pkg == null || pkg == SYSTEM_UI) return AppsOutcome.NothingToClose(top)
         return closeTask(context, app.id, pkg, keepRunning)
     }
 
@@ -218,7 +218,7 @@ object RecentTasks {
         }
         // The message counts only what was open, not everything on the list.
         if (open.isEmpty()) return AppsOutcome.NoneRunning
-        return AppsOutcome.Closed(names(open.map { label(context, it) }))
+        return AppsOutcome.Closed(names(context.words(), open.map { label(context, it) }))
     }
 
     /** The chosen apps that had a task open, in the order chosen. */
@@ -316,25 +316,29 @@ object RecentTasks {
 }
 
 /** A message for the user after closing one app, or a chosen few. */
-fun closeAppsOutcomeMessage(outcome: RecentTasks.AppsOutcome): String = when (outcome) {
-    is RecentTasks.AppsOutcome.Closed -> "${outcome.what} closed"
-    is RecentTasks.AppsOutcome.NothingToClose -> outcome.where?.let { "No app on $it" } ?: "No app to close"
-    RecentTasks.AppsOutcome.NoneRunning -> "No selected task(s) running"
-    RecentTasks.AppsOutcome.NeedsShizuku -> "Closing apps needs Shizuku"
-    is RecentTasks.AppsOutcome.Failed -> "Couldn't close it: ${outcome.message}"
+fun closeAppsOutcomeMessage(words: Words, outcome: RecentTasks.AppsOutcome): String = when (outcome) {
+    is RecentTasks.AppsOutcome.Closed -> words.text(R.string.msg_closed, outcome.what)
+    is RecentTasks.AppsOutcome.NothingToClose -> when (outcome.top) {
+        true -> words.text(R.string.msg_no_app_top)
+        false -> words.text(R.string.msg_no_app_bottom)
+        null -> words.text(R.string.msg_no_app_to_close)
+    }
+    RecentTasks.AppsOutcome.NoneRunning -> words.text(R.string.msg_none_running)
+    RecentTasks.AppsOutcome.NeedsShizuku -> words.text(R.string.msg_close_apps_needs_shizuku)
+    is RecentTasks.AppsOutcome.Failed -> words.text(R.string.msg_close_failed, outcome.message)
 }
 
 /** A message after closing everything but what is on screen. */
-fun closeBackgroundOutcomeMessage(outcome: RecentTasks.Outcome): String = when (outcome) {
-    is RecentTasks.Outcome.Closed -> "Background tasks closed"
-    RecentTasks.Outcome.NothingToClose -> "No background tasks"
-    else -> closeAllOutcomeMessage(outcome)
+fun closeBackgroundOutcomeMessage(words: Words, outcome: RecentTasks.Outcome): String = when (outcome) {
+    is RecentTasks.Outcome.Closed -> words.text(R.string.msg_background_closed)
+    RecentTasks.Outcome.NothingToClose -> words.text(R.string.msg_no_background)
+    else -> closeAllOutcomeMessage(words, outcome)
 }
 
 /** A message for the user, worded like Recents' own. */
-fun closeAllOutcomeMessage(outcome: RecentTasks.Outcome): String = when (outcome) {
-    is RecentTasks.Outcome.Closed -> "All tasks closed"
-    RecentTasks.Outcome.NothingToClose -> "No tasks to close"
-    RecentTasks.Outcome.NeedsShizuku -> "Closing tasks needs Shizuku"
-    is RecentTasks.Outcome.Failed -> "Couldn't close tasks: ${outcome.message}"
+fun closeAllOutcomeMessage(words: Words, outcome: RecentTasks.Outcome): String = when (outcome) {
+    is RecentTasks.Outcome.Closed -> words.text(R.string.msg_all_closed)
+    RecentTasks.Outcome.NothingToClose -> words.text(R.string.msg_no_tasks)
+    RecentTasks.Outcome.NeedsShizuku -> words.text(R.string.msg_close_tasks_needs_shizuku)
+    is RecentTasks.Outcome.Failed -> words.text(R.string.msg_close_tasks_failed, outcome.message)
 }

@@ -21,7 +21,7 @@ class ShortcutMenuActivity : ComponentActivity() {
         setContent {
             PathfinderTheme {
                 ShortcutPicker(
-                    title = ButtonAction.SHORTCUT_MENU.label,
+                    title = getString(ButtonAction.SHORTCUT_MENU.text),
                     choices = ButtonAction.menuChoices,
                     current = null,
                     shizukuReady = Shell.ready,

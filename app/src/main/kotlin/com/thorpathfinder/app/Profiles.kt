@@ -19,6 +19,12 @@ import androidx.core.content.edit
  *
  * Mouse mode is not in here: it is AYN's own system setting and config file,
  * shared by the whole device, so a profile has nothing of it to remember.
+ *
+ * App profiles: a profile can be linked to apps, and is then the one in use
+ * while one of them is the app the controller drives ([AppWatcher] keeps
+ * that app in `now.app`). So the profile in use ([activeId]) is not always
+ * the one the user chose ([chosenId]). A switch the user makes while a
+ * linked app is in front is held (`now.held`) until that app is left.
  */
 object Profiles {
 
@@ -32,8 +38,16 @@ object Profiles {
 
     const val MAX_NAME = 20
 
-    private const val PREFS = "profiles"
+    /** The list of profiles, their names and links, and which one is chosen. */
+    internal const val PREFS = "profiles"
     private const val SHORTCUTS = "shortcuts"
+
+    /** A profile's linked apps are kept as "apps.<id>". */
+    private const val APPS = "apps."
+
+    /** The app the controller drives, and one a switch is held in: see [inUse]. */
+    private const val NOW_APP = "now.app"
+    private const val NOW_HELD = "now.held"
 
     data class Profile(val id: Int, val name: String)
 
@@ -63,22 +77,39 @@ object Profiles {
      */
     fun nextId(ids: List<Int>, stored: Int): Int = maxOf(stored, (ids.maxOrNull() ?: ORIGINAL) + 1)
 
-    /** A name for a new profile that no existing one already has. */
-    fun newName(existing: List<String>): String {
+    /** A name for a new profile that no existing one already has; [numbered] words "Profile n". */
+    fun newName(existing: List<String>, numbered: (Int) -> String = { "Profile $it" }): String {
         var n = existing.size + 1
-        while (existing.any { it.equals("Profile $n", ignoreCase = true) }) n++
-        return "Profile $n"
+        while (existing.any { it.equals(numbered(n), ignoreCase = true) }) n++
+        return numbered(n)
     }
 
     /** What the user typed, tidied; blank keeps [fallback]. */
     fun cleanName(typed: String, fallback: String): String =
         typed.trim().take(MAX_NAME).ifBlank { fallback }
 
+    /**
+     * The profile in use: the one linked to [app], the app the controller
+     * drives, unless the user switched while in it ([held]); otherwise the
+     * one the user chose.
+     */
+    fun inUse(chosen: Int, app: String?, held: String?, linked: (String) -> Int?): Int =
+        app?.takeIf { it != held }?.let(linked) ?: chosen
+
+    /** [links] after linking [apps] to [id]: an app uses one profile, so it leaves any other. */
+    fun relinked(links: Map<Int, Set<String>>, id: Int, apps: Set<String>): Map<Int, Set<String>> =
+        (links.mapValues { (other, set) -> if (other == id) apps else set - apps } + (id to apps))
+            .filterValues { it.isNotEmpty() }
+
     fun ids(context: Context): List<Int> = parseIds(prefs(context).getString("ids", null))
 
     fun name(context: Context, id: Int): String =
         prefs(context).getString("name.$id", null)
-            ?: if (id == ORIGINAL) DEFAULT_MAIN_NAME else "Profile ${id + 1}"
+            ?: if (id == ORIGINAL) {
+                context.getString(R.string.profile_main_default)
+            } else {
+                context.getString(R.string.profile_n, id + 1)
+            }
 
     fun all(context: Context): List<Profile> = ids(context).map { Profile(it, name(context, it)) }
 
@@ -99,13 +130,68 @@ object Profiles {
         prefs(context).edit { putInt("main", id) }
     }
 
-    /** The profile in use, or the main one when what was stored has been deleted. */
-    fun activeId(context: Context): Int {
+    /** The profile the user chose, or the main one when what was stored has been deleted. */
+    fun chosenId(context: Context): Int {
         val stored = prefs(context).getInt("active", ORIGINAL)
         return if (has(context, stored)) stored else mainId(context)
     }
 
+    /** The profile in use: an app's, while one linked to a profile is in front (see [inUse]). */
+    fun activeId(context: Context): Int {
+        val prefs = prefs(context)
+        return inUse(chosenId(context), prefs.getString(NOW_APP, null), prefs.getString(NOW_HELD, null)) {
+            profileFor(context, it)
+        }
+    }
+
     fun active(context: Context): Profile = activeId(context).let { Profile(it, name(context, it)) }
+
+    /** The apps linked to profile [id]. */
+    fun linkedApps(context: Context, id: Int): Set<String> =
+        prefs(context).getStringSet("$APPS$id", null)?.toSet() ?: emptySet()
+
+    /** The profile [pkg] is linked to, if any. */
+    fun profileFor(context: Context, pkg: String): Int? =
+        ids(context).firstOrNull { prefs(context).getStringSet("$APPS$it", null)?.contains(pkg) == true }
+
+    /** Whether any app is linked to a profile, which is when [AppWatcher] needs to watch. */
+    fun hasLinks(context: Context): Boolean = ids(context).any { linkedApps(context, it).isNotEmpty() }
+
+    /** Links [apps] to profile [id] and to no other. */
+    fun setLinkedApps(context: Context, id: Int, apps: Set<String>) {
+        if (!has(context, id)) return
+        val ids = ids(context)
+        val links = relinked(ids.associateWith { linkedApps(context, it) }, id, apps)
+        prefs(context).edit {
+            for (each in ids) {
+                val set = links[each]
+                if (set == null) remove("$APPS$each") else putStringSet("$APPS$each", set)
+            }
+        }
+    }
+
+    /** The app the controller drives, while [AppWatcher] is watching; null otherwise. */
+    fun currentApp(context: Context): String? = prefs(context).getString(NOW_APP, null)
+
+    /** The app whose profile is in use right now, if an app's is. */
+    fun appInUse(context: Context): String? {
+        val prefs = prefs(context)
+        val app = prefs.getString(NOW_APP, null) ?: return null
+        if (app == prefs.getString(NOW_HELD, null)) return null
+        return app.takeIf { profileFor(context, it) != null }
+    }
+
+    /**
+     * Records the app the controller drives now, or null when nothing is
+     * watching. Leaving an app ends a switch held in it.
+     */
+    fun setCurrentApp(context: Context, pkg: String?) {
+        if (pkg == currentApp(context)) return
+        prefs(context).edit {
+            if (pkg == null) remove(NOW_APP) else putString(NOW_APP, pkg)
+            remove(NOW_HELD)
+        }
+    }
 
     /**
      * Whether setup has been walked through: about the device rather than any
@@ -145,9 +231,18 @@ object Profiles {
         prefs(context).unregisterOnSharedPreferenceChangeListener(listener)
     }
 
+    /**
+     * Makes [id] the chosen profile. Made while an app's profile is in use,
+     * the switch holds until that app is left, and then the chosen profile
+     * (this one) carries on wherever no app's applies.
+     */
     fun switchTo(context: Context, id: Int): Profile {
         val target = if (has(context, id)) id else mainId(context)
-        prefs(context).edit { putInt("active", target) }
+        val app = appInUse(context)
+        prefs(context).edit {
+            putInt("active", target)
+            if (app != null) putString(NOW_HELD, app)
+        }
         return Profile(target, name(context, target))
     }
 
@@ -197,10 +292,11 @@ object Profiles {
         if (!deletable(context, id)) return
         val left = ids(context) - id
         val main = mainId(context)
-        val wasActive = activeId(context) == id
+        val wasActive = chosenId(context) == id
         prefs(context).edit(commit = true) {
             putString("ids", left.joinToString(","))
             remove("name.$id")
+            remove("$APPS$id")
             if (wasActive) putInt("active", main)
         }
         context.deleteSharedPreferences(fileName(id))

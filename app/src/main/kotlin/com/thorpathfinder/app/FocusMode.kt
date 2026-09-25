@@ -25,7 +25,7 @@ object FocusMode {
     const val BOTTOM = 2
 
     /** AYN's own names, in its menu's order; each one's position is the value stored. */
-    val NAMES = listOf("Auto-lock", "Top screen", "Bottom screen")
+    val NAMES = listOf(R.string.focus_mode_auto, R.string.focus_mode_top, R.string.focus_mode_bottom)
 
     sealed interface Outcome {
         data class Changed(val value: Int) : Outcome
@@ -51,7 +51,7 @@ object FocusMode {
         FocusSwitch.SWAP -> if (current == TOP) BOTTOM else TOP
     }
 
-    fun name(value: Int): String? = NAMES.getOrNull(value)
+    fun name(words: Words, value: Int): String? = NAMES.getOrNull(value)?.let { words.text(it) }
 
     fun current(context: Context): Int = Settings.System.getInt(context.contentResolver, KEY, AUTO)
 
@@ -71,8 +71,8 @@ object FocusMode {
 }
 
 /** What the shortcut says when it runs. */
-fun focusModeMessage(outcome: FocusMode.Outcome): String = when (outcome) {
-    is FocusMode.Outcome.Changed -> "Focus Mode: ${FocusMode.NAMES[outcome.value]}"
-    FocusMode.Outcome.NeedsShizuku -> "Focus Mode needs Shizuku"
-    is FocusMode.Outcome.Failed -> "Couldn't change Focus Mode: ${outcome.message}"
+fun focusModeMessage(words: Words, outcome: FocusMode.Outcome): String = when (outcome) {
+    is FocusMode.Outcome.Changed -> words.text(R.string.msg_focus_mode, words.text(FocusMode.NAMES[outcome.value]))
+    FocusMode.Outcome.NeedsShizuku -> words.text(R.string.msg_focus_needs_shizuku)
+    is FocusMode.Outcome.Failed -> words.text(R.string.msg_focus_failed, outcome.message)
 }

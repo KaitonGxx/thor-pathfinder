@@ -28,6 +28,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.thorpathfinder.app.R
 import androidx.compose.ui.window.Dialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -59,7 +61,7 @@ fun LicensesDialog(onDismiss: () -> Unit) {
         Card {
             Column(Modifier.padding(vertical = 16.dp)) {
                 Text(
-                    "Open-source licenses",
+                    stringResource(R.string.licenses_row),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                 )
@@ -85,7 +87,7 @@ fun LicensesDialog(onDismiss: () -> Unit) {
                 TextButton(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End).padding(horizontal = 16.dp).focusOutline(PillShape),
-                ) { Text("Close") }
+                ) { Text(stringResource(R.string.close)) }
             }
         }
     }
@@ -143,7 +145,7 @@ private fun LicenseText(item: Licensed, onDismiss: () -> Unit) {
                 TextButton(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End).padding(horizontal = 16.dp).focusOutline(PillShape),
-                ) { Text("Back") }
+                ) { Text(stringResource(R.string.nav_back)) }
             }
         }
     }

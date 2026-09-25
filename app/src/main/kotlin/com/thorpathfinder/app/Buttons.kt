@@ -1,6 +1,7 @@
 package com.thorpathfinder.app
 
 import android.view.KeyEvent
+import androidx.annotation.StringRes
 
 /**
  * How Pathfinder may treat a button.
@@ -33,20 +34,20 @@ enum class ButtonKind { SYSTEM, GAMEPAD }
  * too, and fall back to [normalAction] without it.
  */
 enum class PhysicalButton(
-    val label: String,
+    @StringRes val text: Int,
     val kind: ButtonKind,
     val keyCode: Int,
     val scanCode: Int? = null,
     /** The kernel input device a "Normal" press is replayed on, when no global action matches it. */
     val device: String? = null,
 ) {
-    BACK("Back", ButtonKind.SYSTEM, KeyEvent.KEYCODE_BACK, scanCode = 158, device = CONTROLLER),
-    HOME("Home", ButtonKind.SYSTEM, KeyEvent.KEYCODE_HOME, scanCode = 102, device = CONTROLLER),
-    AYN("AYN button", ButtonKind.SYSTEM, KeyEvent.KEYCODE_HOME, scanCode = 194, device = "gpio-keys"),
-    SELECT("Select", ButtonKind.GAMEPAD, KeyEvent.KEYCODE_BUTTON_SELECT),
-    START("Start", ButtonKind.GAMEPAD, KeyEvent.KEYCODE_BUTTON_START),
-    L3("L3 (click left stick)", ButtonKind.GAMEPAD, KeyEvent.KEYCODE_BUTTON_THUMBL),
-    R3("R3 (click right stick)", ButtonKind.GAMEPAD, KeyEvent.KEYCODE_BUTTON_THUMBR);
+    BACK(R.string.button_back, ButtonKind.SYSTEM, KeyEvent.KEYCODE_BACK, scanCode = 158, device = CONTROLLER),
+    HOME(R.string.button_home, ButtonKind.SYSTEM, KeyEvent.KEYCODE_HOME, scanCode = 102, device = CONTROLLER),
+    AYN(R.string.button_ayn, ButtonKind.SYSTEM, KeyEvent.KEYCODE_HOME, scanCode = 194, device = "gpio-keys"),
+    SELECT(R.string.button_select, ButtonKind.GAMEPAD, KeyEvent.KEYCODE_BUTTON_SELECT),
+    START(R.string.button_start, ButtonKind.GAMEPAD, KeyEvent.KEYCODE_BUTTON_START),
+    L3(R.string.button_l3, ButtonKind.GAMEPAD, KeyEvent.KEYCODE_BUTTON_THUMBL),
+    R3(R.string.button_r3, ButtonKind.GAMEPAD, KeyEvent.KEYCODE_BUTTON_THUMBR);
 
     /** Android's own stand-in for the button, when the real key can't be replayed; null when there is none. */
     val normalAction: ButtonAction?
@@ -57,11 +58,10 @@ enum class PhysicalButton(
         }
 
     /** What a "Normal" press does, in words. */
-    val normalName: String
-        get() = when (this) {
-            AYN -> "AYN menu"
-            else -> normalAction?.label ?: label
-        }
+    fun normalName(words: Words): String = when (this) {
+        AYN -> words.text(R.string.normal_ayn_menu)
+        else -> words.text(normalAction?.text ?: text)
+    }
 
     /** The gestures that can be changed on this button. */
     val gestures: List<Gesture>
@@ -74,80 +74,80 @@ enum class PhysicalButton(
     }
 }
 
-enum class Gesture(val label: String) {
-    PRESS("Press"),
-    DOUBLE("Double-press"),
-    HOLD("Hold"),
+enum class Gesture(@StringRes val text: Int) {
+    PRESS(R.string.gesture_press),
+    DOUBLE(R.string.gesture_double),
+    HOLD(R.string.gesture_hold),
 }
 
 /** The screen an "Open an app" shortcut opens its app on. */
-enum class LaunchScreen(val label: String, val short: String) {
-    TOP("Top screen", "top"),
-    BOTTOM("Bottom screen", "bottom"),
+enum class LaunchScreen(@StringRes val text: Int, @StringRes val short: Int) {
+    TOP(R.string.launch_top, R.string.launch_top_short),
+    BOTTOM(R.string.launch_bottom, R.string.launch_bottom_short),
     /** Put the question each time the shortcut runs. */
-    ASK("Ask", "ask"),
+    ASK(R.string.launch_ask, R.string.launch_ask_short),
 }
 
 /** What a "Close app(s)" shortcut closes. */
-enum class CloseTarget(val label: String) {
-    ALL("Close all apps"),
-    BACKGROUND("Close background apps"),
-    FOCUSED("Close focused app"),
-    TOP("Close top app"),
-    BOTTOM("Close bottom app"),
-    SPECIFIC("Close specific apps"),
+enum class CloseTarget(@StringRes val text: Int) {
+    ALL(R.string.close_all),
+    BACKGROUND(R.string.close_background),
+    FOCUSED(R.string.close_focused),
+    TOP(R.string.close_top),
+    BOTTOM(R.string.close_bottom),
+    SPECIFIC(R.string.close_specific),
 }
 
 /** What a "Profile switcher" shortcut does when pressed. */
-enum class ProfileSwitch(val label: String) {
-    CYCLE("Cycle profiles"),
+enum class ProfileSwitch(@StringRes val text: Int) {
+    CYCLE(R.string.profile_switch_cycle),
     /** Turn one named profile on, or go back to the main one when it already is. */
-    ENABLE("Enable a profile"),
-    ASK("Ask each time"),
+    ENABLE(R.string.profile_switch_enable),
+    ASK(R.string.profile_switch_ask),
 }
 
 /** The screens a "Home" shortcut sends home. */
-enum class HomeTarget(val label: String, val short: String) {
-    TOP("Top screen only", "top"),
-    BOTTOM("Bottom screen only", "bottom"),
-    BOTH("Both screens", "both"),
+enum class HomeTarget(@StringRes val text: Int, @StringRes val short: Int) {
+    TOP(R.string.home_top, R.string.home_top_short),
+    BOTTOM(R.string.home_bottom, R.string.home_bottom_short),
+    BOTH(R.string.home_both, R.string.home_both_short),
 }
 
 /** What a "Focus Mode" shortcut does when pressed. */
-enum class FocusSwitch(val label: String) {
-    TOP("Top screen focus"),
-    BOTTOM("Bottom screen focus"),
-    CYCLE("Cycle focus modes"),
+enum class FocusSwitch(@StringRes val text: Int) {
+    TOP(R.string.focus_top),
+    BOTTOM(R.string.focus_bottom),
+    CYCLE(R.string.focus_cycle),
     /** Between the two screens only; from Auto-lock it goes to the top first. */
-    SWAP("Top/Bottom focus swap"),
+    SWAP(R.string.focus_swap),
 }
 
 /** The kernel input device of the Thor's Back and Home buttons. */
 private const val CONTROLLER = "Odin Controller"
 
-enum class ButtonAction(val label: String, val needsShizuku: Boolean = false) {
+enum class ButtonAction(@StringRes val text: Int, val needsShizuku: Boolean = false) {
     /** The button's own behaviour (system) or nothing on top of the game (gamepad). */
-    NORMAL("Normal"),
-    NOTHING("Do nothing"),
-    BACK("Back"),
-    HOME("Home"),
-    RECENTS("Recent apps"),
+    NORMAL(R.string.action_normal),
+    NOTHING(R.string.action_nothing),
+    BACK(R.string.action_back),
+    HOME(R.string.action_home),
+    RECENTS(R.string.action_recents),
     // Named CLOSE_ALL for the mappings already stored; which apps it closes is a CloseTarget.
-    CLOSE_ALL("Close app(s)", needsShizuku = true),
-    SWAP_SCREENS("Swap screens", needsShizuku = true),
-    MOUSE_MODE("Mouse mode on/off", needsShizuku = true),
+    CLOSE_ALL(R.string.action_close_all, needsShizuku = true),
+    SWAP_SCREENS(R.string.action_swap_screens, needsShizuku = true),
+    MOUSE_MODE(R.string.action_mouse_mode, needsShizuku = true),
     // Which way it moves Focus Mode is a FocusSwitch.
-    FOCUS_MODE("Focus Mode", needsShizuku = true),
-    NOTIFICATIONS("Notifications"),
-    QUICK_SETTINGS("Quick settings"),
-    SCREENSHOT("Screenshot"),
-    SCREEN_RECORD("Screen record (Testing)", needsShizuku = true),
-    POWER_MENU("Power menu"),
-    LOCK_SCREEN("Lock screen"),
+    FOCUS_MODE(R.string.action_focus_mode, needsShizuku = true),
+    NOTIFICATIONS(R.string.action_notifications),
+    QUICK_SETTINGS(R.string.action_quick_settings),
+    SCREENSHOT(R.string.action_screenshot),
+    SCREEN_RECORD(R.string.action_screen_record, needsShizuku = true),
+    POWER_MENU(R.string.action_power_menu),
+    LOCK_SCREEN(R.string.action_lock_screen),
     /** Every other shortcut in one list, run once on the spot: see [menuChoices]. */
-    SHORTCUT_MENU("Shortcut menu"),
-    LAUNCH_APP("Open an app"),
-    PROFILE("Profile switcher");
+    SHORTCUT_MENU(R.string.action_shortcut_menu),
+    LAUNCH_APP(R.string.action_launch_app),
+    PROFILE(R.string.action_profile);
 
     companion object {
         /** The choices offered for a button; "Do nothing" only matters where Pathfinder can block. */
@@ -160,14 +160,17 @@ enum class ButtonAction(val label: String, val needsShizuku: Boolean = false) {
          * nothing does nothing, and the menu doesn't list itself.
          */
         val menuChoices: List<ButtonAction> = entries - listOf(NORMAL, NOTHING, SHORTCUT_MENU)
+
+        /** What a combo can do: anything but Normal and Do nothing, which a combo has no use for. */
+        val comboChoices: List<ButtonAction> = entries - listOf(NORMAL, NOTHING)
     }
 }
 
 /** What a gesture left on NORMAL means, for display. */
-fun normalLabel(button: PhysicalButton, gesture: Gesture): String = when {
-    button.kind == ButtonKind.GAMEPAD -> "Nothing extra"
-    gesture == Gesture.PRESS -> "Normal (${button.normalName})"
-    gesture == Gesture.DOUBLE -> "Normal (two presses)"
-    button.normalAction == null -> "Normal (long press)"
-    else -> "Normal (a press)"
+fun normalLabel(words: Words, button: PhysicalButton, gesture: Gesture): String = when {
+    button.kind == ButtonKind.GAMEPAD -> words.text(R.string.normal_nothing_extra)
+    gesture == Gesture.PRESS -> words.text(R.string.normal_is, button.normalName(words))
+    gesture == Gesture.DOUBLE -> words.text(R.string.normal_two_presses)
+    button.normalAction == null -> words.text(R.string.normal_long_press)
+    else -> words.text(R.string.normal_a_press)
 }

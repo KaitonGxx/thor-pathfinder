@@ -56,6 +56,8 @@ import androidx.core.content.edit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import com.thorpathfinder.app.ButtonAction
+import com.thorpathfinder.app.ComboKey
+import com.thorpathfinder.app.Combos
 import com.thorpathfinder.app.ButtonKind
 import com.thorpathfinder.app.CloseTarget
 import com.thorpathfinder.app.FocusSwitch
@@ -63,6 +65,11 @@ import com.thorpathfinder.app.Gesture
 import com.thorpathfinder.app.HomeTarget
 import com.thorpathfinder.app.LaunchScreen
 import com.thorpathfinder.app.PhysicalButton
+import com.thorpathfinder.app.R
+import androidx.annotation.StringRes
+import com.thorpathfinder.app.words
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import com.thorpathfinder.app.ProfileSwitch
 import com.thorpathfinder.app.Profiles
 import com.thorpathfinder.app.RecentTasks
@@ -77,7 +84,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit, onOpenSettings: () -> Unit) {
+fun SettingsScreen(
+    state: SystemState,
+    onFix: (SetupStep) -> Unit,
+    onOpenSettings: () -> Unit,
+    /** A button whose card starts open, as the welcome page's "Add a combo" asks. */
+    openCard: PhysicalButton? = null,
+    /** Opens the welcome page again, from About. */
+    onWhatsNew: () -> Unit = {},
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val shortcuts = remember { ObservedShortcuts(Shortcuts(context)) }
@@ -88,6 +103,10 @@ fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit, onOpenSetting
     // leaving Pathfinder and returning is exactly when a release may be out.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { updates.checkOnOpen() }
     var editing by remember { mutableStateOf<Pair<PhysicalButton, Gesture>?>(null) }
+    // A combo: the button whose card is adding one, the one tapped, the one being set.
+    var addingCombo by remember { mutableStateOf<ComboKey?>(null) }
+    var comboActing by remember { mutableStateOf<Set<ComboKey>?>(null) }
+    var comboEditing by remember { mutableStateOf<Set<ComboKey>?>(null) }
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         ScrollingColumn(
@@ -103,30 +122,77 @@ fun SettingsScreen(state: SystemState, onFix: (SetupStep) -> Unit, onOpenSetting
                 UpdateCard(updates, release, onOpenPage = { runCatching { context.openUrl(it) } })
             }
             Text(
-                "Tap a gesture to change what it does. On Back, Home and the AYN button, Pathfinder " +
-                    "handles the button once any gesture is changed, and Normal still does its usual job.",
+                stringResource(R.string.main_intro),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             PhysicalButton.entries.forEach { button ->
-                ButtonCard(context, button, shortcuts) { gesture -> editing = button to gesture }
+                ButtonCard(
+                    context,
+                    button,
+                    shortcuts,
+                    startOpen = button == openCard,
+                    onEditCombo = { comboActing = it },
+                    onAddCombo = { addingCombo = ComboKey.of(button) },
+                ) { gesture -> editing = button to gesture }
             }
-            AboutCard()
+            AboutCard(onWhatsNew = onWhatsNew)
         }
     }
 
+    val words = remember(context) { context.words() }
     editing?.let { (button, gesture) ->
         ShortcutPicker(
-            title = "${button.label}: ${gesture.label}",
+            title = stringResource(R.string.edit_title, stringResource(button.text), stringResource(gesture.text)),
             choices = ButtonAction.choicesFor(button),
             current = shortcuts.shortcut(button, gesture),
             shizukuReady = state.shizuku == Shell.Status.READY,
-            label = { if (it == ButtonAction.NORMAL) normalLabel(button, gesture) else it.label },
+            label = { if (it == ButtonAction.NORMAL) normalLabel(words, button, gesture) else words.text(it.text) },
             onChosen = { chosen ->
                 shortcuts.set(button, gesture, chosen)
                 editing = null
             },
             onDismiss = { editing = null },
+        )
+    }
+
+    addingCombo?.let { held ->
+        ComboKeysDialog(
+            held = held,
+            onNext = { keys ->
+                addingCombo = null
+                comboEditing = keys
+            },
+            onDismiss = { addingCombo = null },
+        )
+    }
+
+    comboActing?.let { keys ->
+        PickDialog(
+            title = Combos.label(words, keys),
+            choices = listOf(
+                stringResource(R.string.combo_change) to shortcuts.combo(keys)?.let { shortcutText(context, it) },
+                stringResource(R.string.combo_remove) to stringResource(R.string.combo_remove_detail),
+            ),
+            onPick = { index ->
+                comboActing = null
+                if (index == 0) comboEditing = keys else shortcuts.removeCombo(keys)
+            },
+            onDismiss = { comboActing = null },
+        )
+    }
+
+    comboEditing?.let { keys ->
+        ShortcutPicker(
+            title = Combos.label(words, keys),
+            choices = ButtonAction.comboChoices,
+            current = shortcuts.combo(keys),
+            shizukuReady = state.shizuku == Shell.Status.READY,
+            onChosen = { chosen ->
+                shortcuts.setCombo(keys, chosen)
+                comboEditing = null
+            },
+            onDismiss = { comboEditing = null },
         )
     }
 }
@@ -147,7 +213,7 @@ private fun Header(context: Context, updates: UpdateUi, onOpenSettings: () -> Un
         )
         Spacer(Modifier.width(4.dp))
         IconButton(onClick = onOpenSettings, modifier = Modifier.focusOutline(PillShape)) {
-            Icon(Icons.Filled.Settings, contentDescription = "Settings")
+            Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings))
         }
     }
 
@@ -237,21 +303,21 @@ private fun UpdateDialog(
     val page: String
     when (outcome) {
         is UpdateCheck.Outcome.Available -> {
-            title = "Update available"
-            message = "Version ${outcome.latest.version} is out. You have $installed."
+            title = stringResource(R.string.update_available_title)
+            message = stringResource(R.string.update_available_msg, outcome.latest.version, installed)
             page = outcome.latest.page
         }
         is UpdateCheck.Outcome.UpToDate -> {
-            title = "You're up to date"
+            title = stringResource(R.string.up_to_date_title)
             message = if (UpdateCheck.isNewer(installed, outcome.latest.version)) {
-                "You have $installed, which is newer than the latest release (${outcome.latest.version})."
+                stringResource(R.string.up_to_date_newer, installed, outcome.latest.version)
             } else {
-                "$installed is the latest version."
+                stringResource(R.string.up_to_date_latest, installed)
             }
             page = outcome.latest.page
         }
         is UpdateCheck.Outcome.Failed -> {
-            title = "Couldn't check for updates"
+            title = stringResource(R.string.check_failed_title)
             message = outcome.message
             page = UpdateCheck.LATEST_PAGE
         }
@@ -265,13 +331,13 @@ private fun UpdateDialog(
             TextButton(
                 onClick = { onOpen(page) },
                 modifier = Modifier.focusRequester(open).focusOutline(PillShape),
-            ) { Text(if (update) "What's New" else "Open release page") }
+            ) { Text(stringResource(if (update) R.string.whats_new else R.string.open_release_page)) }
         },
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
                 modifier = Modifier.focusRequester(close).focusOutline(PillShape),
-            ) { Text(if (update) "Not now" else "Close") }
+            ) { Text(stringResource(if (update) R.string.not_now else R.string.close)) }
         },
     )
     // With an update, the release page is what they came for.
@@ -280,71 +346,42 @@ private fun UpdateDialog(
 }
 
 /** Something setup checks, with a line on why it happened when that isn't obvious. */
-private class Problem(val text: String, val detail: String?, val step: SetupStep)
+private class Problem(@StringRes val text: Int, @StringRes val detail: Int?, val step: SetupStep)
 
 @Composable
 private fun NeedsAttention(state: SystemState, onFix: (SetupStep) -> Unit) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
         Column(Modifier.fillMaxWidth().padding(16.dp)) {
             Text(
-                "Something needs attention",
+                stringResource(R.string.attention_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onErrorContainer,
             )
             val problems = buildList {
                 if (!state.device.ok) {
-                    add(Problem("This Thor's firmware isn't supported", null, SetupStep.DEVICE))
+                    add(Problem(R.string.problem_firmware, null, SetupStep.DEVICE))
                 }
                 if (state.wayfinderOn) {
-                    add(Problem("Thor Wayfinder is also handling the Back button", null, SetupStep.WAYFINDER))
+                    add(Problem(R.string.problem_wayfinder, null, SetupStep.WAYFINDER))
                 }
                 if (state.autoLaunchBlocked) {
                     // Named first: it is the cause of the stuck service, not another problem.
-                    add(
-                        Problem(
-                            "AYN's APP Auto Launch Manage is blocking Pathfinder",
-                            "Thor Pathfinder is switched on in that page (Settings → Thor " +
-                                "settings → Advanced Settings), which stops Android from starting " +
-                                "its service, so after a restart no shortcut works. Switch it off " +
-                                "there, or let Pathfinder fix it.",
-                            SetupStep.ACCESSIBILITY,
-                        )
-                    )
+                    add(Problem(R.string.problem_autolaunch, R.string.problem_autolaunch_detail, SetupStep.ACCESSIBILITY))
                 } else if (state.serviceStuck) {
-                    add(
-                        Problem(
-                            "Pathfinder is switched on but isn't running",
-                            "Android has the switch on but hasn't started the service, so no " +
-                                "shortcut works. It can happen after a crash, an unexpected " +
-                                "restart, or an app that stops others in the background. Switch " +
-                                "it off and on again to fix it.",
-                            SetupStep.ACCESSIBILITY,
-                        )
-                    )
+                    add(Problem(R.string.problem_stuck, R.string.problem_stuck_detail, SetupStep.ACCESSIBILITY))
                 } else if (!state.serviceOn) {
-                    add(
-                        Problem(
-                            "Pathfinder's accessibility service is off",
-                            // The first thing anyone sees after updating the app.
-                            "Android switches accessibility services off whenever their app is " +
-                                "updated. Turn it back on and your shortcuts work again.",
-                            SetupStep.ACCESSIBILITY,
-                        )
-                    )
+                    // The first thing anyone sees after updating the app.
+                    add(Problem(R.string.problem_off, R.string.problem_off_detail, SetupStep.ACCESSIBILITY))
                 }
                 if (state.shizuku != Shell.Status.READY) {
                     add(
                         Problem(
-                            "Shizuku isn't connected",
+                            R.string.problem_shizuku,
                             when (state.shizuku) {
-                                Shell.Status.NOT_INSTALLED ->
-                                    "Swapping screens, mouse mode and closing apps go through " +
-                                        "Shizuku, which grants that access without rooting the Thor."
-                                Shell.Status.NOT_RUNNING ->
-                                    "Shizuku stops whenever the Thor restarts, so it needs " +
-                                        "starting again after a reboot."
-                                else -> "Shizuku is running, but hasn't let Pathfinder in yet."
+                                Shell.Status.NOT_INSTALLED -> R.string.shizuku_not_installed_detail
+                                Shell.Status.NOT_RUNNING -> R.string.shizuku_not_running_detail
+                                else -> R.string.shizuku_no_permission_detail
                             },
                             SetupStep.SHIZUKU,
                         )
@@ -355,13 +392,13 @@ private fun NeedsAttention(state: SystemState, onFix: (SetupStep) -> Unit) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(
-                            problem.text,
+                            stringResource(problem.text),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onErrorContainer,
                         )
                         problem.detail?.let {
                             Text(
-                                it,
+                                stringResource(it),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onErrorContainer,
                             )
@@ -371,7 +408,7 @@ private fun NeedsAttention(state: SystemState, onFix: (SetupStep) -> Unit) {
                     TextButton(
                         onClick = { onFix(problem.step) },
                         modifier = Modifier.focusOutline(PillShape),
-                    ) { Text("Fix") }
+                    ) { Text(stringResource(R.string.fix)) }
                 }
             }
         }
@@ -418,6 +455,20 @@ internal class ObservedShortcuts(private val store: Shortcuts) {
 
     fun shortcut(button: PhysicalButton, gesture: Gesture) = observe { store.shortcut(button, gesture) }
 
+    fun combos() = observe { store.combos }
+
+    fun combo(keys: Set<ComboKey>) = observe { store.combo(keys) }
+
+    fun setCombo(keys: Set<ComboKey>, shortcut: Shortcut) {
+        store.setCombo(keys, shortcut)
+        changed()
+    }
+
+    fun removeCombo(keys: Set<ComboKey>) {
+        store.removeCombo(keys)
+        changed()
+    }
+
     /** Another profile is in use, so every shortcut on the screen may have changed. */
     fun reloaded() = changed()
 
@@ -451,54 +502,100 @@ internal class ObservedShortcuts(private val store: Shortcuts) {
 /**
  * One button's gestures, folded away until opened. Closed, it lists whatever
  * isn't left on Normal, so the page still reads at a glance. Every card starts
- * closed when the screen opens.
+ * closed when the screen opens. Back, Home and the AYN button also list the
+ * combos they are in, with a way to add one.
  */
 @Composable
-private fun ButtonCard(context: Context, button: PhysicalButton, shortcuts: ObservedShortcuts, onEdit: (Gesture) -> Unit) {
-    var open by rememberSaveable { mutableStateOf(false) }
+private fun ButtonCard(
+    context: Context,
+    button: PhysicalButton,
+    shortcuts: ObservedShortcuts,
+    startOpen: Boolean,
+    onEditCombo: (Set<ComboKey>) -> Unit,
+    onAddCombo: () -> Unit,
+    onEdit: (Gesture) -> Unit,
+) {
+    var open by rememberSaveable { mutableStateOf(startOpen) }
+    val words = remember(context) { context.words() }
     val values = button.gestures.associateWith { valueText(context, button, it, shortcuts) }
     val changed = button.gestures.filter { shortcuts.action(button, it) != ButtonAction.NORMAL }
+    val key = ComboKey.of(button)
+    val holdsCombos = key in ComboKey.ANCHORS
+    val combos = if (holdsCombos) Combos.including(shortcuts.combos(), key) else emptyList()
+    val summary = buildList {
+        changed.forEach { add(words.text(R.string.map_line, words.text(it.text), values.getValue(it))) }
+        if (combos.isNotEmpty()) add(pluralStringResource(R.plurals.combos_count, combos.size, combos.size))
+    }
     CollapsibleCard(
-        title = button.label,
-        summary = if (changed.isEmpty()) "Works as usual" else changed.joinToString("  \u00b7  ") { "${it.label}: ${values.getValue(it)}" },
-        subtitle = if (button.kind == ButtonKind.GAMEPAD) "Games still get every press, so a plain press can't be changed." else null,
+        title = stringResource(button.text),
+        summary = if (summary.isEmpty()) stringResource(R.string.works_as_usual) else summary.joinToString("  \u00b7  "),
+        subtitle = if (button.kind == ButtonKind.GAMEPAD) stringResource(R.string.gamepad_subtitle) else null,
         expanded = open,
         onToggle = { open = !open },
         symbol = buttonSymbol(button),
+        badge = if (holdsCombos) {
+            { ComboBadge() }
+        } else {
+            null
+        },
     ) {
         button.gestures.forEach { gesture ->
-            ValueRow(gesture.label, values.getValue(gesture)) { onEdit(gesture) }
+            ValueRow(stringResource(gesture.text), values.getValue(gesture)) { onEdit(gesture) }
+        }
+        if (holdsCombos) {
+            ListHeading(
+                stringResource(R.string.combos_heading),
+                stringResource(R.string.combos_heading_detail, stringResource(button.text)),
+            )
+            combos.forEach { keys ->
+                ValueRow(Combos.label(words, keys), shortcuts.combo(keys)?.let { shortcutText(context, it) } ?: "") {
+                    onEditCombo(keys)
+                }
+            }
+            NavRow(stringResource(R.string.add_combo), null, onClick = onAddCombo)
         }
     }
 }
 
 /** What a gesture does, in words: its action, and for some actions where or what. */
 private fun valueText(context: Context, button: PhysicalButton, gesture: Gesture, shortcuts: ObservedShortcuts): String {
-    val action = shortcuts.action(button, gesture)
-    return when (action) {
-                ButtonAction.NORMAL -> normalLabel(button, gesture)
-                ButtonAction.LAUNCH_APP -> {
-                    val app = appLabel(context, shortcuts.app(button, gesture))
-                    val second = shortcuts.second(button, gesture)
-                    if (second != null) {
-                        "Open $app top, ${appLabel(context, second)} bottom"
-                    } else {
-                        "Open $app (${shortcuts.screen(button, gesture).short})"
-                    }
-                }
-                ButtonAction.HOME -> shortcuts.home(button, gesture)?.let { "Home (${it.short})" } ?: action.label
-                ButtonAction.PROFILE -> when (shortcuts.profile(button, gesture)) {
-                    ProfileSwitch.CYCLE -> ProfileSwitch.CYCLE.label
-                    ProfileSwitch.ASK -> "Switch profile (ask)"
-                    ProfileSwitch.ENABLE -> "Enable " + Profiles.name(context, shortcuts.profileId(button, gesture))
-                }
-                ButtonAction.CLOSE_ALL -> when (val target = shortcuts.close(button, gesture)) {
-                    CloseTarget.SPECIFIC ->
-                        "Close " + RecentTasks.names(shortcuts.closeApps(button, gesture).map { appLabel(context, it) }.sorted())
-                    else -> target.label
-                }
-                ButtonAction.FOCUS_MODE -> shortcuts.focus(button, gesture).label
-                else -> action.label
+    val shortcut = shortcuts.shortcut(button, gesture)
+    return if (shortcut.action == ButtonAction.NORMAL) {
+        normalLabel(context.words(), button, gesture)
+    } else {
+        shortcutText(context, shortcut)
+    }
+}
+
+/** What a shortcut does, in words: its action, and for some actions where or what. */
+internal fun shortcutText(context: Context, shortcut: Shortcut): String {
+    val words = context.words()
+    return when (shortcut.action) {
+        ButtonAction.LAUNCH_APP -> {
+            val app = appLabel(context, shortcut.app)
+            val second = shortcut.second
+            if (second != null) {
+                words.text(R.string.text_open_pair, app, appLabel(context, second))
+            } else {
+                words.text(R.string.map_open_one, app, words.text(shortcut.screen.short))
+            }
+        }
+        ButtonAction.HOME ->
+            shortcut.home?.let { words.text(R.string.map_home_to, words.text(it.short)) } ?: words.text(shortcut.action.text)
+        ButtonAction.PROFILE -> when (shortcut.profile) {
+            ProfileSwitch.CYCLE -> words.text(ProfileSwitch.CYCLE.text)
+            ProfileSwitch.ASK -> words.text(R.string.map_profile_ask)
+            ProfileSwitch.ENABLE -> words.text(R.string.map_profile_enable, Profiles.name(context, shortcut.profileId))
+        }
+        ButtonAction.CLOSE_ALL -> when (shortcut.close) {
+            CloseTarget.SPECIFIC -> words.text(
+                R.string.text_close_specific,
+                RecentTasks.names(words, shortcut.closeApps.map { appLabel(context, it) }.sorted()),
+            )
+            else -> words.text(shortcut.close.text)
+        }
+        ButtonAction.FOCUS_MODE -> words.text(shortcut.focus.text)
+        else -> words.text(shortcut.action.text)
     }
 }
 
@@ -507,20 +604,19 @@ internal fun appLabel(context: Context, pkg: String?): String = pkg?.let {
         val pm = context.packageManager
         pm.getApplicationLabel(pm.getApplicationInfo(it, 0)).toString()
     }.getOrNull()
-} ?: "an app"
+} ?: context.getString(R.string.an_app)
 
 @Composable
-private fun AboutCard() {
+private fun AboutCard(onWhatsNew: () -> Unit) {
     var showLicenses by remember { mutableStateOf(false) }
-    SectionCard("About") {
+    SectionCard(stringResource(R.string.about_title)) {
         Text(
-            "Thor Pathfinder is free software under the GNU GPL v3, made in the spirit of Thor " +
-                "Wayfinder, which found the way first. It's an independent project, not affiliated " +
-                "with Wayfinder or AYN.",
+            stringResource(R.string.about_text),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        ValueRow("Open-source licenses", "View") { showLicenses = true }
+        ValueRow(stringResource(R.string.whats_new_row), stringResource(R.string.show)) { onWhatsNew() }
+        ValueRow(stringResource(R.string.licenses_row), stringResource(R.string.view)) { showLicenses = true }
     }
     if (showLicenses) LicensesDialog(onDismiss = { showLicenses = false })
 }

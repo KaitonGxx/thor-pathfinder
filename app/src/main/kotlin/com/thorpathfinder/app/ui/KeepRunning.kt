@@ -35,6 +35,8 @@ import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.thorpathfinder.app.R
 import androidx.core.graphics.drawable.toBitmap
 import com.thorpathfinder.app.Shortcuts
 import kotlinx.coroutines.Dispatchers
@@ -77,11 +79,8 @@ fun KeepRunningPage(onBack: () -> Unit) {
     }
 
     PageScaffold(
-        "Keep apps running",
-        "However Close app(s) closes them, all at once, all but what's on screen, one screen's, " +
-            "or picked by name, these " +
-            "leave the task view like any other but are never force-stopped, so music, a download " +
-            "or a sync keeps going.",
+        stringResource(R.string.keep_title),
+        stringResource(R.string.keep_subtitle),
         onBack = onBack,
     ) {
         val list = apps
@@ -92,8 +91,11 @@ fun KeepRunningPage(onBack: () -> Unit) {
             return@PageScaffold
         }
         Text(
-            if (kept.isEmpty()) "No apps chosen: everything is force-stopped."
-            else "${kept.size} of ${list.size} apps kept running.",
+            if (kept.isEmpty()) {
+                stringResource(R.string.keep_none)
+            } else {
+                stringResource(R.string.keep_count, kept.size, list.size)
+            },
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
@@ -106,8 +108,8 @@ fun KeepRunningPage(onBack: () -> Unit) {
             if (list.recommended.isNotEmpty()) {
                 item(key = "recommended") {
                     ListHeading(
-                        "Highly recommended",
-                        "These keep working in the background while you play, so they are best left running.",
+                        stringResource(R.string.keep_recommended),
+                        stringResource(R.string.keep_recommended_detail),
                     )
                 }
                 items(list.recommended, key = { it.pkg }) { app ->
@@ -118,7 +120,7 @@ fun KeepRunningPage(onBack: () -> Unit) {
                         onChange = { toggle(app.pkg, it) },
                     )
                 }
-                item(key = "all") { ListHeading("All apps") }
+                item(key = "all") { ListHeading(stringResource(R.string.keep_all)) }
             }
             items(list.rest, key = { it.pkg }) { app ->
                 AppRow(

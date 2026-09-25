@@ -74,8 +74,8 @@ object ServiceSwitch {
 }
 
 /** What to tell the user after pressing "Turn it back on". */
-fun serviceSwitchMessage(outcome: ServiceSwitch.Outcome): String = when (outcome) {
-    ServiceSwitch.Outcome.Done -> "Switched back on"
-    ServiceSwitch.Outcome.NeedsShizuku -> "Switching it on from here needs Shizuku"
-    is ServiceSwitch.Outcome.Failed -> "Couldn't switch it on: ${outcome.message}"
+fun serviceSwitchMessage(words: Words, outcome: ServiceSwitch.Outcome): String = when (outcome) {
+    ServiceSwitch.Outcome.Done -> words.text(R.string.msg_switched_on)
+    ServiceSwitch.Outcome.NeedsShizuku -> words.text(R.string.msg_switch_needs_shizuku)
+    is ServiceSwitch.Outcome.Failed -> words.text(R.string.msg_switch_failed, outcome.message)
 }
