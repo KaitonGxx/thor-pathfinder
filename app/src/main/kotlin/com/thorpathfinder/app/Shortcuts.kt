@@ -25,7 +25,12 @@ class Shortcuts(private val context: Context, private val profile: Int? = null) 
             Context.MODE_PRIVATE,
         )
 
+    /** Disabled has no shortcuts at all, not even the defaults. */
+    private val disabled: Boolean
+        get() = (profile ?: Profiles.activeId(context)) == Profiles.DISABLED
+
     override fun action(button: PhysicalButton, gesture: Gesture): ButtonAction {
+        if (disabled) return ButtonAction.NORMAL
         val stored = prefs.getString(key(button, gesture), null)
         return stored?.let { name -> ButtonAction.entries.firstOrNull { it.name == name } }
             ?: DEFAULTS[button to gesture]
@@ -98,7 +103,7 @@ class Shortcuts(private val context: Context, private val profile: Int? = null) 
      * gesture, under "combo." and its [Combos.id], with the same extras.
      */
     override val combos: Set<Set<ComboKey>>
-        get() = prefs.all.keys.asSequence()
+        get() = if (disabled) emptySet() else prefs.all.keys.asSequence()
             .filter { it.startsWith(COMBO) && '.' !in it.removePrefix(COMBO) }
             .filter { stored(it) != null }
             .mapNotNull { Combos.parse(it.removePrefix(COMBO)) }

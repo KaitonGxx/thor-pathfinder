@@ -32,13 +32,17 @@ import com.thorpathfinder.app.R
 /**
  * The question a "Profile switcher" shortcut set to Ask puts when it runs:
  * which profile? A see-through window of its own, started by the service,
- * which switches to whichever the user picks and goes away.
+ * which switches to whichever the user picks and goes away. The Quick
+ * Settings tile ([ProfileTileService]) asks the same, with Disabled listed
+ * too; a shortcut's question leaves it out, since the buttons couldn't
+ * switch back from it.
  */
 class ProfileChoiceActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val profiles = Profiles.all(this)
+        val withDisabled = intent.getBooleanExtra(EXTRA_WITH_DISABLED, false)
+        val profiles = Profiles.all(this) + listOfNotNull(Profiles.disabled(this).takeIf { withDisabled })
         val active = Profiles.activeId(this)
 
         setContent {
@@ -64,7 +68,11 @@ class ProfileChoiceActivity : ComponentActivity() {
                             profiles.forEachIndexed { index, profile ->
                                 NavRow(
                                     profile.name,
-                                    if (profile.id == active) getString(R.string.tag_in_use) else null,
+                                    when {
+                                        profile.id == active -> getString(R.string.tag_in_use)
+                                        profile.id == Profiles.DISABLED -> getString(R.string.profile_disabled_detail)
+                                        else -> null
+                                    },
                                     modifier = if (index == 0) Modifier.focusRequester(first) else Modifier,
                                     onClick = {
                                         Profiles.switchTo(this@ProfileChoiceActivity, profile.id)
@@ -80,5 +88,10 @@ class ProfileChoiceActivity : ComponentActivity() {
                 LaunchedEffect(inputMode) { runCatching { first.requestFocus() } }
             }
         }
+    }
+
+    companion object {
+        /** Lists the Disabled profile too: set by the Quick Settings tile. */
+        const val EXTRA_WITH_DISABLED = "withDisabled"
     }
 }

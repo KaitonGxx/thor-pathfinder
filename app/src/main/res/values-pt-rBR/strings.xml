@@ -377,6 +377,11 @@
 
     <!-- Profiles -->
     <string name="profile_main_default">Perfil principal</string>
+    <string name="profile_disabled">Desativado</string>
+    <string name="profile_disabled_detail">Sem atalhos: os botões vão direto para os jogos</string>
+    <string name="disabled_card_title">Sem atalhos neste perfil</string>
+    <string name="disabled_card_text">No perfil Desativado, o Pathfinder não lê os botões, então cada toque chega direto aos seus jogos, sem os milissegundos a mais que passar pelo Pathfinder custa. Vincule jogos a ele em Gerenciar perfis, ou troque de perfil pelo bloco de Configurações rápidas do Pathfinder: daqui os botões não conseguem trocar de perfil.</string>
+    <string name="tile_label">Perfil do Pathfinder</string>
     <string name="profile_n">Perfil %1$d</string>
     <string name="profile_create">Criar perfil</string>
     <string name="profile_no_room">Não cabe mais nenhum</string>
@@ -400,7 +405,7 @@
     </plurals>
     <string name="profiles_row_detail">%1$s · em uso: %2$s</string>
     <string name="show_buttons">Mostrar os botões ao trocar</string>
-    <string name="show_buttons_detail">Desenha o Thor com os atalhos do novo perfil, seja você ou um app quem trocou. Qualquer botão o fecha</string>
+    <string name="show_buttons_detail">Desenha o Thor com os atalhos do novo perfil quando você troca de perfil. Uma troca feita por um app só mostra o nome dele. Qualquer botão o fecha</string>
     <string name="backup_row">Backup e compartilhar</string>
     <string name="backup_row_detail">Salve todos os perfis em um arquivo e recupere-os, ou compartilhe um</string>
     <string name="profiles_subtitle">Toque em um perfil para usá-lo, renomeá-lo, vincular apps a ele ou apagá-lo. O perfil principal é aquele para o qual um atalho Ativar volta, e o que não pode ser apagado. Um perfil vinculado a apps é usado enquanto um deles é o app que o controle está comandando (precisa do Shizuku).</string>

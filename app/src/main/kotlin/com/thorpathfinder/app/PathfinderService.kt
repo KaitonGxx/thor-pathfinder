@@ -1,15 +1,18 @@
 package com.thorpathfinder.app
 
 import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.database.ContentObserver
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.VibratorManager
+import android.util.Log
 import android.view.Display
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
@@ -40,6 +43,12 @@ class PathfinderService : AccessibilityService() {
     /** Keys whose press closed the map, so that their release is kept from the app as well. */
     private val closedMap = mutableSetOf<Int>()
 
+    /** Whether Android is sending key events here, as the service's XML starts it. */
+    private var filtering = true
+
+    // Kept in a field, since Android only holds a preference listener weakly.
+    private val profilesChanged = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> updateFiltering() }
+
     override fun onServiceConnected() {
         watcher = ServiceLog.watch(this, handler)
         // Off a Thor, or on firmware older than the one verified, stay out of the way.
@@ -68,6 +77,8 @@ class PathfinderService : AccessibilityService() {
         )
         apps = AppWatcher(this, ::announceApp)
         apps.start()
+        Profiles.watch(this, profilesChanged)
+        updateFiltering()
         running = true
         current = this
     }
@@ -87,6 +98,30 @@ class PathfinderService : AccessibilityService() {
             time = event.eventTime,
             canceled = event.isCanceled,
         )
+    }
+
+    /**
+     * Asks Android for key events only while the profile in use has
+     * shortcuts. Filtering is all or nothing: once any service asks, Android
+     * holds back every press and release of every button until the service
+     * has answered, which measured about 2 ms more a press in a game. The
+     * Disabled profile turns it off, so games get the buttons directly.
+     */
+    private fun updateFiltering() {
+        val wanted = Profiles.filtersKeys(Profiles.activeId(this))
+        if (wanted == filtering) return
+        val info = serviceInfo ?: return
+        info.flags = if (wanted) {
+            info.flags or AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS
+        } else {
+            info.flags and AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS.inv()
+        }
+        serviceInfo = info
+        filtering = wanted
+        // Presses under way will never finish here: forget them.
+        engine.reset()
+        closedMap.clear()
+        Log.i(TAG, if (wanted) "filtering key events" else "not filtering key events (Disabled profile)")
     }
 
     /** Whether [event] came from the Thor's controller in AYN's Xbox style (see [ComboKey.XBOX_STYLE_PRODUCT]). */
@@ -281,9 +316,13 @@ class PathfinderService : AccessibilityService() {
         }
     }
 
-    /** What a switch looks like: the profile's button map, or just its name. */
+    /**
+     * What a switch looks like: the profile's button map, or just its name.
+     * Disabled has nothing to map, and with the buttons no longer coming here
+     * a map could only be closed by a tap, so it gets its name only.
+     */
     private fun announce(profile: Profiles.Profile) {
-        if (Profiles.showMap(this)) {
+        if (Profiles.showMap(this) && profile.id != Profiles.DISABLED) {
             overlay.showMap(profile.name, ButtonMap.callouts(this, shortcuts))
         } else {
             toast(profile.name)
@@ -292,20 +331,15 @@ class PathfinderService : AccessibilityService() {
 
     /**
      * A switch made for an app, or back to the chosen profile on leaving it:
-     * a message, which is also the title of the Thor picture when switching
-     * shows it.
+     * only a message. The Thor picture is for switches the user makes; here
+     * it would come up on every trip in and out of a linked game.
      */
     private fun announceApp(profile: Profiles.Profile, app: String?) {
         val name = app?.let { pkg ->
             runCatching { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString() }
                 .getOrDefault(pkg)
         }
-        val message = AppProfiles.switchMessage(words(), profile.name, name)
-        if (Profiles.showMap(this)) {
-            overlay.showMap(message, ButtonMap.callouts(this, shortcuts))
-        } else {
-            overlay.show(message)
-        }
+        overlay.show(AppProfiles.switchMessage(words(), profile.name, name))
     }
 
     /** Puts "top or bottom?" on the top screen, for a shortcut set to ask. */
@@ -341,6 +375,7 @@ class PathfinderService : AccessibilityService() {
         current = null
         if (::engine.isInitialized) engine.reset()
         if (::apps.isInitialized) apps.stop()
+        Profiles.unwatch(this, profilesChanged)
         if (::overlay.isInitialized) overlay.dismiss()
         closedMap.clear()
         handler.removeCallbacksAndMessages(null)
@@ -362,6 +397,10 @@ class PathfinderService : AccessibilityService() {
         val watchingApps: Boolean
             get() = current?.let { it::apps.isInitialized && it.apps.watching } == true
 
+        /** Whether the service is taking key events, or null when it isn't running. */
+        val filteringKeys: Boolean?
+            get() = current?.filtering
+
         /** The connected service, so a switch made in the app can be shown too. */
         @Volatile
         private var current: PathfinderService? = null
@@ -376,6 +415,26 @@ class PathfinderService : AccessibilityService() {
         }
 
         /**
+         * Asks which profile to use, Disabled included, for the Quick Settings
+         * tile: the shade closes and the question goes on the top screen, like
+         * every other question of Pathfinder's. Left to the tile, it opens on
+         * whichever screen has focus, where a game's own window on the bottom
+         * screen can hide it. False when the service isn't running.
+         */
+        fun askProfileForTile(): Boolean {
+            val service = current ?: return false
+            service.handler.post {
+                service.performGlobalAction(GLOBAL_ACTION_DISMISS_NOTIFICATION_SHADE)
+                service.ask(
+                    Intent(service, ProfileChoiceActivity::class.java)
+                        .putExtra(ProfileChoiceActivity.EXTRA_WITH_DISABLED, true),
+                    R.string.msg_couldnt_ask_profile,
+                )
+            }
+            return true
+        }
+
+        /**
          * Runs a shortcut picked from the Shortcut menu, once. It waits for the
          * menu's window to finish closing, so that Back, a screenshot or a swap
          * acts on what is underneath rather than on the menu. False when the
@@ -386,6 +445,8 @@ class PathfinderService : AccessibilityService() {
             service.handler.postDelayed({ service.run(shortcut) }, MENU_CLOSE_MS)
             return true
         }
+
+        private const val TAG = "PathfinderService"
 
         /** Long enough for the Shortcut menu's closing animation to finish. */
         private const val MENU_CLOSE_MS = 400L

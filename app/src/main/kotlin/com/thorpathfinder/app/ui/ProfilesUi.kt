@@ -69,6 +69,12 @@ internal class ProfileUi(private val context: Context, private val onSwitched: (
     var profiles by mutableStateOf(Profiles.all(context))
         private set
 
+    /** The built-in profile with no shortcuts, listed after the user's own. */
+    val disabled: Profiles.Profile = Profiles.disabled(context)
+
+    /** Every profile that can be switched to or linked to apps: the user's, then Disabled. */
+    val listed: List<Profiles.Profile> get() = profiles + disabled
+
     var activeId by mutableIntStateOf(Profiles.activeId(context))
         private set
 
@@ -81,7 +87,8 @@ internal class ProfileUi(private val context: Context, private val onSwitched: (
         private set
 
     private fun allLinks(): Map<Int, Set<String>> =
-        Profiles.ids(context).associateWith { Profiles.linkedApps(context, it) }.filterValues { it.isNotEmpty() }
+        Profiles.linkable(Profiles.ids(context)).associateWith { Profiles.linkedApps(context, it) }
+            .filterValues { it.isNotEmpty() }
 
     private var showMapState by mutableStateOf(Profiles.showMap(context))
 
@@ -90,7 +97,7 @@ internal class ProfileUi(private val context: Context, private val onSwitched: (
         private set
 
     val active: Profiles.Profile
-        get() = profiles.firstOrNull { it.id == activeId } ?: main
+        get() = listed.firstOrNull { it.id == activeId } ?: main
 
     val main: Profiles.Profile
         get() = profiles.firstOrNull { it.id == mainId }
@@ -99,7 +106,7 @@ internal class ProfileUi(private val context: Context, private val onSwitched: (
 
     val full: Boolean get() = profiles.size >= Profiles.LIMIT
 
-    fun deletable(id: Int): Boolean = id != mainId && profiles.size > 1
+    fun deletable(id: Int): Boolean = id != Profiles.DISABLED && id != mainId && profiles.size > 1
 
     private fun refresh() {
         profiles = Profiles.all(context)
@@ -230,12 +237,12 @@ internal fun ProfileBar(ui: ProfileUi) {
     if (picking) {
         PickDialog(
             title = stringResource(R.string.profiles_title),
-            choices = ui.profiles.map { it.name to profileTag(context, it, ui) } +
+            choices = ui.listed.map { it.name to profileTag(context, it, ui) } +
                 listOf(stringResource(CREATE) to stringResource(if (ui.full) NO_ROOM else FRESH)),
             onPick = { index ->
                 picking = false
                 when {
-                    index < ui.profiles.size -> ui.switchTo(ui.profiles[index].id)
+                    index < ui.listed.size -> ui.switchTo(ui.listed[index].id)
                     !ui.full -> creating = true
                 }
             },
@@ -253,6 +260,8 @@ internal fun ProfileBar(ui: ProfileUi) {
 @Composable
 private fun CreateProfileDialog(ui: ProfileUi, onDone: () -> Unit) {
     val from = ui.active.name
+    // Disabled has no keep-running list to carry over.
+    val canKeep = ui.activeId != Profiles.DISABLED
     val context = LocalContext.current
     val suggested = remember { Profiles.newName(ui.profiles.map { it.name }) { context.getString(R.string.profile_n, it) } }
     var name by rememberSaveable { mutableStateOf(suggested) }
@@ -275,17 +284,19 @@ private fun CreateProfileDialog(ui: ProfileUi, onDone: () -> Unit) {
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                SwitchRow(
-                    title = stringResource(R.string.keep_list),
-                    detail = stringResource(R.string.keep_list_detail, from),
-                    checked = keep,
-                    onChange = { keep = it },
-                )
+                if (canKeep) {
+                    SwitchRow(
+                        title = stringResource(R.string.keep_list),
+                        detail = stringResource(R.string.keep_list_detail, from),
+                        checked = keep,
+                        onChange = { keep = it },
+                    )
+                }
             }
         },
         confirmButton = {
             TextButton(onClick = {
-                ui.create(Profiles.cleanName(name, suggested), keep)
+                ui.create(Profiles.cleanName(name, suggested), keep && canKeep)
                 onDone()
             }) { Text(stringResource(R.string.create)) }
         },
@@ -410,7 +421,7 @@ private fun ProfileListPage(ui: ProfileUi, onBack: () -> Unit) {
             contentPadding = PaddingValues(vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            ui.profiles.forEachIndexed { index, profile ->
+            ui.listed.forEachIndexed { index, profile ->
                 NavRow(
                     title = profile.name,
                     detail = listOfNotNull(profileTag(context, profile, ui), appsTag(context, ui.links[profile.id]))
@@ -472,7 +483,7 @@ private fun ProfileListPage(ui: ProfileUi, onBack: () -> Unit) {
             allowNone = true,
             note = { pkg ->
                 ui.links.entries.firstOrNull { (id, apps) -> id != profile.id && pkg in apps }
-                    ?.let { (id, _) -> ui.profiles.firstOrNull { it.id == id }?.name }
+                    ?.let { (id, _) -> ui.listed.firstOrNull { it.id == id }?.name }
                     ?.let { context.getString(R.string.uses_now, it) }
             },
             onDone = { apps ->
@@ -509,6 +520,7 @@ private fun profileTag(context: Context, profile: Profiles.Profile, ui: ProfileU
         main && active -> context.getString(R.string.tag_main_in_use)
         main -> context.getString(R.string.tag_main)
         active -> context.getString(R.string.tag_in_use)
+        profile.id == Profiles.DISABLED -> context.getString(R.string.profile_disabled_detail)
         else -> null
     }
 }
@@ -542,6 +554,8 @@ private fun profileActions(
             }
             ),
     )
+    // Disabled is built in: nothing of it to rename, and it can't be the main one.
+    if (profile.id == Profiles.DISABLED) return@buildList
     if (profile.id != ui.mainId) {
         add(
             ProfileRowAction.MAKE_MAIN to (

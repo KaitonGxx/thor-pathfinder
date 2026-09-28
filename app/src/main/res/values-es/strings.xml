@@ -377,6 +377,11 @@
 
     <!-- Profiles -->
     <string name="profile_main_default">Perfil principal</string>
+    <string name="profile_disabled">Desactivado</string>
+    <string name="profile_disabled_detail">Sin atajos: los botones van directos a los juegos</string>
+    <string name="disabled_card_title">Sin atajos en este perfil</string>
+    <string name="disabled_card_text">En el perfil Desactivado, Pathfinder no lee los botones, así que cada pulsación llega directamente a tus juegos, sin los milisegundos de más que cuesta pasar por Pathfinder. Vincula juegos a él en Gestionar perfiles, o cambia de perfil con el mosaico de Ajustes rápidos de Pathfinder: desde aquí los botones no pueden cambiar de perfil.</string>
+    <string name="tile_label">Perfil de Pathfinder</string>
     <string name="profile_n">Perfil %1$d</string>
     <string name="profile_create">Crear perfil</string>
     <string name="profile_no_room">No caben más</string>
@@ -400,7 +405,7 @@
     </plurals>
     <string name="profiles_row_detail">%1$s · en uso: %2$s</string>
     <string name="show_buttons">Mostrar los botones al cambiar</string>
-    <string name="show_buttons_detail">Dibuja el Thor con los atajos del nuevo perfil, tanto si cambiaste tú como si lo hizo una app. Cualquier botón lo cierra</string>
+    <string name="show_buttons_detail">Dibuja el Thor con los atajos del nuevo perfil cuando cambias de perfil. Un cambio hecho por una app solo muestra su nombre. Cualquier botón lo cierra</string>
     <string name="backup_row">Copia de seguridad y compartir</string>
     <string name="backup_row_detail">Guarda todos los perfiles en un archivo y recupéralos, o comparte uno</string>
     <string name="profiles_subtitle">Toca un perfil para usarlo, renombrarlo, vincularle apps o borrarlo. El perfil principal es al que vuelve un atajo Activar, y el que no se puede borrar. Un perfil vinculado a apps se usa mientras una de ellas es la app que maneja el mando (necesita Shizuku).</string>

@@ -175,7 +175,7 @@ object Backup {
                         date = json.optString("created").take(10),
                         profiles = ids.map { id -> list["name.$id"] as? String ?: defaultName(id) },
                         combos = profiles.sumOf { counts(it).second },
-                        apps = ids.sumOf { id -> (list["apps.$id"] as? Set<*>)?.size ?: 0 },
+                        apps = Profiles.linkable(ids).sumOf { id -> (list["apps.$id"] as? Set<*>)?.size ?: 0 },
                     )
                 }
                 KIND_PROFILE -> {
