@@ -346,6 +346,10 @@
     <string name="page_mouse_detail">Which way the right stick scrolls</string>
     <string name="page_timing">Timing</string>
     <string name="page_timing_detail">How long a hold takes, and the double-press gap</string>
+    <string name="page_swap">Swapping screens</string>
+    <string name="page_swap_detail">Also swap each screen\'s volume</string>
+    <string name="swap_volume">Swap each screen\'s volume</string>
+    <string name="swap_volume_detail">When the apps swap, the top and bottom screens\' volumes swap too: mute stays with the app it was set for. Needs Shizuku.</string>
     <string name="page_updates">Update settings</string>
     <string name="page_updates_detail">Checking for updates, and installing them by itself</string>
     <string name="page_watchdog_detail">Keep the accessibility service on when something stops it</string>

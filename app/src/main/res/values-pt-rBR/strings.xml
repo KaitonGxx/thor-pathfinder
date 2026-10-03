@@ -337,6 +337,10 @@
     <string name="page_mouse_detail">Para que lado o analógico direito rola</string>
     <string name="page_timing">Tempos</string>
     <string name="page_timing_detail">Quanto tempo leva um segurar, e o intervalo do toque duplo</string>
+    <string name="page_swap">Troca de telas</string>
+    <string name="page_swap_detail">Trocar também o volume de cada tela</string>
+    <string name="swap_volume">Trocar o volume de cada tela</string>
+    <string name="swap_volume_detail">Quando os apps trocam, os volumes das telas de cima e de baixo também trocam: o mudo fica com o app para o qual foi definido. Requer Shizuku.</string>
     <string name="page_updates">Configurações de atualização</string>
     <string name="page_updates_detail">Procurar atualizações e instalá-las sozinho</string>
     <string name="page_watchdog_detail">Manter o serviço de acessibilidade ligado quando algo o para</string>

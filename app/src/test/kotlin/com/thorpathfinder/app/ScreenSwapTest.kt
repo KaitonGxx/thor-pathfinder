@@ -72,6 +72,20 @@ class ScreenSwapTest {
     }
 
     @Test
+    fun volumesChangeInTheSameCommandAsTheMoves() {
+        val script = ScreenSwap.script(
+            listOf(Move(93, 0, 4), Move(92, 4, 0)),
+            ScreenVolume.Levels(top = 0, bottom = 5),
+        )
+        assertEquals(
+            "cmd media_session volume --stream 3 --set 5 >/dev/null 2>&1 & " +
+                "settings put system secondary_screen_volume_level 0 & " +
+                "am display move-stack 93 4 && am display move-stack 92 0; r=\$?; wait; exit \$r",
+            script,
+        )
+    }
+
+    @Test
     fun theScreenALoneAppLeavesGoesHomeStraightAfter() {
         assertEquals(
             "am display move-stack 115 4 && (input -d 0 keyevent KEYCODE_HOME || true)",

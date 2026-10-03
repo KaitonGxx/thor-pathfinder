@@ -2,9 +2,12 @@ package com.thorpathfinder.app
 
 import android.content.ComponentName
 import android.os.Binder
+import android.os.Bundle
+import android.os.IBinder
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Parcel
+import android.os.Process
 import android.os.RemoteException
 import android.util.Log
 import java.lang.reflect.InvocationHandler
@@ -97,6 +100,108 @@ class TaskWatcher : ITaskWatcher.Stub() {
         }
     }
 
+    override fun swap(moves: IntArray, topLevel: Int, bottomLevel: Int): Boolean {
+        // Equal volumes need no change, and so can never be heard to change.
+        val volumes = topLevel >= 0 && bottomLevel >= 0 && topLevel != bottomLevel
+        val began = System.nanoTime()
+        val steps = StringBuilder()
+        fun mark(what: String) {
+            synchronized(steps) { steps.append(" $what@").append((System.nanoTime() - began) / 1_000_000).append("ms") }
+        }
+        var topDone = false
+        var bottomDone = false
+        // A screen takes the other's volume just before the app headed there arrives, so that
+        // app never plays at the wrong one. The app it is replacing, which is still there
+        // until its own move, is the one that does; the swap moves a playing app first.
+        fun volumeFor(display: Int) {
+            if (!volumes) return
+            if (display == 0) {
+                topDone = true
+                runCatching { setMediaVolume(bottomLevel) }.onFailure { Log.w(TAG, "couldn't set the media volume", it) }
+                mark("media")
+            } else {
+                bottomDone = true
+                runCatching { putSystemSetting(SECONDARY_VOLUME, topLevel) }
+                    .onFailure { Log.w(TAG, "couldn't set the bottom screen's volume", it) }
+                mark("bottom")
+            }
+        }
+        val method = taskManager.javaClass.getMethod("moveRootTaskToDisplay", Int::class.java, Int::class.java)
+        fun move(i: Int): Boolean {
+            val ok = runCatching { method.invoke(taskManager, moves[2 * i], moves[2 * i + 1]) }
+                .onFailure { Log.w(TAG, "couldn't move root task ${moves[2 * i]}", it) }
+                .isSuccess
+            mark("move${moves[2 * i]}")
+            return ok
+        }
+
+        var ok = true
+        if (moves.size == 4) {
+            // A swap: both apps move at once, so the second spends the least time at the wrong
+            // volume. The first's destination takes its volume before anything moves; the screen
+            // it leaves takes the other's as soon as it has gone.
+            volumeFor(moves[1])
+            var secondOk = true
+            val second = Thread { secondOk = move(1) }.apply { start() }
+            ok = move(0)
+            volumeFor(moves[3])
+            second.join()
+            ok = ok && secondOk
+        } else {
+            for (i in 0 until moves.size / 2) {
+                volumeFor(moves[2 * i + 1])
+                ok = move(i) && ok
+            }
+            // One app crossed: the screen it left takes the other's volume too.
+            if (volumes && !topDone) volumeFor(0)
+            if (volumes && !bottomDone) volumeFor(4)
+        }
+        Log.i(TAG, "swap steps done at:$steps")
+        return ok
+    }
+
+    private fun service(name: String): Any? =
+        Class.forName("android.os.ServiceManager").getMethod("getService", String::class.java).invoke(null, name)
+
+    /** STREAM_MUSIC, which AudioService shows as the top screen's volume, without the volume bar. */
+    private fun setMediaVolume(level: Int) {
+        val audio = Class.forName("android.media.IAudioService\$Stub")
+            .getMethod("asInterface", IBinder::class.java).invoke(null, service("audio") as IBinder)!!
+        audio.javaClass.getMethod(
+            "setStreamVolumeWithAttribution",
+            Int::class.java, Int::class.java, Int::class.java, String::class.java, String::class.java,
+        ).invoke(audio, STREAM_MUSIC, level, 0, SHELL_PACKAGE, null)
+    }
+
+    /**
+     * `settings put system`, without its process: the same call the settings
+     * command makes, to the settings provider, as the shell user.
+     */
+    private fun putSystemSetting(name: String, value: Int) {
+        val activity = Class.forName("android.app.ActivityManager").getMethod("getService").invoke(null)!!
+        val token = Binder()
+        val holder = activity.javaClass.getMethod(
+            "getContentProviderExternal", String::class.java, Int::class.java, IBinder::class.java, String::class.java,
+        ).invoke(activity, "settings", 0, token, "*pathfinder*")!!
+        try {
+            val provider = holder.javaClass.getField("provider").get(holder)!!
+            val extras = Bundle().apply {
+                putString("value", value.toString())
+                putInt("_user", 0)
+            }
+            val source = Class.forName("android.content.AttributionSource")
+                .getConstructor(Int::class.java, String::class.java, String::class.java)
+                .newInstance(Process.myUid(), SHELL_PACKAGE, null)
+            val call = provider.javaClass.methods.first { it.name == "call" && it.parameterCount == 5 }
+            call.invoke(provider, source, "settings", "PUT_system", name, extras)
+        } finally {
+            runCatching {
+                activity.javaClass.getMethod("removeContentProviderExternalAsUser", String::class.java, IBinder::class.java, Int::class.java)
+                    .invoke(activity, "settings", token, 0)
+            }
+        }
+    }
+
     override fun destroy() {
         unregister()
         exitProcess(0)
@@ -173,6 +278,9 @@ class TaskWatcher : ITaskWatcher.Stub() {
     private companion object {
         const val TAG = "PathfinderTasks"
         const val LISTENER = "android.app.ITaskStackListener"
+        const val SECONDARY_VOLUME = "secondary_screen_volume_level"
+        const val STREAM_MUSIC = 3
+        const val SHELL_PACKAGE = "com.android.shell"
 
         /** A change arrives as a burst of callbacks (ten or more within 100 ms); report once it is over. */
         const val SETTLE_MS = 120L

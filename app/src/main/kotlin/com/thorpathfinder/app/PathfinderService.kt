@@ -159,7 +159,7 @@ class PathfinderService : AccessibilityService() {
             ButtonAction.SCREENSHOT -> performGlobalAction(GLOBAL_ACTION_TAKE_SCREENSHOT)
             ButtonAction.POWER_MENU -> performGlobalAction(GLOBAL_ACTION_POWER_DIALOG)
             ButtonAction.LOCK_SCREEN -> performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
-            ButtonAction.SWAP_SCREENS -> worker.execute { swapOutcomeMessage(words(), ScreenSwap.swap(this))?.let(::toast) }
+            ButtonAction.SWAP_SCREENS -> worker.execute { swapOutcomeMessage(words(), ScreenSwap.swap(this, apps::quickSwap))?.let(::toast) }
             ButtonAction.CLOSE_ALL -> worker.execute {
                 // Every way of closing shares the keep-running list: closed, never force-stopped.
                 val keep = shortcuts.keepRunning
@@ -361,6 +361,12 @@ class PathfinderService : AccessibilityService() {
         /** Whether app profiles are watching which app is in front, for the diagnostics report. */
         val watchingApps: Boolean
             get() = current?.let { it::apps.isInitialized && it.apps.watching } == true
+
+        /** Tells the service the volume switch changed, so it binds or lets go of the quick-swap helper. */
+        fun volumeSwapChanged() {
+            val service = current ?: return
+            service.handler.post { if (service::apps.isInitialized) service.apps.recheck() }
+        }
 
         /** The connected service, so a switch made in the app can be shown too. */
         @Volatile

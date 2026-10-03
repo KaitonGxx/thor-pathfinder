@@ -331,6 +331,10 @@
     <string name="page_mouse_detail">右摇杆的滚动方向</string>
     <string name="page_timing">时间</string>
     <string name="page_timing_detail">长按所需时间，以及双击间隔</string>
+    <string name="page_swap">交换屏幕</string>
+    <string name="page_swap_detail">同时交换各屏幕的音量</string>
+    <string name="swap_volume">交换各屏幕的音量</string>
+    <string name="swap_volume_detail">交换应用时，上下屏幕的音量也一并交换：静音会跟着原来的应用走。需要 Shizuku。</string>
     <string name="page_updates">更新设置</string>
     <string name="page_updates_detail">检查更新，以及自动安装</string>
     <string name="page_watchdog_detail">在无障碍服务被停止时让它保持开启</string>
