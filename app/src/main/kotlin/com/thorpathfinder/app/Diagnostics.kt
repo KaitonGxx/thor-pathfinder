@@ -345,6 +345,7 @@ object Diagnostics {
             ?.let { row("Apps on Disabled", it.sorted().joinToString(", ")) }
         row("Main", "${Profiles.name(context, main)} (id $main)")
         row("Map on switching", onOff(Profiles.showMap(context)))
+        row("Map on app switches", onOff(Profiles.showMapForApps(context)))
         row(
             "App profiles watching",
             when {

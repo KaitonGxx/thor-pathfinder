@@ -143,6 +143,15 @@ internal class ProfileUi(private val context: Context, private val onSwitched: (
             showMapState = value
         }
 
+    private var showMapForAppsState by mutableStateOf(Profiles.showMapForApps(context))
+
+    var showMapForApps: Boolean
+        get() = showMapForAppsState
+        set(value) {
+            Profiles.setShowMapForApps(context, value)
+            showMapForAppsState = value
+        }
+
     fun rename(id: Int, name: String) {
         Profiles.rename(context, id, name)
         refresh()
@@ -387,6 +396,13 @@ internal fun ManageProfilesPage(onBack: () -> Unit, openAt: ManagePage? = null) 
                 detail = stringResource(R.string.show_buttons_detail),
                 checked = ui.showMap,
                 onChange = { ui.showMap = it },
+            )
+            SwitchRow(
+                title = stringResource(R.string.show_buttons_apps),
+                detail = stringResource(R.string.show_buttons_apps_detail),
+                checked = ui.showMap && ui.showMapForApps,
+                enabled = ui.showMap,
+                onChange = { ui.showMapForApps = it },
             )
             NavRow(
                 stringResource(R.string.backup_row),

@@ -103,9 +103,11 @@ private val BadgeText = TextStyle(fontSize = 8.sp, lineHeight = 8.sp)
  * The buttons a combo can use, as the picker lays them out: a row for each
  * kind, each row's buttons in the order they sit on the Thor.
  */
+// No D-pad row: the Thor's D-pad is a hat (ABS_HAT0X/Y), which Android only turns into
+// arrow keys inside the focused window, so it never reaches the service and a D-pad combo
+// could never fire. ComboKey keeps the D-pad, so combos stored before can still be read and removed.
 internal val COMBO_KEY_GROUPS: List<Pair<Int, List<ComboKey>>> = listOf(
     R.string.group_face to listOf(ComboKey.A, ComboKey.B, ComboKey.X, ComboKey.Y),
-    R.string.group_dpad to listOf(ComboKey.UP, ComboKey.DOWN, ComboKey.LEFT, ComboKey.RIGHT),
     R.string.group_shoulders to listOf(ComboKey.L1, ComboKey.R1, ComboKey.L2, ComboKey.R2),
     R.string.group_sticks to listOf(ComboKey.L3, ComboKey.R3),
     R.string.group_select_start to listOf(ComboKey.SELECT, ComboKey.START),

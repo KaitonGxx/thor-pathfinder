@@ -45,23 +45,28 @@ independent project, not affiliated with Wayfinder or AYN.
   than revealing whatever was underneath.
 - If one of the two apps is playing a video or music, it moves first, so
   playback stays smooth.
+- Optionally, each screen's volume goes with its app (cog → Brightness &
+  volume → Swap each screen's volume): mute a screen, swap, and the muted app
+  stays muted on its new screen. Off unless you turn it on. Needs Shizuku.
 
 **🎮 Button shortcuts** on Back, Home, the AYN button, Select, Start, L3 and R3:
 - Back, Home and the AYN button: press, double-press and hold.
 - Combos: hold Back, Home or the AYN button and press one other button, or
-  two together (A, B, X, Y, the D-pad, L1, R1, L2, R2, L3, R3, Select, Start,
-  or another of Back, Home and AYN): 18 two-button combos on each, and far
-  more with three. The buttons in a combo never reach the app. A combo has to come before the held
-  button's Hold time; when a two-button combo is also the start of a
+  two together (A, B, X, Y, L1, R1, L2, R2, L3, R3, Select, Start, or
+  another of Back, Home and AYN): 14 two-button combos on each, and far more
+  with three. The D-pad can't be part of a combo: the Thor reports it as a
+  hat, which only reaches the app in front. The buttons in a combo never
+  reach the app. A combo has to come before the held button's Hold time; when a two-button combo is also the start of a
   three-button one, Pathfinder waits a moment (0.15 s) for the third. Add them
   on the Back, Home and AYN cards, which carry a small A + B mark. Combos go
   by the letters printed on the buttons, so they stay the same in the Thor's
   Xbox controller style, which swaps A with B and X with Y for games.
 - Select, Start, L3 and R3: double-press and hold. Games still receive every
   press of these buttons, so a plain press stays with the game.
-- Actions: swap screens, mouse mode on/off, Focus Mode, back, home, recent
-  apps, close app(s), notifications, quick settings, screenshot, screen record
-  (testing), power menu, lock screen, the Shortcut menu, or open an app.
+- Actions: swap screens, mouse mode on/off, Focus Mode, brightness, volume,
+  back, home, recent apps, close app(s), notifications, quick settings,
+  screenshot, screen record (testing), power menu, lock screen, the Shortcut
+  menu, or open an app.
 - The Shortcut menu puts every shortcut in one list on the top screen: the
   same list you set a gesture from in the app, with the same questions after
   the ones with an arrow. The one you pick runs straight away, once, so a
@@ -71,6 +76,16 @@ independent project, not affiliated with Wayfinder or AYN.
   shortcut can lock focus to the top screen or the bottom one, cycle through
   all three, or swap between top and bottom (from Auto-lock it goes to the top
   first). A short message says which mode it moved to.
+- Brightness and Volume put a slider on the top screen (or at its bottom
+  edge: cog → Brightness & volume), with a sun or a speaker and a triangle
+  above and below it. D-pad Left and Right change the level, and keep going
+  while held; Up and Down move between the top screen, both screens and the
+  bottom screen, and the lit triangles show which (both lit for both). With
+  both, each press moves both screens by the same step. The slider can be
+  dragged too; Back or B closes it, and it goes by itself after 3 seconds.
+  While it is up it has the controller, so the game underneath gets no
+  presses. How much a press changes and how fast a hold goes are set on the
+  same page. Brightness, and the bottom screen's volume, need Shizuku.
 - Close app(s) closes every app, like Recents' Clear all, or just some: the
   background ones (all but what the two screens are showing), the focused app
   (on the screen you last used), the top screen's app, the bottom screen's
@@ -89,7 +104,9 @@ independent project, not affiliated with Wayfinder or AYN.
   when focus is locked to the top, the bottom screen's when locked to the
   bottom, and in Auto-lock the one you last used. Leave the app and your own
   profile comes back. Switch profile yourself while in a linked app and your
-  pick holds until you leave it. Each switch shows a short message. Needs
+  pick holds until you leave it. Each switch shows a short message, and the
+  picture of the Thor too while both *Show the buttons on switching* and
+  *Show buttons for linked apps* are on (cog → Manage profiles). Needs
   Shizuku.
 - The Disabled profile: a built-in profile with no shortcuts, in which
   Pathfinder stops reading the buttons altogether, so every press goes straight
@@ -125,11 +142,13 @@ there's no button for it in its menus.
 
 **🕹️ Built for the Thor**
 - A step-by-step setup that checks each requirement before moving on.
-- Updating to 1.0 opens a one-time page with what's new, each with a button
-  straight to it. It's under About → What's new in 1.0 afterwards.
+- Updating opens a one-time page with what's new in that version, each with
+  a button straight to it; a fresh install goes to setup instead. It's under
+  About → What's new afterwards.
 - The cog at the top opens a settings menu: profiles, which apps keep
-  running, mouse mode, the hold and double-press timings, updates, the
-  watchdog, the language, diagnostics, and running setup again.
+  running, mouse mode, the hold and double-press timings, brightness and
+  volume, updates, the watchdog, the language, diagnostics, and running setup
+  again.
 - When something needs attention, it says why. Android switches accessibility
   services off whenever their app updates, and Shizuku stops when the Thor
   restarts.
@@ -160,9 +179,11 @@ there's no button for it in its menus.
   Pathfinder, which you can turn off, and when you tap the button. With
   automatic updates on it also downloads the APK from the release. Nothing
   about you or your Thor is sent.
-- The app is about 3 MB and runs no background work of its own. While any
-  app is linked to a profile, a small helper runs under Shizuku to hear which
-  app is in front; it goes when Pathfinder or Shizuku stops.
+- The app is about 3 MB and runs no background work of its own. A small
+  helper runs under Shizuku only while something needs it: an app linked to
+  a profile (to hear which app is in front), the volume swap, or a Brightness
+  or Volume slider used in the last 30 seconds. It goes when Pathfinder or
+  Shizuku stops.
 
 ## 📦 Out of the box
 

@@ -187,7 +187,6 @@
     <!-- Combos -->
     <string name="combos_badge">コンボ</string>
     <string name="group_face">ABXY ボタン</string>
-    <string name="group_dpad">十字キー</string>
     <string name="group_shoulders">ショルダー</string>
     <string name="group_sticks">スティック</string>
     <string name="group_select_start">Select と Start</string>
@@ -239,7 +238,7 @@
     <string name="an_app">アプリ</string>
     <string name="about_title">このアプリについて</string>
     <string name="about_text">Thor Pathfinder は GNU GPL v3 のもとで公開されている自由ソフトウェアで、先に道を切り開いた Thor Wayfinder の精神を受け継いで作られました。独立したプロジェクトであり、Wayfinder や AYN とは関係ありません。</string>
-    <string name="whats_new_row">1.0 の新機能</string>
+    <string name="whats_new_row">1.1 の新機能</string>
     <string name="show">表示</string>
     <string name="licenses_row">オープンソース ライセンス</string>
     <string name="view">表示</string>
@@ -331,8 +330,25 @@
     <string name="page_mouse_detail">右スティックのスクロール方向</string>
     <string name="page_timing">タイミング</string>
     <string name="page_timing_detail">長押しの長さと 2 回押しの間隔</string>
-    <string name="page_swap">画面の入れ替え</string>
-    <string name="page_swap_detail">各画面の音量も入れ替える</string>
+    <string name="action_brightness">明るさ</string>
+    <string name="action_volume">音量</string>
+    <string name="msg_brightness_needs_shizuku">明るさの調整には Shizuku が必要です</string>
+    <string name="page_levels">明るさと音量</string>
+    <string name="page_levels_detail">1 回の押下で変わる量と、アプリと一緒に音量を入れ替える設定</string>
+    <string name="levels_subtitle">明るさや音量のショートカットを使うと、上画面にスライダーが表示されます。左右キーでレベルを変え、押し続けると変わり続けます。上下キーで上画面、両方の画面、下画面を切り替えます。点灯している三角形が調整中の画面です。</string>
+    <string name="levels_brightness_step">明るさの変化量</string>
+    <string name="levels_volume_step">音量の変化量</string>
+    <string name="levels_percent">%1$d%%</string>
+    <string name="levels_hold_speed">押し続けたときの速さ</string>
+    <string name="levels_speed_slow">遅い</string>
+    <string name="levels_speed_normal">標準</string>
+    <string name="levels_speed_fast">速い</string>
+    <string name="levels_place">スライダーの位置</string>
+    <string name="levels_place_top">上画面の上部</string>
+    <string name="levels_place_bottom">上画面の下部</string>
+    <plurals name="levels_volume_steps">
+        <item quantity="other">15 段階中 %d 段階</item>
+    </plurals>
     <string name="swap_volume">各画面の音量を入れ替える</string>
     <string name="swap_volume_detail">アプリを入れ替えるとき、上画面と下画面の音量も入れ替えます。ミュートは元のアプリについていきます。Shizuku が必要です。</string>
     <string name="page_updates">アップデートの設定</string>
@@ -401,7 +417,9 @@
     </plurals>
     <string name="profiles_row_detail">%1$s · 使用中：%2$s</string>
     <string name="show_buttons">切り替え時にボタンを表示</string>
-    <string name="show_buttons_detail">自分でプロファイルを切り替えたときに、新しいプロファイルのショートカットを Thor の図で表示します。アプリによる切り替えでは名前だけを表示します。いずれかのボタンを押すと閉じます</string>
+    <string name="show_buttons_detail">プロファイルが切り替わったとき、新しいプロファイルのショートカットを Thor の図で表示します。いずれかのボタンを押すと閉じます</string>
+    <string name="show_buttons_apps">関連付けたアプリでもボタンを表示</string>
+    <string name="show_buttons_apps_detail">プロファイルに関連付けたアプリを開いたときや離れたときも図を表示します。オフにするとプロファイル名だけを表示します</string>
     <string name="backup_row">バックアップと共有</string>
     <string name="backup_row_detail">すべてのプロファイルをファイルに保存して復元する、または 1 つを共有する</string>
     <string name="profiles_subtitle">プロファイルをタップすると、使用、名前の変更、アプリとの関連付け、削除ができます。メインプロファイルは「有効化」ショートカットで戻る先となるプロファイルで、削除できません。アプリと関連付けたプロファイルは、そのアプリがコントローラーで操作中のアプリである間、使用されます（Shizuku が必要です）。</string>
@@ -531,20 +549,20 @@
     <string name="switch_to">切り替え先</string>
 
     <!-- Welcome to 1.0 -->
-    <string name="w_profiles">アプリ別プロファイル</string>
-    <string name="w_profiles_text">アプリをプロファイルに関連付けると、そのアプリをプレイしている間、Pathfinder がそのプロファイルに切り替えます。</string>
-    <string name="w_profiles_button">設定する</string>
-    <string name="w_combos">ボタンコンボ</string>
-    <string name="w_combos_text">戻る、ホーム、AYN ボタンを押しながら他のボタンを 1 つか 2 つ押すだけで、数十もの新しいショートカットが使えます。</string>
-    <string name="w_combos_button">コンボを追加</string>
-    <string name="w_backup">バックアップと共有</string>
-    <string name="w_backup_text">すべてのプロファイルをファイルに保存して、いつでも復元したり、友だちと共有したりできます。</string>
-    <string name="w_backup_button">開く</string>
-    <string name="w_languages">あなたの言語で</string>
-    <string name="w_languages_text">英語、スペイン語、ポルトガル語（ブラジル）、簡体字中国語、日本語に対応しました。いずれかを選ぶか、Thor の言語に合わせられます。</string>
-    <string name="w_languages_button">選択</string>
-    <string name="w_title">Thor Pathfinder %1$s へようこそ</string>
-    <string name="w_intro">これまでで最大のアップデートです。新機能をお試しください：</string>
+    <string name="w_levels">明るさと音量</string>
+    <string name="w_levels_text">2 つの新しいショートカットで、上画面にスライダーが表示されます。十字キーで上画面、下画面、または両方を一度に調整できます。</string>
+    <string name="w_levels_button">追加する</string>
+    <string name="w_disabled">「無効」プロファイル</string>
+    <string name="w_disabled_text">ボタンにまったく手を加えない内蔵プロファイルです。ゲームはすべての入力を遅延なく受け取ります。素早い操作が必要なゲームを関連付けましょう。</string>
+    <string name="w_disabled_button">プロファイルを開く</string>
+    <string name="w_tile">クイック設定タイル</string>
+    <string name="w_tile_text">Pathfinder を開かずに、クイック設定からプロファイルを切り替えられます（「無効」も含む）。</string>
+    <string name="w_tile_button">タイルを追加</string>
+    <string name="w_volume">音量がアプリについていく</string>
+    <string name="w_volume_text">オンにすると、画面を入れ替えたときに各画面の音量がアプリと一緒に移動し、ミュートしたアプリはミュートのままです。</string>
+    <string name="w_volume_button">オンにする</string>
+    <string name="w_title">Thor Pathfinder %1$s の新機能</string>
+    <string name="w_intro">新機能をお試しください。raygan さんと ItsRetroPup さんに感謝します：</string>
     <string name="w_notes">リリースノートを読む</string>
     <string name="w_continue">続ける</string>
 

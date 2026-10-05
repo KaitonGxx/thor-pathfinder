@@ -39,6 +39,7 @@ class PathfinderService : AccessibilityService() {
     private lateinit var worker: ExecutorService
     private lateinit var overlay: Overlay
     private lateinit var apps: AppWatcher
+    private lateinit var levels: LevelControl
 
     /** Keys whose press closed the map, so that their release is kept from the app as well. */
     private val closedMap = mutableSetOf<Int>()
@@ -77,6 +78,7 @@ class PathfinderService : AccessibilityService() {
         )
         apps = AppWatcher(this, ::announceApp)
         apps.start()
+        levels = LevelControl(this, apps, ::toast)
         Profiles.watch(this, profilesChanged)
         updateFiltering()
         running = true
@@ -86,6 +88,8 @@ class PathfinderService : AccessibilityService() {
     override fun onKeyEvent(event: KeyEvent): Boolean {
         if (!::engine.isInitialized) return false
         if (keptForMap(event)) return true
+        // While a Brightness or Volume slider is up, the D-pad is its.
+        if (levels.onKey(event)) return true
         if (event.action != KeyEvent.ACTION_DOWN && event.action != KeyEvent.ACTION_UP) return false
         val key = ComboKey.of(event.keyCode, event.scanCode, xboxStyle(event))
         val button = PhysicalButton.of(event.keyCode, event.scanCode)
@@ -232,6 +236,8 @@ class PathfinderService : AccessibilityService() {
             ButtonAction.FOCUS_MODE -> worker.execute {
                 toast(focusModeMessage(words(), FocusMode.apply(this, shortcut.focus)))
             }
+            ButtonAction.BRIGHTNESS -> levels.open(LevelKind.BRIGHTNESS)
+            ButtonAction.VOLUME -> levels.open(LevelKind.VOLUME)
             ButtonAction.LAUNCH_APP -> openApps(shortcut)
             ButtonAction.PROFILE -> switchProfile(shortcut)
             ButtonAction.SHORTCUT_MENU ->
@@ -331,15 +337,21 @@ class PathfinderService : AccessibilityService() {
 
     /**
      * A switch made for an app, or back to the chosen profile on leaving it:
-     * only a message. The Thor picture is for switches the user makes; here
-     * it would come up on every trip in and out of a linked game.
+     * a message, which is also the Thor picture's title when the picture is
+     * on for these switches too (a setting of its own, since it comes up on
+     * every trip in and out of a linked game). Disabled has no picture.
      */
     private fun announceApp(profile: Profiles.Profile, app: String?) {
         val name = app?.let { pkg ->
             runCatching { packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString() }
                 .getOrDefault(pkg)
         }
-        overlay.show(AppProfiles.switchMessage(words(), profile.name, name))
+        val message = AppProfiles.switchMessage(words(), profile.name, name)
+        if (Profiles.showMap(this) && Profiles.showMapForApps(this) && profile.id != Profiles.DISABLED) {
+            overlay.showMap(message, ButtonMap.callouts(this, shortcuts))
+        } else {
+            overlay.show(message)
+        }
     }
 
     /** Puts "top or bottom?" on the top screen, for a shortcut set to ask. */
@@ -377,6 +389,7 @@ class PathfinderService : AccessibilityService() {
         if (::apps.isInitialized) apps.stop()
         Profiles.unwatch(this, profilesChanged)
         if (::overlay.isInitialized) overlay.dismiss()
+        if (::levels.isInitialized) levels.shutdown()
         closedMap.clear()
         handler.removeCallbacksAndMessages(null)
         if (::worker.isInitialized) worker.shutdown()
@@ -418,6 +431,13 @@ class PathfinderService : AccessibilityService() {
         fun profileSwitched(context: Context) {
             val service = current ?: return
             service.handler.post { service.announce(Profiles.active(context)) }
+        }
+
+        /** Pulls down Quick Settings, to show the profile tile; false when the service isn't running. */
+        fun openQuickSettings(): Boolean {
+            val service = current ?: return false
+            service.handler.post { service.performGlobalAction(GLOBAL_ACTION_QUICK_SETTINGS) }
+            return true
         }
 
         /**

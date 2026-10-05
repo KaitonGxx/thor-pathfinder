@@ -8,8 +8,33 @@ Kotlin + Jetpack Compose, package `com.thorpathfinder.app`, minSdk 33
 Machine-specific notes (toolchain paths, the test Thor's serial, git
 identity) live in `CLAUDE.local.md`, which is gitignored.
 
-## Status (2026-09-25)
+## Status (2026-10-05)
 
+- v1.1.0 (versionCode 21). **Brightness and Volume** shortcuts
+  (`ButtonAction.BRIGHTNESS`, needs Shizuku; `VOLUME`, the top screen's works
+  without): a slider on the top screen (`LevelControl` + `LevelPanelView`,
+  pure maths in `Levels`). It always opens on the top screen; Up and Down
+  move TOP <-> BOTH <-> BOTTOM (`LevelScreens`), Left and Right step by the
+  page's step (brightness 1/2/5/10/20 %, volume 1/2/3 of 15) and repeat
+  after 350 ms at the hold speed (200/110/55 ms). Both moves the two screens
+  by the same step, each clamped on its own. ▲ above the icon is lit for the
+  top screen, ▼ below for the bottom, both for both; a hollow second thumb
+  marks the bottom's level when they differ. It closes 3 s after the last
+  input, or on Back / B. Settings live in the device-wide `ui` prefs
+  (`levels.*`), on the cog's Brightness & volume page, which also holds PR
+  #3's volume swap switch and where the slider sits (top or bottom edge of
+  the top screen). Brightness is a percentage on Android's HLG slider curve
+  (`Levels.percentToBrightness`, BrightnessUtils' constants), floor 1 %.
+  Merged with it: PR #3 (ItsRetroPup, the opt-in volume swap) and PR #2
+  (raygan, the Disabled profile and the Quick Settings tile). PR #2 had app
+  switches show only the message; that became a setting, `showMapApps` in
+  the `profiles` prefs ("Show buttons for linked apps") (on by default, as 1.0 did; greyed while
+  `showMap` is off). D-pad combos are gone from the combo picker (see the
+  hat below); `ComboKey` keeps the D-pad so old combos still read and can be
+  removed. Tested on the Thor: the slider (D-pad, hold, touch, Back / B,
+  both positions), the volume swap, the "Show buttons for linked apps"
+  switch, and PR #2 end to end (a game linked to Disabled, the main screen's
+  Disabled card, the tile).
 - v1.0.0 (versionCode 20), released 2026-09-25. README screenshots retaken
   from it (1280x653: a 1920x1080 capture, y 55..1035, scaled by 2/3; setup
   through the debug build's preview extras). **App profiles**: a profile
@@ -307,6 +332,9 @@ app/src/main/kotlin/com/thorpathfinder/app/
   Buttons.kt            PhysicalButton (scan codes), Gesture, ButtonAction
   GestureEngine.kt      press / double-press / hold state machine, and combos (pure, tested)
   Combos.kt             ComboKey (the buttons a combo is made of) and Combos (ids, labels)
+  Levels.kt             Brightness / Volume sliders: screens order, steps, the brightness curve, settings
+  LevelControl.kt       the slider: opening, the D-pad (as a hat) and keys, writing levels
+  LevelPanelView.kt     the slider, drawn by hand: icon, triangles, caption, level, track
   Words.kt              strings for code outside Compose (tests pass English)
   Language.kt           the per-app language: choices, LocaleManager
   Backup.kt             backups and shared profiles as typed JSON (pure rules, tested)
@@ -360,7 +388,32 @@ tools/latency/          button latency from atrace: inject.sh presses, analyze.p
 
 ## Facts learned on the Thor (firmware 1.0.0.377)
 
-- **Volume follows the screens** (opt-in: cog → Swapping screens, `ui` pref
+- **The D-pad is a hat, not keys.** `getevent` on "Odin Controller" shows
+  only `ABS_HAT0X` / `ABS_HAT0Y` (-1, 0, 1) for the D-pad, although the
+  device also lists BTN_DPAD_* and the key layout maps 0x220-0x223. Android
+  turns a hat into DPAD keys only in the focused window's ViewRootImpl
+  (SyntheticJoystickHandler), after accessibility has had its turn, and
+  Android 13 gives a service no way to filter motion. So the service never
+  sees the D-pad: D-pad combos can't fire, and the Brightness / Volume
+  slider takes focus (its window has no FLAG_NOT_FOCUSABLE) and reads
+  `AXIS_HAT_X` / `AXIS_HAT_Y` in `onGenericMotionEvent`, returning true so
+  no arrow keys are made. While it is up the game gets no controller input;
+  Back and B reach it as keys and close it.
+- **Each screen's brightness.** Both displays report the same
+  `DisplayManager` brightness (one display group), but each has its own
+  backlight (`/sys/class/backlight/panel0-backlight`, `panel1-...`, 0..4095).
+  AYN's dual-screen panel (DualScreenAssistant, `K0.c`) sets the bottom one
+  with the hidden `DisplayManager.setBrightness(displayId, float)`, linear
+  over its slider, and reads `BrightnessInfo`. Checked with a probe as the
+  shell user (which holds CONTROL_DISPLAY_BRIGHTNESS): `IDisplayManager
+  .setBrightness(4, x)` moves only panel1 (0.1 -> 34, 0.8 -> 3062) and leaves
+  display 0 alone. `Settings.System dual_screen_brightness_level` (0..100) is
+  only that panel's own number: writing it changes nothing. So `TaskWatcher`
+  has `getBrightness` / `setBrightness(display, f)` and `setBottomVolume`,
+  and `AppWatcher.useHelper` / `keepHelper` keep it bound for 30 s after the
+  slider was last used. Top volume is `AudioManager` STREAM_MUSIC from the
+  app, flags 0.
+- **Volume follows the screens** (opt-in: cog → Brightness & volume, `ui` pref
   `swapVolume`, off by default; `ScreenVolume.kt`). The top screen's volume is
   STREAM_MUSIC (0 = muted, 0..15) and the bottom's is `Settings.System
   secondary_screen_volume_level` (same scale), which AYN's volume panel writes.
@@ -419,16 +472,20 @@ tools/latency/          button latency from atrace: inject.sh presses, analyze.p
   `onTaskDisplayChanged`, and reports land within about 250 ms of an app
   opening. The shell user may register the listener (MANAGE_ACTIVITY_TASKS).
 - **The welcome page** (`ui/WelcomeScreen.kt`): shown once before the main
-  screen to someone updating (`Welcome.due`: setup done and `ui.welcomeSeen`
-  below `Welcome.EDITION`, 1 for 1.0). Finishing setup marks it seen, so a
-  fresh install never gets it. Four cards (App profiles, Button combos,
-  Backup & share, In your language) whose buttons open Manage profiles at a
-  page (`MoreSettingsScreen(openAt)`, `ManageProfilesPage(openAt)`), the
-  Language page (`openLanguage`) or the main screen with Back's card open
-  (`SettingsScreen(openCard)`); any of them, or Continue or Back, marks it
-  seen. The release notes and Continue row is outside the scrolling part, so
-  it stays on screen when a language's text runs long. About → What's new in 1.0 shows it again.
-  A later big release can bump `EDITION` and rewrite the cards.
+  screen to someone updating (`Welcome.due`: setup done, `ui.welcomeSeen`
+  below `Welcome.EDITION`, and the package's lastUpdateTime after its
+  firstInstallTime, so a fresh install never gets it, even when Android's
+  app backup (allowBackup is on) restored an old "setup done"). Finishing
+  setup marks it seen. It shows the latest edition only: EDITION 2 is 1.1's
+  (1.0's cards are in git history). Four cards whose buttons go to the
+  feature (`WelcomeLink`): Brightness & volume (the main screen with Back's
+  card open), Disabled (Manage profiles → Profiles), the tile (Android 13's
+  `StatusBarManager.requestAddTileService`), and the volume swap (the cog's
+  Brightness & volume page, `MoreSettingsScreen(openLevels)`). Any of them,
+  or Continue or Back, marks it seen; About → What's new shows it again.
+  The release notes and Continue row is outside the scrolling part, so it
+  stays on screen when a language's text runs long. A later release bumps
+  `EDITION`, `VERSION` and `NOTES` and rewrites the cards.
 - **AYN's controller styles** (the Quick Settings "Controller style" tile,
   SystemUI `ControllerStyleTile`, cycling `Settings.System
   temp_abxy_layout_mode`, which sets `flip_button_layout` and

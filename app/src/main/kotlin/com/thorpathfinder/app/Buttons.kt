@@ -136,6 +136,11 @@ enum class ButtonAction(@StringRes val text: Int, val needsShizuku: Boolean = fa
     CLOSE_ALL(R.string.action_close_all, needsShizuku = true),
     SWAP_SCREENS(R.string.action_swap_screens, needsShizuku = true),
     MOUSE_MODE(R.string.action_mouse_mode, needsShizuku = true),
+    // A slider on the top screen; Up and Down move it to both screens or the bottom one.
+    // Brightness takes Shizuku on either screen.
+    BRIGHTNESS(R.string.action_brightness, needsShizuku = true),
+    // The top screen's volume works without Shizuku, the bottom one's needs it.
+    VOLUME(R.string.action_volume),
     // Which way it moves Focus Mode is a FocusSwitch.
     FOCUS_MODE(R.string.action_focus_mode, needsShizuku = true),
     NOTIFICATIONS(R.string.action_notifications),

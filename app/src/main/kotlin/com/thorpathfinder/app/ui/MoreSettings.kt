@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.annotation.StringRes
 import androidx.compose.ui.res.stringResource
 import com.thorpathfinder.app.Language
+import com.thorpathfinder.app.LevelKind
+import com.thorpathfinder.app.Levels
 import com.thorpathfinder.app.MouseMode
 import com.thorpathfinder.app.PathfinderService
 import com.thorpathfinder.app.R
@@ -48,7 +50,7 @@ private enum class SettingsPage(@StringRes val title: Int, @StringRes val detail
     CLOSE_ALL(R.string.page_close, R.string.page_close_detail),
     MOUSE(R.string.page_mouse, R.string.page_mouse_detail),
     TIMING(R.string.page_timing, R.string.page_timing_detail),
-    SWAP(R.string.page_swap, R.string.page_swap_detail),
+    LEVELS(R.string.page_levels, R.string.page_levels_detail),
     UPDATES(R.string.page_updates, R.string.page_updates_detail),
     WATCHDOG(R.string.wd_title, R.string.page_watchdog_detail),
     // Its detail is the language in use, in its own words.
@@ -69,11 +71,13 @@ fun MoreSettingsScreen(
     onRunSetup: () -> Unit,
     openAt: ManagePage? = null,
     openLanguage: Boolean = false,
+    openLevels: Boolean = false,
 ) {
     var page by rememberSaveable {
         mutableStateOf(
             when {
                 openLanguage -> SettingsPage.LANGUAGE
+                openLevels -> SettingsPage.LEVELS
                 openAt != null -> SettingsPage.PROFILES
                 else -> null
             },
@@ -91,7 +95,7 @@ fun MoreSettingsScreen(
         SettingsPage.CLOSE_ALL -> KeepRunningPage(onBack = ::close)
         SettingsPage.MOUSE -> MouseModePage(state, onBack = ::close)
         SettingsPage.TIMING -> TimingPage(onBack = ::close)
-        SettingsPage.SWAP -> SwapPage(onBack = ::close)
+        SettingsPage.LEVELS -> LevelsPage(onBack = ::close)
         SettingsPage.UPDATES -> UpdateSettingsPage(state, onBack = ::close)
         SettingsPage.WATCHDOG -> WatchdogPage(state, onBack = ::close)
         SettingsPage.LANGUAGE -> LanguagePage(onBack = ::close)
@@ -308,33 +312,115 @@ private enum class Timing(@StringRes val title: Int, val choices: List<Long>) {
     }
 }
 
-/** What a screen swap carries along besides the apps. */
+/** Something the Brightness & volume page asks to be chosen from a list. */
+private enum class LevelsChoice { BRIGHTNESS_STEP, VOLUME_STEP, HOLD_SPEED, PLACE }
+
+/**
+ * The Brightness and Volume sliders' settings, how much a press changes and
+ * how fast a hold goes, and whether a swap takes each screen's volume along.
+ */
 @Composable
-private fun SwapPage(onBack: () -> Unit) {
+private fun LevelsPage(onBack: () -> Unit) {
     val context = LocalContext.current
-    var volume by remember { mutableStateOf(ScreenVolume.enabled(context)) }
+    var brightnessStep by remember { mutableStateOf(Levels.step(context, LevelKind.BRIGHTNESS)) }
+    var volumeStep by remember { mutableStateOf(Levels.step(context, LevelKind.VOLUME)) }
+    var holdSpeed by remember { mutableStateOf(Levels.holdSpeed(context)) }
+    var place by remember { mutableStateOf(Levels.place(context)) }
+    var swapVolume by remember { mutableStateOf(ScreenVolume.enabled(context)) }
+    var editing by remember { mutableStateOf<LevelsChoice?>(null) }
     val first = remember { FocusRequester() }
     val inputMode = LocalInputModeManager.current.inputMode
     LaunchedEffect(inputMode) { runCatching { first.requestFocus() } }
 
-    PageScaffold(stringResource(R.string.page_swap), onBack = onBack) {
+    fun volumeSteps(n: Int) = context.resources.getQuantityString(R.plurals.levels_volume_steps, n, n)
+
+    PageScaffold(
+        stringResource(R.string.page_levels),
+        stringResource(R.string.levels_subtitle),
+        onBack = onBack,
+    ) {
         ScrollingColumn(
             state = rememberScrollState(),
             modifier = Modifier.weight(1f).fillMaxWidth(),
             contentPadding = PaddingValues(vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
+            ValueRow(
+                stringResource(R.string.levels_brightness_step),
+                stringResource(R.string.levels_percent, brightnessStep),
+                modifier = Modifier.focusRequester(first),
+            ) { editing = LevelsChoice.BRIGHTNESS_STEP }
+            ValueRow(stringResource(R.string.levels_volume_step), volumeSteps(volumeStep)) {
+                editing = LevelsChoice.VOLUME_STEP
+            }
+            ValueRow(stringResource(R.string.levels_hold_speed), stringResource(holdSpeed.text)) {
+                editing = LevelsChoice.HOLD_SPEED
+            }
+            ValueRow(stringResource(R.string.levels_place), stringResource(place.text)) {
+                editing = LevelsChoice.PLACE
+            }
             SwitchRow(
                 stringResource(R.string.swap_volume),
                 stringResource(R.string.swap_volume_detail),
-                volume,
-                modifier = Modifier.focusRequester(first),
+                swapVolume,
             ) {
-                volume = it
+                swapVolume = it
                 ScreenVolume.setEnabled(context, it)
                 PathfinderService.volumeSwapChanged()
             }
         }
+    }
+
+    when (editing) {
+        null -> Unit
+        LevelsChoice.BRIGHTNESS_STEP -> ChoiceDialog(
+            title = stringResource(R.string.levels_brightness_step),
+            options = Levels.BRIGHTNESS_STEPS,
+            selected = brightnessStep,
+            label = { context.getString(R.string.levels_percent, it) },
+            onPick = {
+                Levels.setStep(context, LevelKind.BRIGHTNESS, it)
+                brightnessStep = it
+                editing = null
+            },
+            onDismiss = { editing = null },
+        )
+        LevelsChoice.VOLUME_STEP -> ChoiceDialog(
+            title = stringResource(R.string.levels_volume_step),
+            options = Levels.VOLUME_STEPS,
+            selected = volumeStep,
+            label = { volumeSteps(it) },
+            onPick = {
+                Levels.setStep(context, LevelKind.VOLUME, it)
+                volumeStep = it
+                editing = null
+            },
+            onDismiss = { editing = null },
+        )
+        LevelsChoice.HOLD_SPEED -> ChoiceDialog(
+            title = stringResource(R.string.levels_hold_speed),
+            options = Levels.HoldSpeed.entries,
+            selected = holdSpeed,
+            label = { context.getString(it.text) },
+            onPick = {
+                Levels.setHoldSpeed(context, it)
+                holdSpeed = it
+                editing = null
+            },
+            onDismiss = { editing = null },
+        )
+        LevelsChoice.PLACE -> ChoiceDialog(
+            title = stringResource(R.string.levels_place),
+            options = Levels.Place.entries,
+            selected = place,
+            label = { context.getString(it.text) },
+            onPick = {
+                Levels.setPlace(context, it)
+                place = it
+                editing = null
+            },
+            onDismiss = { editing = null },
+        )
     }
 }
 

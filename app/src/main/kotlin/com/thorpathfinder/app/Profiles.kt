@@ -240,6 +240,17 @@ object Profiles {
     /** Whether switching profiles shows the Thor with that profile's shortcuts. */
     fun showMap(context: Context): Boolean = prefs(context).getBoolean("showMap", true)
 
+    /**
+     * Whether a switch made for an app (going into or out of a linked one)
+     * shows the picture too, when [showMap] is on; otherwise it shows only
+     * its message. On unless turned off, as before the choice existed.
+     */
+    fun showMapForApps(context: Context): Boolean = prefs(context).getBoolean("showMapApps", true)
+
+    fun setShowMapForApps(context: Context, show: Boolean) {
+        prefs(context).edit { putBoolean("showMapApps", show) }
+    }
+
     fun setShowMap(context: Context, show: Boolean) {
         prefs(context).edit { putBoolean("showMap", show) }
     }

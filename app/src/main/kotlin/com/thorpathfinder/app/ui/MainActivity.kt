@@ -1,6 +1,9 @@
 package com.thorpathfinder.app.ui
 
+import android.app.StatusBarManager
+import android.content.ComponentName
 import android.database.ContentObserver
+import android.graphics.drawable.Icon
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -16,7 +19,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.thorpathfinder.app.PathfinderService
 import com.thorpathfinder.app.PhysicalButton
+import com.thorpathfinder.app.ProfileTileService
+import com.thorpathfinder.app.R
 import com.thorpathfinder.app.ServiceLog
 import com.thorpathfinder.app.Shortcuts
 import com.thorpathfinder.app.SystemState
@@ -51,12 +57,13 @@ class MainActivity : ComponentActivity() {
                         mutableStateOf(preview?.step ?: if (shortcuts.setupDone) null else SetupStep.WELCOME)
                     }
                     var settings by rememberSaveable { mutableStateOf(false) }
-                    // Once, for someone updating: what 1.0 brings, before the main screen.
+                    // Once, for someone updating: what this version brings, before the main screen.
                     var welcome by rememberSaveable {
                         mutableStateOf(setupAt == null && Welcome.due(this@MainActivity, shortcuts.setupDone))
                     }
                     var settingsAt by rememberSaveable { mutableStateOf<ManagePage?>(null) }
                     var languageAt by rememberSaveable { mutableStateOf(false) }
+                    var levelsAt by rememberSaveable { mutableStateOf(false) }
                     var openCard by rememberSaveable { mutableStateOf<PhysicalButton?>(null) }
                     Box(Modifier.safeDrawingPadding()) {
                         val step = setupAt
@@ -78,17 +85,14 @@ class MainActivity : ComponentActivity() {
                                     Welcome.markSeen(this@MainActivity)
                                     welcome = false
                                     when (link) {
-                                        WelcomeLink.PROFILES -> {
+                                        WelcomeLink.LEVELS -> openCard = PhysicalButton.BACK
+                                        WelcomeLink.DISABLED -> {
                                             settingsAt = ManagePage.PROFILES
                                             settings = true
                                         }
-                                        WelcomeLink.BACKUP -> {
-                                            settingsAt = ManagePage.BACKUP
-                                            settings = true
-                                        }
-                                        WelcomeLink.COMBOS -> openCard = PhysicalButton.BACK
-                                        WelcomeLink.LANGUAGE -> {
-                                            languageAt = true
+                                        WelcomeLink.TILE -> askToAddTile()
+                                        WelcomeLink.VOLUME_SWAP -> {
+                                            levelsAt = true
                                             settings = true
                                         }
                                     }
@@ -103,10 +107,12 @@ class MainActivity : ComponentActivity() {
                                 current,
                                 openAt = settingsAt,
                                 openLanguage = languageAt,
+                                openLevels = levelsAt,
                                 onBack = {
                                     settings = false
                                     settingsAt = null
                                     languageAt = false
+                                    levelsAt = false
                                 },
                                 onRunSetup = {
                                     settings = false
@@ -126,6 +132,29 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    /**
+     * Android 13's own "add this tile?" question, for the profile tile, so it
+     * goes into Quick Settings without a trip through the tile editor.
+     */
+    private fun askToAddTile() {
+        val asked = runCatching {
+            getSystemService(StatusBarManager::class.java).requestAddTileService(
+                ComponentName(this, ProfileTileService::class.java),
+                getString(R.string.tile_label),
+                Icon.createWithResource(this, R.drawable.ic_tile_profile),
+                mainExecutor,
+            ) { result ->
+                // Android skips its question when the tile is already there, so Quick Settings
+                // opens either way to show it; also when Android couldn't ask, so it can be added
+                // from the editor there. Only a "Don't add" leaves things be.
+                if (result != StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_NOT_ADDED) {
+                    PathfinderService.openQuickSettings()
+                }
+            }
+        }.isSuccess
+        if (!asked) PathfinderService.openQuickSettings()
     }
 
     // Coming back from Android's settings or from Shizuku is when things change.

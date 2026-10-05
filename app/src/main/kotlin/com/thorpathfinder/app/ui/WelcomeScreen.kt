@@ -19,9 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -46,28 +43,40 @@ import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.graphics.PathFillType
+import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.res.stringResource
 import com.thorpathfinder.app.R
 import androidx.core.content.edit
 import androidx.core.graphics.drawable.toBitmap
 
 /**
- * The one-time "Welcome to 1.0" page for people updating from an earlier
- * version. New installs skip it: setup already walks them through.
+ * The one-time "what's new" page for people updating from an earlier
+ * version, now 1.1's. New installs skip it: setup already walks them through.
  */
 object Welcome {
 
     /** Which welcome this build shows; a later big release can bump it to show a new one. */
-    const val EDITION = 1
+    const val EDITION = 2
 
-    const val NOTES = "https://github.com/KaitonGxx/thor-pathfinder/releases/tag/v1.0.0"
+    const val NOTES = "https://github.com/KaitonGxx/thor-pathfinder/releases/tag/v1.1.0"
 
     private const val PREFS = "ui"
     private const val KEY = "welcomeSeen"
 
-    /** Due once, for someone who had Pathfinder set up before this edition. */
-    fun due(context: Context, setupDone: Boolean): Boolean = setupDone && seen(context) < EDITION
+    /**
+     * Due once, for someone who had Pathfinder set up before this edition and
+     * then updated it. Never on a fresh install, where setup comes first, even
+     * if Android restored an old "setup done" with the app's data.
+     */
+    fun due(context: Context, setupDone: Boolean): Boolean =
+        setupDone && seen(context) < EDITION && updated(context)
+
+    /** Whether this copy came as an update rather than a fresh install. */
+    private fun updated(context: Context): Boolean = runCatching {
+        val info = context.packageManager.getPackageInfo(context.packageName, 0)
+        info.lastUpdateTime > info.firstInstallTime
+    }.getOrDefault(false)
 
     fun markSeen(context: Context) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { putInt(KEY, EDITION) }
@@ -78,10 +87,10 @@ object Welcome {
 }
 
 /** The version this welcome is for, as the title shows it. */
-private const val VERSION = "1.0"
+private const val VERSION = "1.1"
 
 /** Where a card on the welcome page leads. */
-enum class WelcomeLink { PROFILES, COMBOS, BACKUP, LANGUAGE }
+enum class WelcomeLink { LEVELS, DISABLED, TILE, VOLUME_SWAP }
 
 private class WelcomeItem(
     val link: WelcomeLink,
@@ -92,47 +101,41 @@ private class WelcomeItem(
 )
 
 private val ITEMS = listOf(
-    WelcomeItem(WelcomeLink.PROFILES, R.string.w_profiles, R.string.w_profiles_text, R.string.w_profiles_button) {
-        ButtonSymbol(Icons.Filled.Person)
+    WelcomeItem(WelcomeLink.LEVELS, R.string.w_levels, R.string.w_levels_text, R.string.w_levels_button) {
+        ButtonSymbol(symbol("Sun", SUN))
     },
-    WelcomeItem(WelcomeLink.COMBOS, R.string.w_combos, R.string.w_combos_text, R.string.w_combos_button) {
-        ComboBadge()
+    WelcomeItem(WelcomeLink.DISABLED, R.string.w_disabled, R.string.w_disabled_text, R.string.w_disabled_button) {
+        ButtonSymbol(symbol("Controller", CONTROLLER))
     },
-    WelcomeItem(WelcomeLink.BACKUP, R.string.w_backup, R.string.w_backup_text, R.string.w_backup_button) {
-        ButtonSymbol(Icons.Filled.Share)
+    WelcomeItem(WelcomeLink.TILE, R.string.w_tile, R.string.w_tile_text, R.string.w_tile_button) {
+        ButtonSymbol(symbol("Tile", TILE))
     },
-    WelcomeItem(WelcomeLink.LANGUAGE, R.string.w_languages, R.string.w_languages_text, R.string.w_languages_button) {
-        ButtonSymbol(LanguageSymbol)
+    WelcomeItem(WelcomeLink.VOLUME_SWAP, R.string.w_volume, R.string.w_volume_text, R.string.w_volume_button) {
+        ButtonSymbol(symbol("Speaker", SPEAKER))
     },
 )
 
-/** A speech bubble with lines in it, for the language card. */
-private val LanguageSymbol: ImageVector = ImageVector.Builder(
-    name = "LanguageSymbol",
+/** A 24 x 24 symbol from path data. */
+private fun symbol(name: String, path: String): ImageVector = ImageVector.Builder(
+    name = name,
     defaultWidth = 24.dp,
     defaultHeight = 24.dp,
     viewportWidth = 24f,
     viewportHeight = 24f,
-).apply {
-    path(fill = SolidColor(Color.Black)) {
-        // Bubble: a rounded rectangle with a tail at the bottom left.
-        moveTo(4f, 3f)
-        horizontalLineTo(20f)
-        arcTo(2f, 2f, 0f, isMoreThanHalf = false, isPositiveArc = true, x1 = 22f, y1 = 5f)
-        verticalLineTo(15f)
-        arcTo(2f, 2f, 0f, isMoreThanHalf = false, isPositiveArc = true, x1 = 20f, y1 = 17f)
-        horizontalLineTo(8f)
-        lineTo(4f, 21f)
-        verticalLineTo(17f)
-        arcTo(2f, 2f, 0f, isMoreThanHalf = false, isPositiveArc = true, x1 = 2f, y1 = 15f)
-        verticalLineTo(5f)
-        arcTo(2f, 2f, 0f, isMoreThanHalf = false, isPositiveArc = true, x1 = 4f, y1 = 3f)
-        close()
-    }
-}.build()
+).addPath(addPathNodes(path), fill = SolidColor(Color.Black), pathFillType = PathFillType.EvenOdd).build()
+
+// Material icons (Apache 2.0): light_mode and volume_up, as on the slider itself.
+private const val SUN = "M12,7c-2.76,0 -5,2.24 -5,5s2.24,5 5,5s5,-2.24 5,-5S14.76,7 12,7L12,7zM2,13l2,0c0.55,0 1,-0.45 1,-1s-0.45,-1 -1,-1l-2,0c-0.55,0 -1,0.45 -1,1S1.45,13 2,13zM20,13l2,0c0.55,0 1,-0.45 1,-1s-0.45,-1 -1,-1l-2,0c-0.55,0 -1,0.45 -1,1S19.45,13 20,13zM11,2v2c0,0.55 0.45,1 1,1s1,-0.45 1,-1V2c0,-0.55 -0.45,-1 -1,-1S11,1.45 11,2zM11,20v2c0,0.55 0.45,1 1,1s1,-0.45 1,-1v-2c0,-0.55 -0.45,-1 -1,-1C11.45,19 11,19.45 11,20zM5.99,4.58c-0.39,-0.39 -1.03,-0.39 -1.41,0c-0.39,0.39 -0.39,1.03 0,1.41l1.06,1.06c0.39,0.39 1.03,0.39 1.41,0s0.39,-1.03 0,-1.41L5.99,4.58zM18.36,16.95c-0.39,-0.39 -1.03,-0.39 -1.41,0c-0.39,0.39 -0.39,1.03 0,1.41l1.06,1.06c0.39,0.39 1.03,0.39 1.41,0c0.39,-0.39 0.39,-1.03 0,-1.41L18.36,16.95zM19.42,5.99c0.39,-0.39 0.39,-1.03 0,-1.41c-0.39,-0.39 -1.03,-0.39 -1.41,0l-1.06,1.06c-0.39,0.39 -0.39,1.03 0,1.41s1.03,0.39 1.41,0L19.42,5.99zM7.05,18.36c0.39,-0.39 0.39,-1.03 0,-1.41c-0.39,-0.39 -1.03,-0.39 -1.41,0l-1.06,1.06c-0.39,0.39 -0.39,1.03 0,1.41s1.03,0.39 1.41,0L7.05,18.36z"
+private const val SPEAKER = "M3,9v6h4l5,5V4L7,9H3zM16.5,12c0,-1.77 -1.02,-3.29 -2.5,-4.03v8.05c1.48,-0.73 2.5,-2.25 2.5,-4.02zM14,3.23v2.06c2.89,0.86 5,3.54 5,6.71s-2.11,5.85 -5,6.71v2.06c4.01,-0.91 7,-4.49 7,-8.77s-2.99,-7.86 -7,-8.77z"
+
+// The Quick Settings tile's own controller (res/drawable/ic_tile_profile.xml).
+private const val CONTROLLER = "M7,6H17C19.8,6 22,8.5 22,12V15C22,17 20.8,18 19.5,18C18.4,18 17.7,17.3 17,16.3L15.8,15H8.2L7,16.3C6.3,17.3 5.6,18 4.5,18C3.2,18 2,17 2,15V12C2,8.5 4.2,6 7,6Z M6,9.5h1.5v1.5h1.5v1.5h-1.5v1.5h-1.5v-1.5h-1.5v-1.5h1.5Z M15,10.5a1,1 0 1,0 2,0a1,1 0 1,0 -2,0Z M17,12.5a1,1 0 1,0 2,0a1,1 0 1,0 -2,0Z"
+
+/** A Quick Settings tile: a rounded pill with a dot, as a switched-on tile looks. */
+private const val TILE = "M7,7H17A5,5 0 0,1 17,17H7A5,5 0 0,1 7,7Z M7,9.5A2.5,2.5 0 1,0 7,14.5A2.5,2.5 0 1,0 7,9.5Z"
 
 /**
- * What 1.0 brings, a card for each new feature with a button straight to it.
+ * What 1.1 brings, a card for each new feature with a button straight to it.
  * [onOpen] closes the page and goes there; Continue (or Back) goes to the
  * main screen. Either way the page has been seen.
  */

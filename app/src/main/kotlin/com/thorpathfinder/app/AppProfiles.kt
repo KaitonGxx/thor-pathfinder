@@ -102,6 +102,41 @@ class AppWatcher(
         }.onFailure { Log.w(TAG, "the quick swap failed", it) }.getOrDefault(false)
     }
 
+    /** The helper when it is connected, from any thread; null when it isn't. */
+    val connected: ITaskWatcher? get() = helper
+
+    /** Uptime until which the helper is kept for the Brightness and Volume sliders. */
+    private var keepUntil = 0L
+
+    /** Waiting for the helper to connect; main thread only. */
+    private val waiting = mutableListOf<(ITaskWatcher) -> Unit>()
+
+    private val keepOver = Runnable { refresh() }
+
+    /**
+     * Hands the helper to [onReady], on the main thread, starting it first if
+     * it isn't running, and keeps it for at least [forMs]. The sliders use it
+     * for what only the shell user may change. Nothing is called when Shizuku
+     * isn't there.
+     */
+    fun useHelper(forMs: Long, onReady: (ITaskWatcher) -> Unit) {
+        keepHelper(forMs)
+        val ready = helper
+        if (ready != null) {
+            onReady(ready)
+        } else {
+            waiting += onReady
+            refresh()
+        }
+    }
+
+    /** Keeps the helper, if it is wanted at all, for at least [forMs] more; main thread. */
+    fun keepHelper(forMs: Long) {
+        keepUntil = maxOf(keepUntil, SystemClock.uptimeMillis() + forMs)
+        handler.removeCallbacks(keepOver)
+        handler.postAtTime(keepOver, keepUntil + 50)
+    }
+
     private val args by lazy {
         val version = runCatching {
             context.packageManager.getPackageInfo(context.packageName, 0).longVersionCode.toInt()
@@ -135,6 +170,9 @@ class AppWatcher(
             helper = watcher
             runCatching { watcher.watch(listener) }
                 .onFailure { ServiceLog.add(context, "app profiles couldn't start watching: ${it.message}") }
+            val ready = waiting.toList()
+            waiting.clear()
+            ready.forEach { it(watcher) }
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
@@ -203,6 +241,7 @@ class AppWatcher(
         context.contentResolver.unregisterContentObserver(focusModeChanged)
         unbind()
         forget()
+        waiting.clear()
     }
 
     /** Whether the helper is bound, for the diagnostics report. */
@@ -214,7 +253,12 @@ class AppWatcher(
     /** Binds the helper when there is something for it to do, and lets it go when not. */
     private fun refresh() {
         if (!started) return
-        val wanted = (Profiles.hasLinks(context) || ScreenVolume.enabled(context)) && Shell.ready
+        val wanted = (
+            Profiles.hasLinks(context) ||
+                ScreenVolume.enabled(context) ||
+                SystemClock.uptimeMillis() < keepUntil
+            ) && Shell.ready
+        if (!Shell.ready) waiting.clear()
         if (wanted && !bound && SystemClock.uptimeMillis() >= pauseUntil) {
             bound = runCatching { Shizuku.bindUserService(args, connection) }
                 .onFailure { ServiceLog.add(context, "app profiles couldn't start their helper: ${it.message}") }

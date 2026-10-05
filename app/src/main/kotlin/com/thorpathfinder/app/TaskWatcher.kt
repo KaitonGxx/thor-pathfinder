@@ -202,6 +202,36 @@ class TaskWatcher : ITaskWatcher.Stub() {
         }
     }
 
+    /**
+     * Android's display manager, as the shell user, which holds
+     * CONTROL_DISPLAY_BRIGHTNESS. Its per-screen setBrightness is what AYN's
+     * dual-screen panel calls for the bottom screen; checked on the Thor, it
+     * changes only that screen's backlight.
+     */
+    private val displayManager: Any by lazy {
+        Class.forName("android.hardware.display.IDisplayManager\$Stub")
+            .getMethod("asInterface", IBinder::class.java).invoke(null, service("display") as IBinder)!!
+    }
+    private val getBrightnessMethod by lazy { displayManager.javaClass.getMethod("getBrightness", Int::class.java) }
+    private val setBrightnessMethod by lazy {
+        displayManager.javaClass.getMethod("setBrightness", Int::class.java, Float::class.java)
+    }
+
+    override fun getBrightness(display: Int): Float =
+        runCatching { getBrightnessMethod.invoke(displayManager, display) as Float }
+            .onFailure { Log.w(TAG, "couldn't read display $display's brightness", it) }
+            .getOrDefault(-1f)
+
+    override fun setBrightness(display: Int, brightness: Float) {
+        runCatching { setBrightnessMethod.invoke(displayManager, display, brightness.coerceIn(0f, 1f)) }
+            .onFailure { Log.w(TAG, "couldn't set display $display's brightness", it) }
+    }
+
+    override fun setBottomVolume(level: Int) {
+        runCatching { putSystemSetting(SECONDARY_VOLUME, level.coerceIn(0, MAX_VOLUME)) }
+            .onFailure { Log.w(TAG, "couldn't set the bottom screen's volume", it) }
+    }
+
     override fun destroy() {
         unregister()
         exitProcess(0)
@@ -279,6 +309,7 @@ class TaskWatcher : ITaskWatcher.Stub() {
         const val TAG = "PathfinderTasks"
         const val LISTENER = "android.app.ITaskStackListener"
         const val SECONDARY_VOLUME = "secondary_screen_volume_level"
+        const val MAX_VOLUME = 15
         const val STREAM_MUSIC = 3
         const val SHELL_PACKAGE = "com.android.shell"
 

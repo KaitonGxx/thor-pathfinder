@@ -191,7 +191,6 @@
     <!-- Combos -->
     <string name="combos_badge">Combos</string>
     <string name="group_face">Botones frontales</string>
-    <string name="group_dpad">Cruceta</string>
     <string name="group_shoulders">Gatillos</string>
     <string name="group_sticks">Sticks</string>
     <string name="group_select_start">Select y Start</string>
@@ -245,7 +244,7 @@
     <string name="an_app">una app</string>
     <string name="about_title">Acerca de</string>
     <string name="about_text">Thor Pathfinder es software libre bajo la GNU GPL v3, hecho en el espíritu de Thor Wayfinder, que abrió el camino. Es un proyecto independiente, sin relación con Wayfinder ni con AYN.</string>
-    <string name="whats_new_row">Novedades de la 1.0</string>
+    <string name="whats_new_row">Novedades de la 1.1</string>
     <string name="show">Mostrar</string>
     <string name="licenses_row">Licencias de código abierto</string>
     <string name="view">Ver</string>
@@ -337,8 +336,27 @@
     <string name="page_mouse_detail">Hacia dónde desplaza el stick derecho</string>
     <string name="page_timing">Tiempos</string>
     <string name="page_timing_detail">Cuánto dura mantener, y el margen de la doble pulsación</string>
-    <string name="page_swap">Intercambio de pantallas</string>
-    <string name="page_swap_detail">También intercambiar el volumen de cada pantalla</string>
+    <string name="action_brightness">Brillo</string>
+    <string name="action_volume">Volumen</string>
+    <string name="msg_brightness_needs_shizuku">El brillo requiere Shizuku</string>
+    <string name="page_levels">Brillo y volumen</string>
+    <string name="page_levels_detail">Cuánto cambia cada pulsación, e intercambiar el volumen con las apps</string>
+    <string name="levels_subtitle">Un atajo de Brillo o Volumen muestra un control deslizante en la pantalla superior. Izquierda y Derecha cambian el nivel, y siguen mientras las mantienes. Arriba y Abajo pasan entre la pantalla superior, ambas pantallas y la inferior; los triángulos encendidos indican cuál.</string>
+    <string name="levels_brightness_step">Paso de brillo</string>
+    <string name="levels_volume_step">Paso de volumen</string>
+    <string name="levels_percent">%1$d%%</string>
+    <string name="levels_hold_speed">Velocidad al mantener</string>
+    <string name="levels_speed_slow">Lenta</string>
+    <string name="levels_speed_normal">Normal</string>
+    <string name="levels_speed_fast">Rápida</string>
+    <string name="levels_place">Posición del control</string>
+    <string name="levels_place_top">Arriba en la pantalla superior</string>
+    <string name="levels_place_bottom">Abajo en la pantalla superior</string>
+    <plurals name="levels_volume_steps">
+        <item quantity="one">%d paso de 15</item>
+        <item quantity="many">%d pasos de 15</item>
+        <item quantity="other">%d pasos de 15</item>
+    </plurals>
     <string name="swap_volume">Intercambiar el volumen de cada pantalla</string>
     <string name="swap_volume_detail">Al intercambiar las apps, también se intercambian los volúmenes de la pantalla superior e inferior: el silencio se queda con la app para la que se puso. Requiere Shizuku.</string>
     <string name="page_updates">Ajustes de actualización</string>
@@ -409,7 +427,9 @@
     </plurals>
     <string name="profiles_row_detail">%1$s · en uso: %2$s</string>
     <string name="show_buttons">Mostrar los botones al cambiar</string>
-    <string name="show_buttons_detail">Dibuja el Thor con los atajos del nuevo perfil cuando cambias de perfil. Un cambio hecho por una app solo muestra su nombre. Cualquier botón lo cierra</string>
+    <string name="show_buttons_detail">Dibuja la Thor con los atajos del nuevo perfil cuando cambia el perfil. Cualquier botón lo cierra</string>
+    <string name="show_buttons_apps">Mostrar botones con apps vinculadas</string>
+    <string name="show_buttons_apps_detail">Muestra la imagen también al abrir o salir de una app vinculada a un perfil. Desactivado: solo el nombre del perfil</string>
     <string name="backup_row">Copia de seguridad y compartir</string>
     <string name="backup_row_detail">Guarda todos los perfiles en un archivo y recupéralos, o comparte uno</string>
     <string name="profiles_subtitle">Toca un perfil para usarlo, renombrarlo, vincularle apps o borrarlo. El perfil principal es al que vuelve un atajo Activar, y el que no se puede borrar. Un perfil vinculado a apps se usa mientras una de ellas es la app que maneja el mando (necesita Shizuku).</string>
@@ -549,20 +569,20 @@
     <string name="switch_to">Cambiar a</string>
 
     <!-- Welcome to 1.0 -->
-    <string name="w_profiles">Perfiles por app</string>
-    <string name="w_profiles_text">Vincula apps a un perfil y Pathfinder cambia a él mientras esa sea la app con la que juegas.</string>
-    <string name="w_profiles_button">Configurarlo</string>
-    <string name="w_combos">Combos de botones</string>
-    <string name="w_combos_text">Mantén Atrás, Inicio o el botón AYN y pulsa uno o dos botones más, para decenas de atajos nuevos.</string>
-    <string name="w_combos_button">Añadir combo</string>
-    <string name="w_backup">Copia de seguridad y compartir</string>
-    <string name="w_backup_text">Guarda todos los perfiles en un archivo, recupéralos cuando quieras o comparte uno con un amigo.</string>
-    <string name="w_backup_button">Abrir</string>
-    <string name="w_languages">En tu idioma</string>
-    <string name="w_languages_text">Pathfinder ahora habla inglés, español, portugués (Brasil), chino simplificado y japonés. Elige uno, o sigue al Thor.</string>
-    <string name="w_languages_button">Elegir</string>
-    <string name="w_title">Te damos la bienvenida a Thor Pathfinder %1$s</string>
-    <string name="w_intro">La mayor actualización hasta ahora. Novedades para probar:</string>
+    <string name="w_levels">Brillo y volumen</string>
+    <string name="w_levels_text">Dos atajos nuevos muestran un control deslizante en la pantalla superior. La cruceta cambia la pantalla superior, la inferior o ambas a la vez.</string>
+    <string name="w_levels_button">Añadir uno</string>
+    <string name="w_disabled">Perfil Desactivado</string>
+    <string name="w_disabled_text">Un perfil integrado que deja los botones en paz, así los juegos reciben cada pulsación sin retraso añadido. Vincula a él tus juegos más rápidos.</string>
+    <string name="w_disabled_button">Abrir perfiles</string>
+    <string name="w_tile">Icono de ajustes rápidos</string>
+    <string name="w_tile_text">Cambia de perfil desde los ajustes rápidos, Desactivado incluido, sin abrir Pathfinder.</string>
+    <string name="w_tile_button">Añadir el icono</string>
+    <string name="w_volume">El volumen sigue a las apps</string>
+    <string name="w_volume_text">Actívalo y el volumen de cada pantalla va con su app al intercambiar las pantallas, así una app silenciada sigue en silencio.</string>
+    <string name="w_volume_button">Activarlo</string>
+    <string name="w_title">Novedades de Thor Pathfinder %1$s</string>
+    <string name="w_intro">Novedades para probar, con gracias a raygan e ItsRetroPup:</string>
     <string name="w_notes">Leer las notas de la versión</string>
     <string name="w_continue">Continuar</string>
 

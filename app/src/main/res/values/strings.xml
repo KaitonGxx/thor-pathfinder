@@ -201,7 +201,6 @@
     <!-- Combos -->
     <string name="combos_badge">Combos</string>
     <string name="group_face">Face buttons</string>
-    <string name="group_dpad">D-pad</string>
     <string name="group_shoulders">Shoulders</string>
     <string name="group_sticks">Sticks</string>
     <string name="group_select_start">Select &amp; Start</string>
@@ -254,7 +253,7 @@
     <string name="an_app">an app</string>
     <string name="about_title">About</string>
     <string name="about_text">Thor Pathfinder is free software under the GNU GPL v3, made in the spirit of Thor Wayfinder, which found the way first. It\'s an independent project, not affiliated with Wayfinder or AYN.</string>
-    <string name="whats_new_row">What\'s new in 1.0</string>
+    <string name="whats_new_row">What\'s new in 1.1</string>
     <string name="show">Show</string>
     <string name="licenses_row">Open-source licenses</string>
     <string name="view">View</string>
@@ -346,8 +345,26 @@
     <string name="page_mouse_detail">Which way the right stick scrolls</string>
     <string name="page_timing">Timing</string>
     <string name="page_timing_detail">How long a hold takes, and the double-press gap</string>
-    <string name="page_swap">Swapping screens</string>
-    <string name="page_swap_detail">Also swap each screen\'s volume</string>
+    <string name="action_brightness">Brightness</string>
+    <string name="action_volume">Volume</string>
+    <string name="msg_brightness_needs_shizuku">Brightness needs Shizuku</string>
+    <string name="page_levels">Brightness &amp; volume</string>
+    <string name="page_levels_detail">How much a press changes, and swapping volume with the apps</string>
+    <string name="levels_subtitle">A Brightness or Volume shortcut puts a slider on the top screen. Left and Right change the level, and keep going while held. Up and Down move between the top screen, both screens and the bottom screen; the lit triangles show which.</string>
+    <string name="levels_brightness_step">Brightness step</string>
+    <string name="levels_volume_step">Volume step</string>
+    <string name="levels_percent">%1$d%%</string>
+    <string name="levels_hold_speed">Speed while held</string>
+    <string name="levels_speed_slow">Slow</string>
+    <string name="levels_speed_normal">Normal</string>
+    <string name="levels_speed_fast">Fast</string>
+    <string name="levels_place">Slider position</string>
+    <string name="levels_place_top">Top of the top screen</string>
+    <string name="levels_place_bottom">Bottom of the top screen</string>
+    <plurals name="levels_volume_steps">
+        <item quantity="one">%d step of 15</item>
+        <item quantity="other">%d steps of 15</item>
+    </plurals>
     <string name="swap_volume">Swap each screen\'s volume</string>
     <string name="swap_volume_detail">When the apps swap, the top and bottom screens\' volumes swap too: mute stays with the app it was set for. Needs Shizuku.</string>
     <string name="page_updates">Update settings</string>
@@ -417,7 +434,9 @@
     </plurals>
     <string name="profiles_row_detail">%1$s · %2$s in use</string>
     <string name="show_buttons">Show the buttons on switching</string>
-    <string name="show_buttons_detail">Draw the Thor with the new profile\'s shortcuts when you switch profiles. A switch made for an app only shows its name. Any button puts it away</string>
+    <string name="show_buttons_detail">Draw the Thor with the new profile\'s shortcuts when the profile changes. Any button puts it away</string>
+    <string name="show_buttons_apps">Show buttons for linked apps</string>
+    <string name="show_buttons_apps_detail">Also show the picture when opening or leaving an app linked to a profile. Off: just the profile\'s name</string>
     <string name="backup_row">Backup &amp; share</string>
     <string name="backup_row_detail">Save every profile to a file and bring it back, or share one</string>
     <string name="profiles_subtitle">Tap a profile to use it, rename it, link apps to it or delete it. The main profile is the one an Enable shortcut goes back to, and the one that stays. A profile linked to apps is used while one of them is the app the controller drives (this needs Shizuku).</string>
@@ -552,20 +571,20 @@
     <string name="switch_to">Switch to</string>
 
     <!-- Welcome to 1.0 -->
-    <string name="w_profiles">App profiles</string>
-    <string name="w_profiles_text">Link apps to a profile, and Pathfinder switches to it while that app is the one you\'re playing.</string>
-    <string name="w_profiles_button">Set it up</string>
-    <string name="w_combos">Button combos</string>
-    <string name="w_combos_text">Hold Back, Home or the AYN button and press one or two more buttons, for dozens of new shortcuts.</string>
-    <string name="w_combos_button">Add a combo</string>
-    <string name="w_backup">Backup &amp; share</string>
-    <string name="w_backup_text">Save every profile to a file, bring them back any time, or share one with a friend.</string>
-    <string name="w_backup_button">Open it</string>
-    <string name="w_languages">In your language</string>
-    <string name="w_languages_text">Pathfinder now speaks English, Spanish, Portuguese (Brazil), Simplified Chinese and Japanese. Pick one, or follow the Thor.</string>
-    <string name="w_languages_button">Choose</string>
-    <string name="w_title">Welcome to Thor Pathfinder %1$s</string>
-    <string name="w_intro">The biggest update yet. New things to try:</string>
+    <string name="w_levels">Brightness &amp; volume</string>
+    <string name="w_levels_text">Two new shortcuts put a slider on the top screen. The D-pad changes the top screen, the bottom one, or both at once.</string>
+    <string name="w_levels_button">Add one</string>
+    <string name="w_disabled">Disabled profile</string>
+    <string name="w_disabled_text">A built-in profile that leaves the buttons alone, so games get every press with no added delay. Link your fastest games to it.</string>
+    <string name="w_disabled_button">Open profiles</string>
+    <string name="w_tile">Quick Settings tile</string>
+    <string name="w_tile_text">Switch profiles from Quick Settings, Disabled included, without opening Pathfinder.</string>
+    <string name="w_tile_button">Add the tile</string>
+    <string name="w_volume">Volume follows the apps</string>
+    <string name="w_volume_text">Turn it on and each screen\'s volume goes with its app when the screens swap, so a muted app stays muted.</string>
+    <string name="w_volume_button">Turn it on</string>
+    <string name="w_title">What\'s new in Thor Pathfinder %1$s</string>
+    <string name="w_intro">New things to try, with thanks to raygan and ItsRetroPup:</string>
     <string name="w_notes">Read the release notes</string>
     <string name="w_continue">Continue</string>
 

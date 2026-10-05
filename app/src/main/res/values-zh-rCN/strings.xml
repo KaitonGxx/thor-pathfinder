@@ -187,7 +187,6 @@
     <!-- Combos -->
     <string name="combos_badge">组合键</string>
     <string name="group_face">ABXY 键</string>
-    <string name="group_dpad">方向键</string>
     <string name="group_shoulders">肩键</string>
     <string name="group_sticks">摇杆</string>
     <string name="group_select_start">Select 和 Start</string>
@@ -239,7 +238,7 @@
     <string name="an_app">某个应用</string>
     <string name="about_title">关于</string>
     <string name="about_text">Thor Pathfinder 是依照 GNU GPL v3 发布的自由软件，秉承了率先开路的 Thor Wayfinder 的精神。这是一个独立项目，与 Wayfinder 和 AYN 均无关联。</string>
-    <string name="whats_new_row">1.0 版新功能</string>
+    <string name="whats_new_row">1.1 版新功能</string>
     <string name="show">查看</string>
     <string name="licenses_row">开源许可</string>
     <string name="view">查看</string>
@@ -331,8 +330,25 @@
     <string name="page_mouse_detail">右摇杆的滚动方向</string>
     <string name="page_timing">时间</string>
     <string name="page_timing_detail">长按所需时间，以及双击间隔</string>
-    <string name="page_swap">交换屏幕</string>
-    <string name="page_swap_detail">同时交换各屏幕的音量</string>
+    <string name="action_brightness">亮度</string>
+    <string name="action_volume">音量</string>
+    <string name="msg_brightness_needs_shizuku">调节亮度需要 Shizuku</string>
+    <string name="page_levels">亮度与音量</string>
+    <string name="page_levels_detail">每按一次的调节幅度，以及随应用交换音量</string>
+    <string name="levels_subtitle">亮度或音量快捷操作会在上屏显示一个滑块。按左、右调节，按住可持续调节。按上、下可在上屏、两块屏幕和下屏之间切换；亮起的三角形表示正在调节的屏幕。</string>
+    <string name="levels_brightness_step">亮度步长</string>
+    <string name="levels_volume_step">音量步长</string>
+    <string name="levels_percent">%1$d%%</string>
+    <string name="levels_hold_speed">按住时的速度</string>
+    <string name="levels_speed_slow">慢</string>
+    <string name="levels_speed_normal">正常</string>
+    <string name="levels_speed_fast">快</string>
+    <string name="levels_place">滑块位置</string>
+    <string name="levels_place_top">上屏顶部</string>
+    <string name="levels_place_bottom">上屏底部</string>
+    <plurals name="levels_volume_steps">
+        <item quantity="other">每次 %d 级（共 15 级）</item>
+    </plurals>
     <string name="swap_volume">交换各屏幕的音量</string>
     <string name="swap_volume_detail">交换应用时，上下屏幕的音量也一并交换：静音会跟着原来的应用走。需要 Shizuku。</string>
     <string name="page_updates">更新设置</string>
@@ -401,7 +417,9 @@
     </plurals>
     <string name="profiles_row_detail">%1$s · 使用中：%2$s</string>
     <string name="show_buttons">切换时显示按键图</string>
-    <string name="show_buttons_detail">手动切换配置时，显示带有新配置快捷操作的 Thor 图示。由应用触发的切换只显示配置名称。按任意键即可关闭</string>
+    <string name="show_buttons_detail">切换配置时，显示带有新配置快捷操作的 Thor 图示。按任意键即可关闭</string>
+    <string name="show_buttons_apps">关联应用也显示按键图</string>
+    <string name="show_buttons_apps_detail">打开或离开关联到配置的应用时也显示图示。关闭时只显示配置名称</string>
     <string name="backup_row">备份与分享</string>
     <string name="backup_row_detail">把所有配置保存到文件并随时恢复，或分享其中一个</string>
     <string name="profiles_subtitle">点按配置即可使用、重命名、关联应用或删除它。主配置是“启用”快捷操作返回的配置，也是无法删除的那一个。关联了应用的配置会在其中某个应用成为手柄当前操作的应用时启用（需要 Shizuku）。</string>
@@ -531,20 +549,20 @@
     <string name="switch_to">切换到</string>
 
     <!-- Welcome to 1.0 -->
-    <string name="w_profiles">应用专属配置</string>
-    <string name="w_profiles_text">把应用关联到某个配置，当你正在玩这个应用时，Pathfinder 就会切换到该配置。</string>
-    <string name="w_profiles_button">去设置</string>
-    <string name="w_combos">按键组合</string>
-    <string name="w_combos_text">按住返回、主页或 AYN 键，再按一两个其他按键，就有几十个新的快捷操作。</string>
-    <string name="w_combos_button">添加组合键</string>
-    <string name="w_backup">备份与分享</string>
-    <string name="w_backup_text">把所有配置保存到文件，随时恢复，或分享给朋友。</string>
-    <string name="w_backup_button">打开</string>
-    <string name="w_languages">支持你的语言</string>
-    <string name="w_languages_text">Pathfinder 现在支持英语、西班牙语、葡萄牙语（巴西）、简体中文和日语。可以任选一种，或跟随 Thor 的语言。</string>
-    <string name="w_languages_button">选择</string>
-    <string name="w_title">欢迎使用 Thor Pathfinder %1$s</string>
-    <string name="w_intro">迄今为止最大的一次更新。快来试试这些新功能：</string>
+    <string name="w_levels">亮度与音量</string>
+    <string name="w_levels_text">两个新的快捷操作会在上屏显示一个滑块。用方向键调节上屏、下屏，或同时调节两块屏幕。</string>
+    <string name="w_levels_button">添加一个</string>
+    <string name="w_disabled">“已停用”配置</string>
+    <string name="w_disabled_text">一个内置配置，不处理任何按键，游戏能直接收到每一次按键，没有额外延迟。把对操作要求最高的游戏关联到它。</string>
+    <string name="w_disabled_button">打开配置</string>
+    <string name="w_tile">快捷设置图块</string>
+    <string name="w_tile_text">在快捷设置中切换配置（包括“已停用”），无需打开 Pathfinder。</string>
+    <string name="w_tile_button">添加图块</string>
+    <string name="w_volume">音量随应用走</string>
+    <string name="w_volume_text">开启后，交换屏幕时各屏幕的音量会跟着各自的应用走，静音的应用依然保持静音。</string>
+    <string name="w_volume_button">开启</string>
+    <string name="w_title">Thor Pathfinder %1$s 新功能</string>
+    <string name="w_intro">快来试试这些新功能，感谢 raygan 和 ItsRetroPup 的贡献：</string>
     <string name="w_notes">阅读发布说明</string>
     <string name="w_continue">继续</string>
 
