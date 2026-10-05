@@ -85,6 +85,23 @@ class AppWatcher(
     private var focused: TaskEntry? = null
     private var tasks: List<TaskEntry> = emptyList()
 
+    /** The connected helper, for a quick swap; null whenever it isn't there. */
+    @Volatile
+    private var helper: ITaskWatcher? = null
+
+    /**
+     * Swaps volumes and moves apps inside the helper, which takes a few
+     * milliseconds where shell commands took about 50 each. [moves] and the
+     * levels (as they are now) are as [ITaskWatcher.swap] reads them. False when the helper
+     * isn't there or a move failed, and the caller carries on with the shell.
+     */
+    fun quickSwap(moves: List<Move>, levels: ScreenVolume.Levels): Boolean {
+        val helper = helper ?: return false
+        return runCatching {
+            helper.swap(moves.flatMap { listOf(it.task, it.to) }.toIntArray(), levels.top, levels.bottom)
+        }.onFailure { Log.w(TAG, "the quick swap failed", it) }.getOrDefault(false)
+    }
+
     private val args by lazy {
         val version = runCatching {
             context.packageManager.getPackageInfo(context.packageName, 0).longVersionCode.toInt()
@@ -115,11 +132,13 @@ class AppWatcher(
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
             val watcher = binder?.takeIf { it.pingBinder() }?.let { ITaskWatcher.Stub.asInterface(it) } ?: return
+            helper = watcher
             runCatching { watcher.watch(listener) }
                 .onFailure { ServiceLog.add(context, "app profiles couldn't start watching: ${it.message}") }
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
+            helper = null
             handler.post {
                 if (!bound) return@post
                 // It stopped by itself: start another after a pause, a few times
@@ -189,10 +208,13 @@ class AppWatcher(
     /** Whether the helper is bound, for the diagnostics report. */
     val watching: Boolean get() = bound
 
-    /** Binds the helper when there is something to watch for, and lets it go when not. */
+    /** Looks again at whether the helper is wanted: the volume switch was turned on or off. */
+    fun recheck() = handler.post { refresh() }
+
+    /** Binds the helper when there is something for it to do, and lets it go when not. */
     private fun refresh() {
         if (!started) return
-        val wanted = Profiles.hasLinks(context) && Shell.ready
+        val wanted = (Profiles.hasLinks(context) || ScreenVolume.enabled(context)) && Shell.ready
         if (wanted && !bound && SystemClock.uptimeMillis() >= pauseUntil) {
             bound = runCatching { Shizuku.bindUserService(args, connection) }
                 .onFailure { ServiceLog.add(context, "app profiles couldn't start their helper: ${it.message}") }
@@ -206,6 +228,7 @@ class AppWatcher(
     private fun unbind() {
         if (!bound) return
         bound = false
+        helper = null
         runCatching { Shizuku.unbindUserService(args, connection, true) }
     }
 
@@ -217,7 +240,8 @@ class AppWatcher(
     }
 
     private fun decide() {
-        if (!bound) return
+        // Bound for a quick swap alone, nothing here has a profile to switch.
+        if (!bound || !Profiles.hasLinks(context)) return
         val app = AppProfiles.controllerApp(
             focused,
             tasks,

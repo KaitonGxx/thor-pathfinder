@@ -358,6 +358,25 @@ tools/fix-accessibility.sh  the root-script fallback (not a release asset)
 
 ## Facts learned on the Thor (firmware 1.0.0.377)
 
+- **Volume follows the screens** (opt-in: cog → Swapping screens, `ui` pref
+  `swapVolume`, off by default; `ScreenVolume.kt`). The top screen's volume is
+  STREAM_MUSIC (0 = muted, 0..15) and the bottom's is `Settings.System
+  secondary_screen_volume_level` (same scale), which AYN's volume panel writes.
+  With a USB headset in, the panel still wrote that setting for the bottom
+  screen and `volume_music_usb_headset` for the top; the
+  `secondary_screen_volume_level_for_headphones` key was never written, so
+  nothing special is done for headphones (media volume follows the active
+  output). A swap exchanges the two numbers. Run as shell commands after the
+  moves it left a ~200 ms gap, audible with headphones; each shell command
+  costs ~35-55 ms on this firmware (even `service call audio 1`). So with the
+  switch on, `TaskWatcher` (kept bound by `AppWatcher` while either app
+  profiles or this switch need it) gets `swap(moves, media, secondary)`:
+  `IAudioService.setStreamVolumeWithAttribution` (hidden, as
+  `com.android.shell`, flags 0), the settings provider's `call("PUT_system")`
+  (needs an `AttributionSource` with the helper's own uid, `Process.myUid()`,
+  not `Binder.getCallingUid()`, which is Pathfinder's while serving its call)
+  and `IActivityTaskManager.moveRootTaskToDisplay` (what `am display
+  move-stack` calls). The shell route stays as the fallback.
 - **App profiles hear tasks through Shizuku.** The accessibility service
   stays key events only; instead `TaskWatcher` runs in a Shizuku user service
   (app_process as the shell user, where hidden APIs are not restricted) and

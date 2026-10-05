@@ -337,6 +337,10 @@
     <string name="page_mouse_detail">Hacia dónde desplaza el stick derecho</string>
     <string name="page_timing">Tiempos</string>
     <string name="page_timing_detail">Cuánto dura mantener, y el margen de la doble pulsación</string>
+    <string name="page_swap">Intercambio de pantallas</string>
+    <string name="page_swap_detail">También intercambiar el volumen de cada pantalla</string>
+    <string name="swap_volume">Intercambiar el volumen de cada pantalla</string>
+    <string name="swap_volume_detail">Al intercambiar las apps, también se intercambian los volúmenes de la pantalla superior e inferior: el silencio se queda con la app para la que se puso. Requiere Shizuku.</string>
     <string name="page_updates">Ajustes de actualización</string>
     <string name="page_updates_detail">Buscar actualizaciones e instalarlas solo</string>
     <string name="page_watchdog_detail">Mantener el servicio de accesibilidad activado cuando algo lo detiene</string>

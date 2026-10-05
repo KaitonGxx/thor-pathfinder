@@ -331,6 +331,10 @@
     <string name="page_mouse_detail">右スティックのスクロール方向</string>
     <string name="page_timing">タイミング</string>
     <string name="page_timing_detail">長押しの長さと 2 回押しの間隔</string>
+    <string name="page_swap">画面の入れ替え</string>
+    <string name="page_swap_detail">各画面の音量も入れ替える</string>
+    <string name="swap_volume">各画面の音量を入れ替える</string>
+    <string name="swap_volume_detail">アプリを入れ替えるとき、上画面と下画面の音量も入れ替えます。ミュートは元のアプリについていきます。Shizuku が必要です。</string>
     <string name="page_updates">アップデートの設定</string>
     <string name="page_updates_detail">アップデートの確認と自動インストール</string>
     <string name="page_watchdog_detail">何かに停止されても、ユーザー補助サービスをオンに保つ</string>

@@ -31,7 +31,9 @@ import androidx.annotation.StringRes
 import androidx.compose.ui.res.stringResource
 import com.thorpathfinder.app.Language
 import com.thorpathfinder.app.MouseMode
+import com.thorpathfinder.app.PathfinderService
 import com.thorpathfinder.app.R
+import com.thorpathfinder.app.ScreenVolume
 import com.thorpathfinder.app.Shell
 import com.thorpathfinder.app.Shortcuts
 import com.thorpathfinder.app.SystemState
@@ -46,6 +48,7 @@ private enum class SettingsPage(@StringRes val title: Int, @StringRes val detail
     CLOSE_ALL(R.string.page_close, R.string.page_close_detail),
     MOUSE(R.string.page_mouse, R.string.page_mouse_detail),
     TIMING(R.string.page_timing, R.string.page_timing_detail),
+    SWAP(R.string.page_swap, R.string.page_swap_detail),
     UPDATES(R.string.page_updates, R.string.page_updates_detail),
     WATCHDOG(R.string.wd_title, R.string.page_watchdog_detail),
     // Its detail is the language in use, in its own words.
@@ -88,6 +91,7 @@ fun MoreSettingsScreen(
         SettingsPage.CLOSE_ALL -> KeepRunningPage(onBack = ::close)
         SettingsPage.MOUSE -> MouseModePage(state, onBack = ::close)
         SettingsPage.TIMING -> TimingPage(onBack = ::close)
+        SettingsPage.SWAP -> SwapPage(onBack = ::close)
         SettingsPage.UPDATES -> UpdateSettingsPage(state, onBack = ::close)
         SettingsPage.WATCHDOG -> WatchdogPage(state, onBack = ::close)
         SettingsPage.LANGUAGE -> LanguagePage(onBack = ::close)
@@ -301,6 +305,36 @@ private enum class Timing(@StringRes val title: Int, val choices: List<Long>) {
 
     fun set(s: ObservedShortcuts, value: Long) {
         if (this == HOLD) s.holdMs = value else s.doubleMs = value
+    }
+}
+
+/** What a screen swap carries along besides the apps. */
+@Composable
+private fun SwapPage(onBack: () -> Unit) {
+    val context = LocalContext.current
+    var volume by remember { mutableStateOf(ScreenVolume.enabled(context)) }
+    val first = remember { FocusRequester() }
+    val inputMode = LocalInputModeManager.current.inputMode
+    LaunchedEffect(inputMode) { runCatching { first.requestFocus() } }
+
+    PageScaffold(stringResource(R.string.page_swap), onBack = onBack) {
+        ScrollingColumn(
+            state = rememberScrollState(),
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            contentPadding = PaddingValues(vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            SwitchRow(
+                stringResource(R.string.swap_volume),
+                stringResource(R.string.swap_volume_detail),
+                volume,
+                modifier = Modifier.focusRequester(first),
+            ) {
+                volume = it
+                ScreenVolume.setEnabled(context, it)
+                PathfinderService.volumeSwapChanged()
+            }
+        }
     }
 }
 

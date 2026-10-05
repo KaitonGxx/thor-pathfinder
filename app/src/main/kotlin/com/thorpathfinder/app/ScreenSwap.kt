@@ -125,10 +125,13 @@ object ScreenSwap {
      * Home is pressed after the move, never before, since pressing it first
      * would briefly cover the moving app and make a video stutter.
      */
-    fun script(moves: List<Move>): String {
+    fun script(moves: List<Move>, volumes: ScreenVolume.Levels? = null): String {
         val move = moves.joinToString(" && ") { "am display move-stack ${it.task} ${it.to}" }
-        val left = moves.singleOrNull()?.from ?: return move
-        return "$move && (input -d $left keyevent KEYCODE_HOME || true)"
+        val left = moves.singleOrNull()?.from
+        val moved = if (left == null) move else "$move && (input -d $left keyevent KEYCODE_HOME || true)"
+        // The volume changes start first, in the background, and finish while the apps move.
+        // The exit status is the moves': `wait` alone would hide a failed one.
+        return if (volumes == null) moved else "${ScreenVolume.commands(volumes)}$moved; r=$?; wait; exit \$r"
     }
 
     sealed interface Outcome {
@@ -148,7 +151,7 @@ object ScreenSwap {
             .minByOrNull { it.displayId }
 
     /** Swaps the two screens' apps. Blocking: run off the main thread. */
-    fun swap(context: Context): Outcome {
+    fun swap(context: Context, quick: ((List<Move>, ScreenVolume.Levels) -> Boolean)? = null): Outcome {
         if (!Shell.ready) return Outcome.NeedsShizuku
         val main = Display.DEFAULT_DISPLAY
         val other = otherDisplay(context) ?: return Outcome.NoSecondScreen
@@ -165,7 +168,16 @@ object ScreenSwap {
         Log.i(TAG, "screens $main+${other.displayId}; visible ${tasks.filter { it.visible }}; playing $playing; moves $moves")
         if (moves.isEmpty()) return Outcome.NothingToMove
 
-        val result = Shell.sh(script(moves))
+        // Read before the move, and written in the same command as it, so the volumes follow the apps at once.
+        val volumes = if (ScreenVolume.enabled(context)) ScreenVolume.read() else null
+        // With volumes to swap, the helper does it all in-process: shell commands each took ~50 ms,
+        // and the apps were heard at the wrong volume in between. The shell route is the fallback.
+        val result = if (volumes != null && quick?.invoke(moves, volumes) == true) {
+            Log.i(TAG, "swapped in the helper, volumes $volumes")
+            moves.singleOrNull()?.let { Shell.sh("input -d ${it.from} keyevent KEYCODE_HOME || true") } ?: Shell.Result(0, "", "")
+        } else {
+            Shell.sh(script(moves, volumes))
+        }
         if (!result.ok) {
             return Outcome.Failed(result.err.lineSequence().firstOrNull { it.isNotBlank() } ?: "move failed")
         }
