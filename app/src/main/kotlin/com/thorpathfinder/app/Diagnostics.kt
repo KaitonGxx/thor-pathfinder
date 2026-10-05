@@ -329,8 +329,20 @@ object Diagnostics {
         section("Profiles")
         row("Count", all.size.toString())
         val chosen = Profiles.chosenId(context)
-        row("Active", "${Profiles.name(context, active)} (id $active)")
-        row("Chosen", "${Profiles.name(context, chosen)} (id $chosen)")
+        // Disabled's name is a translated string; the report stays English.
+        fun named(id: Int) = if (id == Profiles.DISABLED) "Disabled" else Profiles.name(context, id)
+        row("Active", "${named(active)} (id $active)")
+        row("Chosen", "${named(chosen)} (id $chosen)")
+        row(
+            "Key filtering",
+            when (PathfinderService.filteringKeys) {
+                null -> "service not running"
+                true -> "on"
+                false -> "off (Disabled profile)"
+            },
+        )
+        Profiles.linkedApps(context, Profiles.DISABLED).takeIf { it.isNotEmpty() }
+            ?.let { row("Apps on Disabled", it.sorted().joinToString(", ")) }
         row("Main", "${Profiles.name(context, main)} (id $main)")
         row("Map on switching", onOff(Profiles.showMap(context)))
         row(

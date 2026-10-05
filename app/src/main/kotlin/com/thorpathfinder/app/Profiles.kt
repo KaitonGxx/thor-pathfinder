@@ -25,11 +25,21 @@ import androidx.core.content.edit
  * that app in `now.app`). So the profile in use ([activeId]) is not always
  * the one the user chose ([chosenId]). A switch the user makes while a
  * linked app is in front is held (`now.held`) until that app is left.
+ *
+ * [DISABLED] is built in: it has no shortcuts and can't be edited, renamed,
+ * deleted or made the main one, and it isn't in [ids]. While it is in use the
+ * service stops asking Android to filter key events, which takes every
+ * button press off the detour through Pathfinder (see [filtersKeys]). It can
+ * be chosen and linked to apps like any other profile, but a Profile switcher
+ * shortcut never lands on it: once there, the buttons can't switch back.
  */
 object Profiles {
 
     /** The profile that owns the shortcuts file from before profiles existed. */
     const val ORIGINAL = 0
+
+    /** The built-in profile in which Pathfinder leaves the buttons alone. */
+    const val DISABLED = -1
 
     const val DEFAULT_MAIN_NAME = "Main profile"
 
@@ -60,8 +70,18 @@ object Profiles {
 
     /** The stored order, "0,2,3"; one profile before anything is stored. */
     fun parseIds(stored: String?): List<Int> =
-        stored.orEmpty().split(',').mapNotNull { it.trim().toIntOrNull() }.distinct()
+        stored.orEmpty().split(',').mapNotNull { it.trim().toIntOrNull() }.filter { it != DISABLED }.distinct()
             .ifEmpty { listOf(ORIGINAL) }
+
+    /**
+     * Whether the service should filter key events while [active] is in use.
+     * Filtering routes every press of every button through Pathfinder, which
+     * costs about 2 ms a press, so the Disabled profile turns it off.
+     */
+    fun filtersKeys(active: Int): Boolean = active != DISABLED
+
+    /** Every profile that apps can be linked to: the user's, and Disabled. */
+    fun linkable(ids: List<Int>): List<Int> = ids + DISABLED
 
     /** The profile after [active], wrapping round; the first one if [active] has gone. */
     fun after(ids: List<Int>, active: Int): Int =
@@ -104,7 +124,7 @@ object Profiles {
     fun ids(context: Context): List<Int> = parseIds(prefs(context).getString("ids", null))
 
     fun name(context: Context, id: Int): String =
-        prefs(context).getString("name.$id", null)
+        if (id == DISABLED) context.getString(R.string.profile_disabled) else prefs(context).getString("name.$id", null)
             ?: if (id == ORIGINAL) {
                 context.getString(R.string.profile_main_default)
             } else {
@@ -113,7 +133,13 @@ object Profiles {
 
     fun all(context: Context): List<Profile> = ids(context).map { Profile(it, name(context, it)) }
 
+    /** Whether [id] is one of the user's profiles; Disabled is not. */
     fun has(context: Context, id: Int): Boolean = id in ids(context)
+
+    /** Whether [id] can be switched to: one of the user's profiles, or Disabled. */
+    fun exists(context: Context, id: Int): Boolean = id == DISABLED || has(context, id)
+
+    fun disabled(context: Context): Profile = Profile(DISABLED, name(context, DISABLED))
 
     /** The profile "Enable" shortcuts return to, and the one that can't be deleted. */
     fun mainId(context: Context): Int {
@@ -133,7 +159,7 @@ object Profiles {
     /** The profile the user chose, or the main one when what was stored has been deleted. */
     fun chosenId(context: Context): Int {
         val stored = prefs(context).getInt("active", ORIGINAL)
-        return if (has(context, stored)) stored else mainId(context)
+        return if (exists(context, stored)) stored else mainId(context)
     }
 
     /** The profile in use: an app's, while one linked to a profile is in front (see [inUse]). */
@@ -152,15 +178,15 @@ object Profiles {
 
     /** The profile [pkg] is linked to, if any. */
     fun profileFor(context: Context, pkg: String): Int? =
-        ids(context).firstOrNull { prefs(context).getStringSet("$APPS$it", null)?.contains(pkg) == true }
+        linkable(ids(context)).firstOrNull { prefs(context).getStringSet("$APPS$it", null)?.contains(pkg) == true }
 
     /** Whether any app is linked to a profile, which is when [AppWatcher] needs to watch. */
-    fun hasLinks(context: Context): Boolean = ids(context).any { linkedApps(context, it).isNotEmpty() }
+    fun hasLinks(context: Context): Boolean = linkable(ids(context)).any { linkedApps(context, it).isNotEmpty() }
 
     /** Links [apps] to profile [id] and to no other. */
     fun setLinkedApps(context: Context, id: Int, apps: Set<String>) {
-        if (!has(context, id)) return
-        val ids = ids(context)
+        if (!exists(context, id)) return
+        val ids = linkable(ids(context))
         val links = relinked(ids.associateWith { linkedApps(context, it) }, id, apps)
         prefs(context).edit {
             for (each in ids) {
@@ -237,7 +263,7 @@ object Profiles {
      * (this one) carries on wherever no app's applies.
      */
     fun switchTo(context: Context, id: Int): Profile {
-        val target = if (has(context, id)) id else mainId(context)
+        val target = if (exists(context, id)) id else mainId(context)
         val app = appInUse(context)
         prefs(context).edit {
             putInt("active", target)

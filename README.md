@@ -89,8 +89,15 @@ independent project, not affiliated with Wayfinder or AYN.
   when focus is locked to the top, the bottom screen's when locked to the
   bottom, and in Auto-lock the one you last used. Leave the app and your own
   profile comes back. Switch profile yourself while in a linked app and your
-  pick holds until you leave it. Each switch shows a short message (and the
-  picture of the Thor, if that is on). Needs Shizuku.
+  pick holds until you leave it. Each switch shows a short message. Needs
+  Shizuku.
+- The Disabled profile: a built-in profile with no shortcuts, in which
+  Pathfinder stops reading the buttons altogether, so every press goes straight
+  to the game (see "Button latency" below). Link fast games to it, or pick it
+  from Pathfinder's Quick Settings tile.
+- A Quick Settings tile (Pathfinder profile): shows the profile in use, lit
+  while Pathfinder is reading the buttons, and a tap asks which profile to
+  switch to, Disabled included.
 - Open an app on the top screen, the bottom one, or ask each time. Or open two
   at once, one on each screen.
 - Home can go to the top screen, the bottom one, or both at once. Pathfinder
@@ -331,12 +338,31 @@ further, so the game or app underneath never sees it. Volume still works, and
 the sticks still reach the app, since Android gives Pathfinder no way to hold
 them back.
 Turn it off with *Show the buttons on switching* in Manage profiles, and a
-switch just names the profile instead.
+switch just names the profile instead. A switch made for a linked app only
+ever names the profile, so going in and out of a game doesn't bring the
+picture up each time.
 
 The *Profile switcher* action puts profiles on a button. It can **cycle**
 through them, **enable** one by name (pressing it again goes back to the main
 profile), or **ask**, which puts a list on the top screen to choose from. A
 shortcut set to enable a profile that has since been deleted cycles instead.
+It never lands on Disabled, and its list leaves Disabled out: from there, the
+buttons couldn't switch back.
+
+**Button latency, and the Disabled profile.** To catch a double press or a
+hold on Back, Home or the AYN button, Pathfinder asks Android to filter key
+events. Android can only do that for every key or none, so every press and
+release of every button, jump and attack included, goes through Android's
+system process, into Pathfinder and back before the game gets it, even when
+Pathfinder does nothing with it. Measured in a game on the Thor, that adds
+about 2 ms to a typical press (4.9 ms instead of 2.9 ms from the kernel to the
+game) and more at the slow end; it varies from press to press, so in games
+where timing matters it can change how long a hold looks. The **Disabled**
+profile turns the filtering off: while it is in use Android leaves Pathfinder
+out and games get the buttons exactly as with Pathfinder switched off, and the
+filtering comes back with any other profile. The sticks aren't affected
+either way. How it was measured, and how to repeat it, is in
+[tools/latency](tools/latency/README.md).
 
 **Closing all apps.** Recents' "Clear all" button removes every task shown in
 Recents and stops those apps. Pathfinder's *Close all apps* does the same

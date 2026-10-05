@@ -375,6 +375,11 @@
 
     <!-- Profiles -->
     <string name="profile_main_default">主配置</string>
+    <string name="profile_disabled">已停用</string>
+    <string name="profile_disabled_detail">无快捷方式：按键直接传给游戏</string>
+    <string name="disabled_card_title">此配置没有快捷方式</string>
+    <string name="disabled_card_text">在“已停用”配置中，Pathfinder 不读取按键，因此每次按键都直接到达游戏，省去经过 Pathfinder 多花的几毫秒。可在“管理配置”中把游戏关联到它，或用 Pathfinder 的快捷设置图块切换配置：在此配置中无法用按键切换配置。</string>
+    <string name="tile_label">Pathfinder 配置</string>
     <string name="profile_n">配置 %1$d</string>
     <string name="profile_create">新建配置</string>
     <string name="profile_no_room">已达上限</string>
@@ -396,7 +401,7 @@
     </plurals>
     <string name="profiles_row_detail">%1$s · 使用中：%2$s</string>
     <string name="show_buttons">切换时显示按键图</string>
-    <string name="show_buttons_detail">切换配置时（无论是你还是应用触发的）显示带有新配置快捷操作的 Thor 图示。按任意键即可关闭</string>
+    <string name="show_buttons_detail">手动切换配置时，显示带有新配置快捷操作的 Thor 图示。由应用触发的切换只显示配置名称。按任意键即可关闭</string>
     <string name="backup_row">备份与分享</string>
     <string name="backup_row_detail">把所有配置保存到文件并随时恢复，或分享其中一个</string>
     <string name="profiles_subtitle">点按配置即可使用、重命名、关联应用或删除它。主配置是“启用”快捷操作返回的配置，也是无法删除的那一个。关联了应用的配置会在其中某个应用成为手柄当前操作的应用时启用（需要 Shizuku）。</string>

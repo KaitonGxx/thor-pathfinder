@@ -390,6 +390,11 @@
 
     <!-- Profiles -->
     <string name="profile_main_default">Main profile</string>
+    <string name="profile_disabled">Disabled</string>
+    <string name="profile_disabled_detail">No shortcuts: buttons go straight to games</string>
+    <string name="disabled_card_title">No shortcuts in this profile</string>
+    <string name="disabled_card_text">In the Disabled profile Pathfinder doesn\'t read the buttons, so every press reaches your games directly, without the couple of extra milliseconds that passing through Pathfinder costs. Link games to it under Manage profiles, or switch with Pathfinder\'s Quick Settings tile: the buttons can\'t switch profiles from here.</string>
+    <string name="tile_label">Pathfinder profile</string>
     <string name="profile_n">Profile %1$d</string>
     <string name="profile_create">Create profile</string>
     <string name="profile_no_room">No room for another one</string>
@@ -412,7 +417,7 @@
     </plurals>
     <string name="profiles_row_detail">%1$s · %2$s in use</string>
     <string name="show_buttons">Show the buttons on switching</string>
-    <string name="show_buttons_detail">Draw the Thor with the new profile\'s shortcuts, whether you switched or an app did. Any button puts it away</string>
+    <string name="show_buttons_detail">Draw the Thor with the new profile\'s shortcuts when you switch profiles. A switch made for an app only shows its name. Any button puts it away</string>
     <string name="backup_row">Backup &amp; share</string>
     <string name="backup_row_detail">Save every profile to a file and bring it back, or share one</string>
     <string name="profiles_subtitle">Tap a profile to use it, rename it, link apps to it or delete it. The main profile is the one an Enable shortcut goes back to, and the one that stays. A profile linked to apps is used while one of them is the app the controller drives (this needs Shizuku).</string>

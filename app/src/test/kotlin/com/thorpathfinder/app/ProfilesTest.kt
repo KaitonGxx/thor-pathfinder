@@ -2,6 +2,7 @@ package com.thorpathfinder.app
 
 import com.thorpathfinder.app.Profiles.ORIGINAL
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -81,5 +82,44 @@ class ProfilesTest {
         assertEquals("Gaming", Profiles.cleanName("  Gaming  ", "Profile 2"))
         assertEquals("Profile 2", Profiles.cleanName("   ", "Profile 2"))
         assertTrue(Profiles.cleanName("x".repeat(80), "Profile 2").length == Profiles.MAX_NAME)
+    }
+
+    @Test
+    fun onlyTheDisabledProfileStopsKeyFiltering() {
+        assertFalse(Profiles.filtersKeys(Profiles.DISABLED))
+        assertTrue(Profiles.filtersKeys(ORIGINAL))
+        assertTrue(Profiles.filtersKeys(3))
+    }
+
+    @Test
+    fun disabledIsNeverOneOfTheUsersProfiles() {
+        // It is built in, so a stored list can't make it deletable or renamable.
+        assertEquals(listOf(0, 2), Profiles.parseIds("0,-1,2"))
+        assertEquals(listOf(ORIGINAL), Profiles.parseIds("-1"))
+        assertEquals(listOf(0, 2, Profiles.DISABLED), Profiles.linkable(listOf(0, 2)))
+    }
+
+    @Test
+    fun cyclingNeverLandsOnDisabled() {
+        // From Disabled, a cycle (if one ever ran) goes to the first profile.
+        assertEquals(0, Profiles.after(listOf(0, 2), Profiles.DISABLED))
+    }
+
+    @Test
+    fun anAppLinkedToDisabledUsesIt() {
+        val linked = mapOf("com.game" to Profiles.DISABLED)
+        assertEquals(Profiles.DISABLED, Profiles.inUse(2, "com.game", null, linked::get))
+        // A switch made while in the game holds until it is left.
+        assertEquals(2, Profiles.inUse(2, "com.game", "com.game", linked::get))
+        assertEquals(2, Profiles.inUse(2, "com.other", null, linked::get))
+    }
+
+    @Test
+    fun linkingAnAppToDisabledTakesItFromItsProfile() {
+        val links = mapOf(0 to setOf("com.game", "com.notes"))
+        assertEquals(
+            mapOf(0 to setOf("com.notes"), Profiles.DISABLED to setOf("com.game")),
+            Profiles.relinked(links, Profiles.DISABLED, setOf("com.game")),
+        )
     }
 }

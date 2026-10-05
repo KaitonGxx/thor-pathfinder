@@ -375,6 +375,11 @@
 
     <!-- Profiles -->
     <string name="profile_main_default">メインプロファイル</string>
+    <string name="profile_disabled">無効</string>
+    <string name="profile_disabled_detail">ショートカットなし：ボタンはそのままゲームへ</string>
+    <string name="disabled_card_title">このプロファイルにはショートカットがありません</string>
+    <string name="disabled_card_text">「無効」プロファイルでは Pathfinder はボタンを読み取らないため、すべての入力が Pathfinder を経由する数ミリ秒の遅れなしにゲームへ直接届きます。「プロファイルの管理」でゲームを関連付けるか、Pathfinder のクイック設定タイルで切り替えてください。このプロファイルではボタンでプロファイルを切り替えられません。</string>
+    <string name="tile_label">Pathfinder プロファイル</string>
     <string name="profile_n">プロファイル %1$d</string>
     <string name="profile_create">プロファイルを作成</string>
     <string name="profile_no_room">これ以上作成できません</string>
@@ -396,7 +401,7 @@
     </plurals>
     <string name="profiles_row_detail">%1$s · 使用中：%2$s</string>
     <string name="show_buttons">切り替え時にボタンを表示</string>
-    <string name="show_buttons_detail">自分で切り替えたときも、アプリによって切り替わったときも、新しいプロファイルのショートカットを Thor の図で表示します。いずれかのボタンを押すと閉じます</string>
+    <string name="show_buttons_detail">自分でプロファイルを切り替えたときに、新しいプロファイルのショートカットを Thor の図で表示します。アプリによる切り替えでは名前だけを表示します。いずれかのボタンを押すと閉じます</string>
     <string name="backup_row">バックアップと共有</string>
     <string name="backup_row_detail">すべてのプロファイルをファイルに保存して復元する、または 1 つを共有する</string>
     <string name="profiles_subtitle">プロファイルをタップすると、使用、名前の変更、アプリとの関連付け、削除ができます。メインプロファイルは「有効化」ショートカットで戻る先となるプロファイルで、削除できません。アプリと関連付けたプロファイルは、そのアプリがコントローラーで操作中のアプリである間、使用されます（Shizuku が必要です）。</string>

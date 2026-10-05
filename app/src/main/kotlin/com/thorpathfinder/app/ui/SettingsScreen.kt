@@ -121,20 +121,24 @@ fun SettingsScreen(
             updates.notice?.let { release ->
                 UpdateCard(updates, release, onOpenPage = { runCatching { context.openUrl(it) } })
             }
-            Text(
-                stringResource(R.string.main_intro),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            PhysicalButton.entries.forEach { button ->
-                ButtonCard(
-                    context,
-                    button,
-                    shortcuts,
-                    startOpen = button == openCard,
-                    onEditCombo = { comboActing = it },
-                    onAddCombo = { addingCombo = ComboKey.of(button) },
-                ) { gesture -> editing = button to gesture }
+            if (profiles.activeId == Profiles.DISABLED) {
+                DisabledCard()
+            } else {
+                Text(
+                    stringResource(R.string.main_intro),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                PhysicalButton.entries.forEach { button ->
+                    ButtonCard(
+                        context,
+                        button,
+                        shortcuts,
+                        startOpen = button == openCard,
+                        onEditCombo = { comboActing = it },
+                        onAddCombo = { addingCombo = ComboKey.of(button) },
+                    ) { gesture -> editing = button to gesture }
+                }
             }
             AboutCard(onWhatsNew = onWhatsNew)
         }
@@ -605,6 +609,18 @@ internal fun appLabel(context: Context, pkg: String?): String = pkg?.let {
         pm.getApplicationLabel(pm.getApplicationInfo(it, 0)).toString()
     }.getOrNull()
 } ?: context.getString(R.string.an_app)
+
+/** In place of the button cards while the Disabled profile is in use: it has no shortcuts to edit. */
+@Composable
+private fun DisabledCard() {
+    SectionCard(stringResource(R.string.disabled_card_title)) {
+        Text(
+            stringResource(R.string.disabled_card_text),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
 
 @Composable
 private fun AboutCard(onWhatsNew: () -> Unit) {

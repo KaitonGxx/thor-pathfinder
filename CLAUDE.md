@@ -27,9 +27,9 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
   Focus Mode (TOP: display 0's shown app; BOTTOM: `ScreenSwap.otherDisplay`'s;
   AUTO: the focused root task) and ignores Recents (activity type 3) and
   Pathfinder's own question activities (`AppProfiles.passing`). A change of
-  profile calls `announceApp`: "Profile: <name> (<app>)" as a message, or as
-  the Thor picture's title when `showMap` is on (a separate message would
-  sit on the picture's Dismiss button). See "App profiles hear tasks through
+  profile calls `announceApp`: "Profile: <name> (<app>)" as a message only;
+  the Thor picture (`showMap`) is for switches the user makes, since it came
+  up on every trip in and out of a linked game. See "App profiles hear tasks through
   Shizuku" for the helper. The overlay's message timer only removes the
   message (`hideMessage`); the map goes only by a press, a tap, or the
   service stopping (before, a message shown over the map closed it too).
@@ -76,7 +76,7 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
   **Translations**: Spanish (`values-es`), Portuguese (Brazil,
   `values-pt-rBR`), Simplified Chinese (`values-zh-rCN`) and Japanese
   (`values-ja`), made with AI (the README says so and asks for corrections).
-  Every UI string is in `res/values/strings.xml` (473, of which 13 are
+  Every UI string is in `res/values/strings.xml` (478, of which 13 are
   `translatable="false"`: the app name, printed button letters, `combo_join`;
   plus 9 plurals). Code outside Compose gets text through `Words`
   (`Words.kt`: `text(id, args)`, `count(id, n, args)`; `Context.words()`), so
@@ -315,6 +315,7 @@ app/src/main/kotlin/com/thorpathfinder/app/
   FocusMode.kt          AYN's Focus Mode: which screen the controller drives
   AppProfiles.kt        app profiles: the rules, and AppWatcher (binds TaskWatcher)
   TaskWatcher.kt        Shizuku user service: task stack listener -> task lines
+  ProfileTileService.kt Quick Settings tile: the profile in use, a tap asks which
   PathfinderService.kt  accessibility service: key events -> engine -> actions
   ScreenSwap.kt         parse `am stack list`, plan, script, covered-app fix-up
   RecentTasks.kt        Close all apps: parse `dumpsys activity recents`, `am stack remove`
@@ -354,6 +355,7 @@ tools/icon/             icon-source.png (the artwork) and make_icon.py, which
                         writes drawable-nodpi/ic_launcher_foreground.png
                         (reproduces the committed one byte for byte)
 tools/fix-accessibility.sh  the root-script fallback (not a release asset)
+tools/latency/          button latency from atrace: inject.sh presses, analyze.py
 ```
 
 ## Facts learned on the Thor (firmware 1.0.0.377)
@@ -377,6 +379,30 @@ tools/fix-accessibility.sh  the root-script fallback (not a release asset)
   not `Binder.getCallingUid()`, which is Pathfinder's while serving its call)
   and `IActivityTaskManager.moveRootTaskToDisplay` (what `am display
   move-stack` calls). The shell route stays as the fallback.
+- **Filtering key events costs every button about 2 ms** (measured
+  2026-09-28, `tools/latency`). `flagRequestFilterKeyEvents` is all or
+  nothing: while any service asks for it, `AccessibilityInputFilter`
+  (`KeyboardInterceptor` in `dumpsys accessibility`) takes every key of every
+  device on system_server's main thread, sends it to the service's main
+  thread, and re-injects it after the answer. Pathfinder is the only service
+  on the test Thor that asks. In Silksong, kernel to game: 2.93 ms median
+  (p99 8.35) with the service off, 4.88 (p99 12.9) on; presses and releases
+  alike; Pathfinder's own `onKeyEvent` is 0.3 to 0.4 ms of it. Sticks pass
+  through system_server's filter only (+0.16 ms). **The Disabled profile**
+  (`Profiles.DISABLED` = -1, built in, not in `ids`, no shortcuts, linkable,
+  never reached by a Profile switcher shortcut) makes the service clear the
+  flag through `setServiceInfo` (`PathfinderService.updateFiltering`, on every
+  change to the `profiles` prefs); Android then removes the input filter at
+  once, with no rebind, and puts it back when the flag returns. Measured with
+  Disabled in use: 3.01 ms median, the same as the service off. With the flag
+  off no key reaches Pathfinder, so the way back is the Quick Settings tile
+  (`ProfileTileService`), the app, or leaving a linked app. The tile's
+  chooser goes through the service (`askProfileForTile`) onto the top
+  screen: started by the tile itself it opened on the focused display, and
+  Silksong's own window on the bottom screen covered it. A custom tile left
+  unlistened reads "Unavailable" and drops clicks sent with `cmd statusbar
+  click-tile`; opening the shade first (`expand-settings`) wakes it. And
+  `uiautomator dump` suspends every accessibility service while it runs.
 - **App profiles hear tasks through Shizuku.** The accessibility service
   stays key events only; instead `TaskWatcher` runs in a Shizuku user service
   (app_process as the shell user, where hidden APIs are not restricted) and
