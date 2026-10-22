@@ -1,6 +1,7 @@
 package com.thorpathfinder.app
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -20,11 +21,11 @@ class ScreenSwapTest {
     fun parsesEachRootTaskWithItsTopActivity() {
         assertEquals(
             listOf(
-                RootTask(93, 0, "com.android.settings/com.android.settings.Settings", visible = true, taskId = 93),
-                RootTask(1, 0, "rip.moth.cocoonshell/rip.moth.cocoonshell.MainActivity", visible = false, taskId = 83),
-                RootTask(89, 0, "com.android.launcher3/com.android.quickstep.RecentsActivity", visible = false, taskId = 90),
-                RootTask(3, 0, null, visible = false, taskId = 4),
-                RootTask(92, 4, "com.thorwayfinder.app/com.thorwayfinder.app.MainActivity", visible = true, taskId = 92),
+                RootTask(93, 0, "com.android.settings/com.android.settings.Settings", visible = true, taskId = 93, activityType = "standard"),
+                RootTask(1, 0, "rip.moth.cocoonshell/rip.moth.cocoonshell.MainActivity", visible = false, taskId = 83, activityType = "home"),
+                RootTask(89, 0, "com.android.launcher3/com.android.quickstep.RecentsActivity", visible = false, taskId = 90, activityType = "recents"),
+                RootTask(3, 0, null, visible = false, taskId = 4, activityType = "undefined"),
+                RootTask(92, 4, "com.thorwayfinder.app/com.thorwayfinder.app.MainActivity", visible = true, taskId = 92, activityType = "standard"),
             ),
             ScreenSwap.parse(captured),
         )
@@ -89,7 +90,7 @@ class ScreenSwapTest {
     fun theScreenALoneAppLeavesGoesHomeStraightAfter() {
         assertEquals(
             "am display move-stack 115 4 && (input -d 0 keyevent KEYCODE_HOME || true)",
-            ScreenSwap.script(listOf(Move(115, 0, 4))),
+            ScreenSwap.script(listOf(Move(115, 0, 4)), home = 0),
         )
     }
 
@@ -106,7 +107,65 @@ class ScreenSwapTest {
         )
         val moves = ScreenSwap.plan(youtubeBelow, 0, 4, thor)
         assertEquals(listOf(Move(41, 4, 0)), moves)
-        assertTrue(ScreenSwap.script(moves).endsWith("input -d 4 keyevent KEYCODE_HOME || true)"))
+        val home = ScreenSwap.homeAfter(youtubeBelow, moves, thor)
+        assertEquals(4, home)
+        assertTrue(ScreenSwap.script(moves, home = home).endsWith("input -d 4 keyevent KEYCODE_HOME || true)"))
+    }
+
+    @Test
+    fun aHomeScreenStillUnderneathIsLeftToShow() {
+        // Issue #4: a launcher the user put on the bottom screen stays there
+        // under an app. Home would start the system's secondary home over it
+        // and take input focus to the bottom screen, so Back did nothing.
+        val appOnTheBottom = listOf(
+            RootTask(70, 0, "com.android.launcher3/com.android.launcher3.uioverrides.QuickstepLauncher", visible = true, activityType = "home"),
+            RootTask(880, 4, "me.zhanghai.android.files/me.zhanghai.android.files.filelist.FileListActivity", visible = true, activityType = "standard"),
+            RootTask(75, 4, "xyz.example.bottom/xyz.example.bottom.HomeActivity", visible = false, activityType = "home"),
+        )
+        val moves = ScreenSwap.plan(appOnTheBottom, 0, 4, thor)
+        assertEquals(listOf(Move(880, 4, 0)), moves)
+        assertNull(ScreenSwap.homeAfter(appOnTheBottom, moves, thor))
+        assertEquals("am display move-stack 880 0", ScreenSwap.script(moves))
+        // A home activity Android resolves counts too, whatever type its task has.
+        val bySecondaryHome = appOnTheBottom.map { if (it.id == 75) it.copy(activityType = "standard") else it }
+        val withHome = thor.copy(activities = thor.activities + "xyz.example.bottom/xyz.example.bottom.HomeActivity")
+        assertNull(ScreenSwap.homeAfter(bySecondaryHome, moves, withHome))
+        assertEquals(4, ScreenSwap.homeAfter(bySecondaryHome, moves, thor))
+    }
+
+    @Test
+    fun recentsUnderneathStillMeansHome() {
+        // Launcher3's Recents is in an excluded package, but it is no home screen.
+        val tasks = listOf(
+            RootTask(93, 0, "com.android.settings/com.android.settings.Settings", visible = true, activityType = "standard"),
+            RootTask(89, 0, "com.android.launcher3/com.android.quickstep.RecentsActivity", visible = false, activityType = "recents"),
+            RootTask(1, 0, "rip.moth.cocoonshell/rip.moth.cocoonshell.MainActivity", visible = false, activityType = "home"),
+        )
+        val moves = ScreenSwap.plan(tasks, 0, 4, thor)
+        assertEquals(listOf(Move(93, 0, 4)), moves)
+        assertEquals(0, ScreenSwap.homeAfter(tasks, moves, thor))
+        // nothing at all underneath: Home too
+        assertEquals(0, ScreenSwap.homeAfter(tasks.take(1), moves, thor))
+    }
+
+    @Test
+    fun aSwapOfTwoPressesNoHome() {
+        val tasks = ScreenSwap.parse(captured)
+        assertNull(ScreenSwap.homeAfter(tasks, ScreenSwap.plan(tasks, 0, 4, thor), thor))
+    }
+
+    @Test
+    fun aLoneAppComesToTheFrontAfterItsOldScreenWentHome() {
+        // Starting the home screen took focus to the screen the app left.
+        val after = listOf(
+            RootTask(41, 0, "com.google.android.youtube/com.google.android.youtube.HomeActivity", visible = true),
+            RootTask(50, 4, "rip.moth.cocoonshell/rip.moth.cocoonshell.ExternalDisplayActivity", visible = true),
+        )
+        val move = Move(41, 4, 0)
+        assertEquals(listOf(move), ScreenSwap.toFront(after, listOf(move), home = 4))
+        assertTrue(ScreenSwap.toFront(after, listOf(move), home = null).isEmpty())
+        // an app that didn't arrive is left alone
+        assertTrue(ScreenSwap.toFront(after.drop(1), listOf(move), home = 4).isEmpty())
     }
 
     @Test

@@ -556,7 +556,15 @@ tools/latency/          button latency from atrace: inject.sh presses, analyze.p
 - **A lone app's move** presses Home on the screen it left, in the same shell
   command (`input -d D keyevent KEYCODE_HOME`). Without it Android reveals the
   next thing down: Launcher3's Recents, or an app the user had sent home.
-  Never press Home before the move: it covers the moving app.
+  Never press Home before the move: it covers the moving app. But when the
+  next root task down on that screen is a home screen (`mActivityType=home`
+  on `am stack list`'s configuration line, or a resolved home activity),
+  no Home is pressed (`ScreenSwap.homeAfter`, issue #4): Home started the
+  system's SECONDARY_HOME (Launcher3's) over a launcher the user had put on
+  the bottom screen, and that start moved input focus there, so Back did
+  nothing until a tap. Where Home is still pressed, the moved app is brought
+  to the front after the 300 ms settle (`ScreenSwap.toFront`) to take focus
+  back. Not yet verified on hardware.
 - **Swap stutter.** A swap is two moves; the second app is covered for ~15 ms,
   and a video drops its surface. A media-playing app (`dumpsys media_session`,
   state 3 or 6) moves first; otherwise the top app. An atomic swap would need

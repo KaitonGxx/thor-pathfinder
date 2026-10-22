@@ -16,6 +16,8 @@ data class RootTask(
     val visible: Boolean,
     /** The root task's top task; for an ordinary app it is the root task itself. */
     val taskId: Int = id,
+    /** The root task's `mActivityType`: standard, home, recents, or undefined. */
+    val activityType: String? = null,
 ) {
     val topPackage: String? get() = topActivity?.substringBefore('/')
 }
@@ -44,26 +46,35 @@ object ScreenSwap {
     private val header = Regex("""^(?:RootTask|Stack) id=(\d+)\b.*\bdisplayId=(\d+)""")
     private val task = Regex("""^\s+taskId=(\d+): (\S+)\s.*\bvisible=(true|false)""")
     private val top = Regex("""\btopActivity=ComponentInfo\{([^}]+)\}""")
+    private val activityType = Regex("""\bmActivityType=(\w+)""")
 
     /** Root tasks in the order listed: per display, topmost first. */
     fun parse(stackList: String): List<RootTask> {
         val tasks = mutableListOf<RootTask>()
         var id = -1
         var display = -1
+        var type: String? = null
         var haveTopTask = true
         for (line in stackList.lineSequence()) {
             val h = header.find(line)
             if (h != null) {
                 id = h.groupValues[1].toInt()
                 display = h.groupValues[2].toInt()
+                type = null
                 haveTopTask = false
                 continue
             }
             if (haveTopTask) continue // only a root task's first (top) task counts
+            // The configuration line between the header and the tasks names the root task's type.
+            val a = if (type == null) activityType.find(line) else null
+            if (a != null) {
+                type = a.groupValues[1]
+                continue
+            }
             val t = task.find(line) ?: continue
             haveTopTask = true
             val activity = (top.find(line)?.groupValues?.get(1) ?: t.groupValues[2]).takeIf { '/' in it }
-            tasks += RootTask(id, display, activity, t.groupValues[3] == "true", taskId = t.groupValues[1].toInt())
+            tasks += RootTask(id, display, activity, t.groupValues[3] == "true", taskId = t.groupValues[1].toInt(), activityType = type)
         }
         return tasks
     }
@@ -117,18 +128,32 @@ object ScreenSwap {
     private const val STATE_BUFFERING = 6
 
     /**
-     * The shell script for [moves]. When one app is sent across, the screen it
-     * left goes to its home screen at once. Otherwise Android shows whatever is
-     * next underneath, and that is rarely what the screen showed before:
-     * Cocoon closes its home activity while an app covers it, so the next thing
-     * down can be Launcher3's Recents, or an app the user had already sent home.
+     * The screen to press Home on after [moves], if any. When one app is sent
+     * across, Android shows whatever is next underneath on the screen it left,
+     * and that is often not what the screen showed before: Cocoon closes its
+     * home activity while an app covers it, so the next thing down can be
+     * Launcher3's Recents, or an app the user had already sent home. Then the
+     * screen goes home. But when a home screen is still next underneath, it is
+     * left to show: Home would start the system's secondary home over it (not
+     * the launcher the user put there), and that start takes input focus to
+     * the screen the app left, so Back went nowhere (issue #4).
+     */
+    fun homeAfter(tasks: List<RootTask>, moves: List<Move>, exclusions: Exclusions): Int? {
+        val move = moves.singleOrNull() ?: return null
+        val below = tasks.filter { it.displayId == move.from && it.topActivity != null }
+            .dropWhile { it.id != move.task }.drop(1).firstOrNull()
+        val home = below != null && (below.activityType == "home" || below.topActivity in exclusions.activities)
+        return if (home) null else move.from
+    }
+
+    /**
+     * The shell script for [moves], then Home on screen [home] (see [homeAfter]).
      * Home is pressed after the move, never before, since pressing it first
      * would briefly cover the moving app and make a video stutter.
      */
-    fun script(moves: List<Move>, volumes: ScreenVolume.Levels? = null): String {
+    fun script(moves: List<Move>, volumes: ScreenVolume.Levels? = null, home: Int? = null): String {
         val move = moves.joinToString(" && ") { "am display move-stack ${it.task} ${it.to}" }
-        val left = moves.singleOrNull()?.from
-        val moved = if (left == null) move else "$move && (input -d $left keyevent KEYCODE_HOME || true)"
+        val moved = if (home == null) move else "$move && (input -d $home keyevent KEYCODE_HOME || true)"
         // The volume changes start first, in the background, and finish while the apps move.
         // The exit status is the moves': `wait` alone would hide a failed one.
         return if (volumes == null) moved else "${ScreenVolume.commands(volumes)}$moved; r=$?; wait; exit \$r"
@@ -167,6 +192,8 @@ object ScreenSwap {
         // One line per swap, so a bug report's logcat shows what Pathfinder saw.
         Log.i(TAG, "screens $main+${other.displayId}; visible ${tasks.filter { it.visible }}; playing $playing; moves $moves")
         if (moves.isEmpty()) return Outcome.NothingToMove
+        val home = homeAfter(tasks, moves, exclusions)
+        if (moves.size == 1) Log.i(TAG, if (home == null) "a home screen is underneath; no Home" else "Home on screen $home")
 
         // Read before the move, and written in the same command as it, so the volumes follow the apps at once.
         val volumes = if (ScreenVolume.enabled(context)) ScreenVolume.read() else null
@@ -174,9 +201,9 @@ object ScreenSwap {
         // and the apps were heard at the wrong volume in between. The shell route is the fallback.
         val result = if (volumes != null && quick?.invoke(moves, volumes) == true) {
             Log.i(TAG, "swapped in the helper, volumes $volumes")
-            moves.singleOrNull()?.let { Shell.sh("input -d ${it.from} keyevent KEYCODE_HOME || true") } ?: Shell.Result(0, "", "")
+            home?.let { Shell.sh("input -d $it keyevent KEYCODE_HOME || true") } ?: Shell.Result(0, "", "")
         } else {
-            Shell.sh(script(moves, volumes))
+            Shell.sh(script(moves, volumes, home))
         }
         if (!result.ok) {
             return Outcome.Failed(result.err.lineSequence().firstOrNull { it.isNotBlank() } ?: "move failed")
@@ -188,9 +215,9 @@ object ScreenSwap {
         // just arrived. Give them a moment, then put things right.
         Thread.sleep(SETTLE_MS)
         val after = Shell.run("am", "stack", "list").takeIf { it.ok }?.let { parse(it.out) } ?: return outcome
-        for (move in covered(after, moves)) {
+        for (move in toFront(after, moves, home)) {
             val task = after.first { it.id == move.task }
-            Log.i(TAG, "moved app $task was covered on screen ${move.to}; bringing it to the front")
+            Log.i(TAG, "bringing moved app $task to the front on screen ${move.to}")
             context.getSystemService(ActivityManager::class.java).moveTaskToFront(task.taskId, 0)
         }
         return outcome
@@ -202,6 +229,16 @@ object ScreenSwap {
     fun covered(after: List<RootTask>, moves: List<Move>): List<Move> = moves.filter { move ->
         val top = after.firstOrNull { it.displayId == move.to && it.visible && it.topActivity != null }
         top != null && top.id != move.task && after.any { it.id == move.task && it.displayId == move.to }
+    }
+
+    /**
+     * Moves whose app goes to the front again: a [covered] one, and a lone
+     * app whose old screen was sent [home], since starting that home took
+     * input focus to the old screen and Back would have gone there.
+     */
+    fun toFront(after: List<RootTask>, moves: List<Move>, home: Int?): List<Move> {
+        val refocus = moves.filter { move -> home == move.from && after.any { it.id == move.task && it.displayId == move.to } }
+        return (covered(after, moves) + refocus).distinct()
     }
 
     /**
