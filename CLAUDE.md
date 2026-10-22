@@ -8,8 +8,46 @@ Kotlin + Jetpack Compose, package `com.thorpathfinder.app`, minSdk 33
 Machine-specific notes (toolchain paths, the test Thor's serial, git
 identity) live in `CLAUDE.local.md`, which is gitignored.
 
-## Status (2026-10-05)
+## Status (2026-10-22)
 
+- Unreleased.
+  **Play/pause media** (issue #7, `ButtonAction.PLAY_PAUSE`, after VOLUME,
+  no Shizuku, no question): `MediaKey.playPause` sends KEYCODE_MEDIA_PLAY_PAUSE
+  down and up through `AudioManager.dispatchMediaKeyEvent`, which needs no
+  permission; Android routes it to the playing or last media session. The up
+  carries the down's downTime: MediaSessionService holds a PLAY_PAUSE down
+  (a long press would be voice search) until the matching up. No message,
+  since nothing reports a miss. Apps on Android's MediaSession act after the
+  300 ms double-tap gap; two quick presses are next track where the app
+  offers one and cancel out where it doesn't (on a button with a
+  double-press shortcut they are that shortcut instead). Not yet tried on
+  the Thor.
+  **Screenshot of either screen or both** (issue #5): SCREENSHOT now asks
+  which (`ScreenshotTarget`, stored as `<key>.shot` like `.focus`): ANDROID
+  (Android's own, top screen only; an absent value reads as this, so old
+  shortcuts are unchanged, though their summary now reads "Screenshot
+  (top)"), BOTTOM, BOTH (one PNG, top above bottom, centred on black) or
+  BOTH_SEPARATE (two PNGs, one timestamp). With its arrow it now sits in the
+  shortcut list's last group. `ScreenCapture` takes them with the service's
+  `takeScreenshot` (`canTakeScreenshot` in the service XML, no Shizuku) on a
+  thread of its own, not the service's worker, where a swap or a Screen
+  record could hold up the bottom picture; it saves through MediaStore to
+  Pictures/Screenshots (no permission; DATE_TAKEN set, since a PNG has no
+  EXIF date); rules and names are pure in `Screenshots`. One message, once
+  it is done (saved, failed, or no / switched-off bottom screen); a
+  top-screen message still up is taken down 150 ms before a picture of the
+  top. A `SecurityException` (a connection without the capability) reads as
+  "Android refused access to the screen", and the Diagnostics report marks
+  each service that may take screenshots. The service description, setup's
+  `a11y_body` and the README's privacy text now say it sees the screens only
+  for such a screenshot. Android 13's source
+  (`AbstractAccessibilityServiceConnection.takeScreenshot`,
+  `DisplayManagerService.userScreenshotInternal`, SurfaceFlinger): one 333 ms
+  gap per service across displays, so the bottom is asked for after the top's
+  result; the picture is as seen on screen (no rotating); secure and
+  protected (DRM) windows come out black, with no error. Not yet tried on
+  the Thor. At release: bump `Welcome.EDITION` to 3 (with `VERSION`, `NOTES`
+  and new cards) and retake `docs/screenshots/shortcut-picker.png`.
 - v1.1.0 (versionCode 21). **Brightness and Volume** shortcuts
   (`ButtonAction.BRIGHTNESS`, needs Shizuku; `VOLUME`, the top screen's works
   without): a slider on the top screen (`LevelControl` + `LevelPanelView`,
@@ -101,9 +139,9 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
   **Translations**: Spanish (`values-es`), Portuguese (Brazil,
   `values-pt-rBR`), Simplified Chinese (`values-zh-rCN`) and Japanese
   (`values-ja`), made with AI (the README says so and asks for corrections).
-  Every UI string is in `res/values/strings.xml` (478, of which 13 are
+  Every UI string is in `res/values/strings.xml` (519, of which 13 are
   `translatable="false"`: the app name, printed button letters, `combo_join`;
-  plus 9 plurals). Code outside Compose gets text through `Words`
+  plus 10 plurals). Code outside Compose gets text through `Words`
   (`Words.kt`: `text(id, args)`, `count(id, n, args)`; `Context.words()`), so
   message and label functions stay pure; the tests pass `English`
   (`app/src/test/.../English.kt`, which parses the English strings.xml and
@@ -175,7 +213,8 @@ identity) live in `CLAUDE.local.md`, which is gitignored.
   oval reads "Active Profile:", and screens showing profiles follow switches
   made elsewhere (a Profile switcher shortcut, or its Ask question) instead of
   keeping what they read when built. In the shortcut list, the actions that
-  ask more before saving (Open an app, Home, Close app(s), Profile switcher)
+  ask more before saving (Open an app, Home, Close app(s), Profile switcher;
+  since then Focus Mode and Screenshot too)
   carry the same arrow as a row that opens a page, and come last, together,
   after a small gap (`ChoiceDialog` groups by `leadsOn`; in a grid the group
   starts its own row). From 0.9.0 a rule sits in that gap, in full
@@ -341,6 +380,9 @@ app/src/main/kotlin/com/thorpathfinder/app/
   Shortcuts.kt          SharedPreferences store + defaults; implements GestureConfig
   Shortcut.kt           one shortcut: an action and its choices (stored or from the menu)
   FocusMode.kt          AYN's Focus Mode: which screen the controller drives
+  MediaKey.kt           Play/pause media: Android's media key through AudioManager
+  Screenshots.kt        own screenshots: screens, stacking, names, gap (pure, tested)
+  ScreenCapture.kt      takes them (takeScreenshot), stitches, saves via MediaStore
   AppProfiles.kt        app profiles: the rules, and AppWatcher (binds TaskWatcher)
   TaskWatcher.kt        Shizuku user service: task stack listener -> task lines
   ProfileTileService.kt Quick Settings tile: the profile in use, a tap asks which

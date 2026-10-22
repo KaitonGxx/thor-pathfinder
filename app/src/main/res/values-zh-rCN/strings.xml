@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Simplified Chinese. Written with AI help; corrections are welcome. -->
 <resources>
-    <string name="accessibility_description">Thor Pathfinder 监听返回、主页、AYN、Select、Start、L3 和 R3 按键，用来执行你的快捷操作：交换屏幕、最近任务、鼠标模式等。它只接收按键操作，无法读取屏幕内容，也无法读取你输入的任何内容。</string>
+    <string name="accessibility_description">Thor Pathfinder 监听返回、主页、AYN、Select、Start、L3 和 R3 按键，用来执行你的快捷操作：交换屏幕、最近任务、鼠标模式等。它只接收按键操作，仅在你用它截屏时才会获取屏幕画面，并且无法读取你输入的任何内容。</string>
 
     <!-- The Thor's buttons -->
     <string name="button_back">返回</string>
@@ -52,6 +52,29 @@
     <string name="focus_bottom">焦点锁定下屏</string>
     <string name="focus_cycle">循环切换焦点模式</string>
     <string name="focus_swap">上下屏焦点互换</string>
+
+    <!-- What a Screenshot shortcut captures, and what it says afterwards -->
+    <string name="shot_android">上屏（Android 自带）</string>
+    <string name="shot_bottom">下屏</string>
+    <string name="shot_both">双屏合成一张图</string>
+    <string name="shot_both_separate">双屏各存一张图</string>
+    <string name="shot_android_short">上屏</string>
+    <string name="shot_bottom_short">下屏</string>
+    <string name="shot_both_short">双屏</string>
+    <string name="shot_both_separate_short">双屏，2 张图</string>
+    <string name="map_screenshot_of">截屏（%1$s）</string>
+    <string name="picker_shot_android_detail">Android 自带的截屏，只截取上屏</string>
+    <string name="picker_shot_bottom_detail">由 Pathfinder 截取，保存到 Pictures/Screenshots</string>
+    <string name="picker_shot_both_detail">上屏在上、下屏在下，保存到 Pictures/Screenshots</string>
+    <string name="picker_shot_both_separate_detail">每块屏幕一张图，保存到 Pictures/Screenshots</string>
+    <string name="msg_screenshot_saved">截屏已保存</string>
+    <string name="msg_screenshots_saved">两张截屏均已保存</string>
+    <string name="msg_screenshot_failed">截屏未保存：%1$s</string>
+    <string name="screenshot_too_soon">距上一次截屏太近</string>
+    <string name="screenshot_no_access">Android 拒绝访问屏幕</string>
+    <string name="screenshot_bad_screen">Android 无法截取该屏幕</string>
+    <string name="screenshot_internal">出现内部错误</string>
+    <string name="screenshot_not_written">无法写入 Pictures</string>
 
     <!-- Actions -->
     <string name="action_normal">默认</string>
@@ -272,7 +295,7 @@
     <string name="wayfinder_uninstall">卸载 Wayfinder</string>
     <string name="wayfinder_turn_off">改为关闭它</string>
     <string name="a11y_title">让 Pathfinder 接收按键</string>
-    <string name="a11y_body">Android 只把按键操作提供给无障碍服务，所以 Pathfinder 带有一个。它只接收按键操作：无法读取屏幕内容，也无法读取你输入的任何内容。</string>
+    <string name="a11y_body">Android 只把按键操作提供给无障碍服务，所以 Pathfinder 带有一个。它只接收按键操作，仅在你用它截屏时才会获取屏幕画面，并且无法读取你输入的任何内容。</string>
     <string name="a11y_on">Pathfinder 的服务已开启</string>
     <string name="a11y_stuck">Pathfinder 已开启，但 Android 还没有启动它</string>
     <string name="a11y_off">Pathfinder 的服务已关闭</string>
@@ -332,6 +355,7 @@
     <string name="page_timing_detail">长按所需时间，以及双击间隔</string>
     <string name="action_brightness">亮度</string>
     <string name="action_volume">音量</string>
+    <string name="action_play_pause">播放/暂停媒体</string>
     <string name="msg_brightness_needs_shizuku">调节亮度需要 Shizuku</string>
     <string name="page_levels">亮度与音量</string>
     <string name="page_levels_detail">每按一次的调节幅度，以及随应用交换音量</string>

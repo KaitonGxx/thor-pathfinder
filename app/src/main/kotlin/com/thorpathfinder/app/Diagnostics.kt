@@ -202,11 +202,16 @@ object Diagnostics {
 
     /**
      * Another service that filters key events sees the Thor's buttons too, so
-     * it is worth naming when a button appears to do nothing.
+     * it is worth naming when a button appears to do nothing. Whether a
+     * service may take screenshots shows whether Android gave Pathfinder's
+     * the capability its XML asks for.
      */
     private fun AccessibilityServiceInfo.describe(): String {
         val filtersKeys = capabilities and AccessibilityServiceInfo.CAPABILITY_CAN_REQUEST_FILTER_KEY_EVENTS != 0
-        return id.orEmpty() + if (filtersKeys) "   [filters key events]" else ""
+        val shots = capabilities and AccessibilityServiceInfo.CAPABILITY_CAN_TAKE_SCREENSHOT != 0
+        return id.orEmpty() +
+            (if (filtersKeys) "   [filters key events]" else "") +
+            (if (shots) "   [takes screenshots]" else "")
     }
 
     private fun StringBuilder.shizuku(context: Context) {

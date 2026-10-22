@@ -120,6 +120,7 @@ object ButtonMap {
                 ProfileSwitch.ENABLE -> words.text(R.string.map_profile_enable, Profiles.name(context, shortcut.profileId))
             }
             ButtonAction.FOCUS_MODE -> words.text(shortcut.focus.text)
+            ButtonAction.SCREENSHOT -> words.text(R.string.map_screenshot_of, words.text(shortcut.shot.short))
             else -> words.text(shortcut.action.text)
         }
     }

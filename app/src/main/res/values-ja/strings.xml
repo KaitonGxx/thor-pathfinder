@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Japanese. Written with AI help; corrections are welcome. -->
 <resources>
-    <string name="accessibility_description">Thor Pathfinder は、ショートカットのために戻る、ホーム、AYN、Select、Start、L3、R3 の各ボタンを監視します（画面の入れ替え、最近使ったアプリ、マウスモードなど）。受け取るのはボタン操作だけで、画面の内容や入力した文字を読み取ることはできません。</string>
+    <string name="accessibility_description">Thor Pathfinder は、ショートカットのために戻る、ホーム、AYN、Select、Start、L3、R3 の各ボタンを監視します（画面の入れ替え、最近使ったアプリ、マウスモードなど）。受け取るのはボタン操作だけで、画面の内容を見るのはこのアプリでスクリーンショットを撮るときだけです。入力した文字を読み取ることはできません。</string>
 
     <!-- The Thor's buttons -->
     <string name="button_back">戻る</string>
@@ -52,6 +52,29 @@
     <string name="focus_bottom">下画面にフォーカス</string>
     <string name="focus_cycle">フォーカスモードを順に切り替え</string>
     <string name="focus_swap">上下のフォーカスを入れ替え</string>
+
+    <!-- What a Screenshot shortcut captures, and what it says afterwards -->
+    <string name="shot_android">上画面（Android 標準）</string>
+    <string name="shot_bottom">下画面</string>
+    <string name="shot_both">両方の画面を 1 枚に</string>
+    <string name="shot_both_separate">両方の画面を 2 枚に</string>
+    <string name="shot_android_short">上</string>
+    <string name="shot_bottom_short">下</string>
+    <string name="shot_both_short">両方</string>
+    <string name="shot_both_separate_short">両方、2 枚</string>
+    <string name="map_screenshot_of">スクリーンショット（%1$s）</string>
+    <string name="picker_shot_android_detail">Android 標準のスクリーンショット。写るのは上画面だけです</string>
+    <string name="picker_shot_bottom_detail">Pathfinder が撮影し、Pictures/Screenshots に保存</string>
+    <string name="picker_shot_both_detail">上画面の下に下画面を並べて、Pictures/Screenshots に保存</string>
+    <string name="picker_shot_both_separate_detail">画面ごとに 1 枚ずつ、Pictures/Screenshots に保存</string>
+    <string name="msg_screenshot_saved">スクリーンショットを保存しました</string>
+    <string name="msg_screenshots_saved">両方のスクリーンショットを保存しました</string>
+    <string name="msg_screenshot_failed">スクリーンショットは保存されませんでした：%1$s</string>
+    <string name="screenshot_too_soon">前回から間隔が短すぎます</string>
+    <string name="screenshot_no_access">Android が画面へのアクセスを拒否しました</string>
+    <string name="screenshot_bad_screen">Android がその画面を撮影できませんでした</string>
+    <string name="screenshot_internal">内部エラーが発生しました</string>
+    <string name="screenshot_not_written">Pictures に書き込めませんでした</string>
 
     <!-- Actions -->
     <string name="action_normal">通常</string>
@@ -272,7 +295,7 @@
     <string name="wayfinder_uninstall">Wayfinder をアンインストール</string>
     <string name="wayfinder_turn_off">代わりにオフにする</string>
     <string name="a11y_title">Pathfinder がボタンを認識できるようにする</string>
-    <string name="a11y_body">Android はボタン操作をユーザー補助サービスにしか渡さないため、Pathfinder はユーザー補助サービスを備えています。受け取るのはボタン操作だけで、画面の内容や入力した文字を読み取ることはできません。</string>
+    <string name="a11y_body">Android はボタン操作をユーザー補助サービスにしか渡さないため、Pathfinder はユーザー補助サービスを備えています。受け取るのはボタン操作だけで、画面の内容を見るのはこのアプリでスクリーンショットを撮るときだけです。入力した文字を読み取ることはできません。</string>
     <string name="a11y_on">Pathfinder のサービスはオンです</string>
     <string name="a11y_stuck">Pathfinder はオンですが、Android がまだ起動していません</string>
     <string name="a11y_off">Pathfinder のサービスはオフです</string>
@@ -332,6 +355,7 @@
     <string name="page_timing_detail">長押しの長さと 2 回押しの間隔</string>
     <string name="action_brightness">明るさ</string>
     <string name="action_volume">音量</string>
+    <string name="action_play_pause">メディアの再生/一時停止</string>
     <string name="msg_brightness_needs_shizuku">明るさの調整には Shizuku が必要です</string>
     <string name="page_levels">明るさと音量</string>
     <string name="page_levels_detail">1 回の押下で変わる量と、アプリと一緒に音量を入れ替える設定</string>

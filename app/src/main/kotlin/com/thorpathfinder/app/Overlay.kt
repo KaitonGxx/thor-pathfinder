@@ -60,6 +60,13 @@ class Overlay(private val context: Context) {
         view = null
     }
 
+    /** Takes down the message now, say before a screenshot; false when none was up. */
+    fun clearMessage(): Boolean {
+        if (view == null) return false
+        hideMessage()
+        return true
+    }
+
     /**
      * Shows the Thor with this profile's shortcuts beside it, and leaves it
      * there until it is dismissed. Unlike the message it takes touches, since

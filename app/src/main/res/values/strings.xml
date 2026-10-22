@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">Thor Pathfinder</string>
-    <string name="accessibility_description">Thor Pathfinder watches the Back, Home, AYN, Select, Start, L3 and R3 buttons for your shortcuts: swapping screens, recent apps, mouse mode and more. It only receives button presses. It cannot read the screen or anything you type.</string>
+    <string name="accessibility_description">Thor Pathfinder watches the Back, Home, AYN, Select, Start, L3 and R3 buttons for your shortcuts: swapping screens, recent apps, mouse mode and more. It only receives button presses, and sees what is on the screens only when you take a screenshot with it. It cannot read anything you type.</string>
 
     <!-- The Thor's buttons -->
     <string name="button_back">Back</string>
@@ -52,6 +52,29 @@
     <string name="focus_bottom">Bottom screen focus</string>
     <string name="focus_cycle">Cycle focus modes</string>
     <string name="focus_swap">Top/Bottom focus swap</string>
+
+    <!-- What a Screenshot shortcut captures, and what it says afterwards -->
+    <string name="shot_android">Top screen (Android\'s own)</string>
+    <string name="shot_bottom">Bottom screen</string>
+    <string name="shot_both">Both screens in one image</string>
+    <string name="shot_both_separate">Both screens as two images</string>
+    <string name="shot_android_short">top</string>
+    <string name="shot_bottom_short">bottom</string>
+    <string name="shot_both_short">both</string>
+    <string name="shot_both_separate_short">both, 2 images</string>
+    <string name="map_screenshot_of">Screenshot (%1$s)</string>
+    <string name="picker_shot_android_detail">Android\'s own screenshot, which shows the top screen only</string>
+    <string name="picker_shot_bottom_detail">Taken by Pathfinder, saved in Pictures/Screenshots</string>
+    <string name="picker_shot_both_detail">The top screen above the bottom one, saved in Pictures/Screenshots</string>
+    <string name="picker_shot_both_separate_detail">One image of each screen, saved in Pictures/Screenshots</string>
+    <string name="msg_screenshot_saved">Screenshot saved</string>
+    <string name="msg_screenshots_saved">Both screenshots saved</string>
+    <string name="msg_screenshot_failed">Screenshot not saved: %1$s</string>
+    <string name="screenshot_too_soon">too soon after the last one</string>
+    <string name="screenshot_no_access">Android refused access to the screen</string>
+    <string name="screenshot_bad_screen">Android couldn\'t capture that screen</string>
+    <string name="screenshot_internal">something went wrong</string>
+    <string name="screenshot_not_written">couldn\'t write to Pictures</string>
 
     <!-- Actions -->
     <string name="action_normal">Normal</string>
@@ -287,7 +310,7 @@
     <string name="wayfinder_uninstall">Uninstall Wayfinder</string>
     <string name="wayfinder_turn_off">Turn it off instead</string>
     <string name="a11y_title">Let Pathfinder see the buttons</string>
-    <string name="a11y_body">Android only shares button presses with accessibility services, so Pathfinder has one. It receives button presses and nothing else: it cannot read the screen or anything you type.</string>
+    <string name="a11y_body">Android only shares button presses with accessibility services, so Pathfinder has one. It receives button presses, and sees what is on the screens only when you take a screenshot with it. It cannot read anything you type.</string>
     <string name="a11y_on">Pathfinder\'s service is on</string>
     <string name="a11y_stuck">Pathfinder is switched on, but Android hasn\'t started it</string>
     <string name="a11y_off">Pathfinder\'s service is off</string>
@@ -347,6 +370,7 @@
     <string name="page_timing_detail">How long a hold takes, and the double-press gap</string>
     <string name="action_brightness">Brightness</string>
     <string name="action_volume">Volume</string>
+    <string name="action_play_pause">Play/pause media</string>
     <string name="msg_brightness_needs_shizuku">Brightness needs Shizuku</string>
     <string name="page_levels">Brightness &amp; volume</string>
     <string name="page_levels_detail">How much a press changes, and swapping volume with the apps</string>

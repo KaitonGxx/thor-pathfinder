@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Portuguese (Brazil). Written with AI help; corrections are welcome. -->
 <resources>
-    <string name="accessibility_description">O Thor Pathfinder observa os botões Voltar, Início, AYN, Select, Start, L3 e R3 para os seus atalhos: trocar as telas, apps recentes, modo mouse e mais. Ele só recebe os toques nos botões. Não consegue ler a tela nem nada do que você digita.</string>
+    <string name="accessibility_description">O Thor Pathfinder observa os botões Voltar, Início, AYN, Select, Start, L3 e R3 para os seus atalhos: trocar as telas, apps recentes, modo mouse e mais. Ele só recebe os toques nos botões, e só vê o que está nas telas quando você tira uma captura com ele. Não consegue ler nada do que você digita.</string>
 
     <!-- The Thor's buttons -->
     <string name="button_back">Voltar</string>
@@ -52,6 +52,29 @@
     <string name="focus_bottom">Foco na tela de baixo</string>
     <string name="focus_cycle">Alternar modos de foco</string>
     <string name="focus_swap">Trocar o foco entre cima e baixo</string>
+
+    <!-- What a Screenshot shortcut captures, and what it says afterwards -->
+    <string name="shot_android">Tela de cima (captura do Android)</string>
+    <string name="shot_bottom">Tela de baixo</string>
+    <string name="shot_both">As duas telas numa imagem</string>
+    <string name="shot_both_separate">As duas telas em duas imagens</string>
+    <string name="shot_android_short">em cima</string>
+    <string name="shot_bottom_short">embaixo</string>
+    <string name="shot_both_short">as duas</string>
+    <string name="shot_both_separate_short">as duas, 2 imagens</string>
+    <string name="map_screenshot_of">Captura de tela (%1$s)</string>
+    <string name="picker_shot_android_detail">A captura do próprio Android, que mostra só a tela de cima</string>
+    <string name="picker_shot_bottom_detail">Feita pelo Pathfinder e salva em Pictures/Screenshots</string>
+    <string name="picker_shot_both_detail">A tela de cima acima da de baixo, numa imagem salva em Pictures/Screenshots</string>
+    <string name="picker_shot_both_separate_detail">Uma imagem de cada tela, as duas salvas em Pictures/Screenshots</string>
+    <string name="msg_screenshot_saved">Captura salva</string>
+    <string name="msg_screenshots_saved">As duas capturas foram salvas</string>
+    <string name="msg_screenshot_failed">Captura não salva: %1$s</string>
+    <string name="screenshot_too_soon">cedo demais depois da anterior</string>
+    <string name="screenshot_no_access">o Android negou acesso à tela</string>
+    <string name="screenshot_bad_screen">o Android não conseguiu capturar essa tela</string>
+    <string name="screenshot_internal">algo deu errado</string>
+    <string name="screenshot_not_written">não deu para gravar em Pictures</string>
 
     <!-- Actions -->
     <string name="action_normal">Normal</string>
@@ -278,7 +301,7 @@
     <string name="wayfinder_uninstall">Desinstalar o Wayfinder</string>
     <string name="wayfinder_turn_off">Só desligar</string>
     <string name="a11y_title">Deixe o Pathfinder ver os botões</string>
-    <string name="a11y_body">O Android só compartilha os toques nos botões com serviços de acessibilidade, então o Pathfinder tem um. Ele recebe os toques nos botões e nada mais: não consegue ler a tela nem nada do que você digita.</string>
+    <string name="a11y_body">O Android só compartilha os toques nos botões com serviços de acessibilidade, então o Pathfinder tem um. Ele recebe os toques nos botões, e só vê o que está nas telas quando você tira uma captura com ele. Não consegue ler nada do que você digita.</string>
     <string name="a11y_on">O serviço do Pathfinder está ligado</string>
     <string name="a11y_stuck">O Pathfinder está ligado, mas o Android não o iniciou</string>
     <string name="a11y_off">O serviço do Pathfinder está desligado</string>
@@ -338,6 +361,7 @@
     <string name="page_timing_detail">Quanto tempo leva um segurar, e o intervalo do toque duplo</string>
     <string name="action_brightness">Brilho</string>
     <string name="action_volume">Volume</string>
+    <string name="action_play_pause">Reproduzir/pausar mídia</string>
     <string name="msg_brightness_needs_shizuku">O brilho requer Shizuku</string>
     <string name="page_levels">Brilho e volume</string>
     <string name="page_levels_detail">Quanto cada toque muda, e trocar o volume junto com os apps</string>

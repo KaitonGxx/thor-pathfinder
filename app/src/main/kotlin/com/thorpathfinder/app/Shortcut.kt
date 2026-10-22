@@ -19,4 +19,6 @@ data class Shortcut(
     val profile: ProfileSwitch = ProfileSwitch.CYCLE,
     val profileId: Int = Profiles.ORIGINAL,
     val focus: FocusSwitch = FocusSwitch.CYCLE,
+    /** What a Screenshot shortcut captures; Android's own unless it says otherwise. */
+    val shot: ScreenshotTarget = ScreenshotTarget.ANDROID,
 )

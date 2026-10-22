@@ -122,6 +122,17 @@ enum class FocusSwitch(@StringRes val text: Int) {
     SWAP(R.string.focus_swap),
 }
 
+/** What a "Screenshot" shortcut captures. */
+enum class ScreenshotTarget(@StringRes val text: Int, @StringRes val short: Int) {
+    /** Android's own screenshot, of the top screen only: what every Screenshot shortcut did before the choice. */
+    ANDROID(R.string.shot_android, R.string.shot_android_short),
+    // The rest Pathfinder takes itself (see ScreenCapture).
+    BOTTOM(R.string.shot_bottom, R.string.shot_bottom_short),
+    /** One image, the top screen above the bottom one. */
+    BOTH(R.string.shot_both, R.string.shot_both_short),
+    BOTH_SEPARATE(R.string.shot_both_separate, R.string.shot_both_separate_short),
+}
+
 /** The kernel input device of the Thor's Back and Home buttons. */
 private const val CONTROLLER = "Odin Controller"
 
@@ -141,10 +152,13 @@ enum class ButtonAction(@StringRes val text: Int, val needsShizuku: Boolean = fa
     BRIGHTNESS(R.string.action_brightness, needsShizuku = true),
     // The top screen's volume works without Shizuku, the bottom one's needs it.
     VOLUME(R.string.action_volume),
+    // Android's media key, which goes to whatever is playing or played last (see MediaKey).
+    PLAY_PAUSE(R.string.action_play_pause),
     // Which way it moves Focus Mode is a FocusSwitch.
     FOCUS_MODE(R.string.action_focus_mode, needsShizuku = true),
     NOTIFICATIONS(R.string.action_notifications),
     QUICK_SETTINGS(R.string.action_quick_settings),
+    // Which screens it captures is a ScreenshotTarget.
     SCREENSHOT(R.string.action_screenshot),
     SCREEN_RECORD(R.string.action_screen_record, needsShizuku = true),
     POWER_MENU(R.string.action_power_menu),

@@ -17,6 +17,7 @@ import com.thorpathfinder.app.LaunchScreen
 import com.thorpathfinder.app.ProfileSwitch
 import com.thorpathfinder.app.Profiles
 import com.thorpathfinder.app.R
+import com.thorpathfinder.app.ScreenshotTarget
 import com.thorpathfinder.app.Shortcut
 import com.thorpathfinder.app.words
 
@@ -67,6 +68,9 @@ private sealed interface Step {
 
     /** Which way a Focus Mode shortcut moves focus. */
     data object FocusWhich : Step
+
+    /** Which screens a Screenshot shortcut captures, and how. */
+    data object ShotWhich : Step
 }
 
 /** What choosing [action] asks next; null when choosing it is enough. */
@@ -76,6 +80,7 @@ private fun nextStep(action: ButtonAction): Step? = when (action) {
     ButtonAction.CLOSE_ALL -> Step.CloseWhich
     ButtonAction.PROFILE -> Step.ProfileWhich
     ButtonAction.FOCUS_MODE -> Step.FocusWhich
+    ButtonAction.SCREENSHOT -> Step.ShotWhich
     else -> null
 }
 
@@ -228,6 +233,25 @@ internal fun ShortcutPicker(
                 )
             },
             onPick = { switch -> onChosen(Shortcut(ButtonAction.FOCUS_MODE, focus = switch)) },
+            onDismiss = onDismiss,
+        )
+        Step.ShotWhich -> ChoiceDialog(
+            title = words.text(ButtonAction.SCREENSHOT.text),
+            options = ScreenshotTarget.entries,
+            // Only a gesture already on Screenshot has a choice to start from.
+            selected = current?.shot?.takeIf { current.action == ButtonAction.SCREENSHOT },
+            label = { words.text(it.text) },
+            detail = {
+                words.text(
+                    when (it) {
+                        ScreenshotTarget.ANDROID -> R.string.picker_shot_android_detail
+                        ScreenshotTarget.BOTTOM -> R.string.picker_shot_bottom_detail
+                        ScreenshotTarget.BOTH -> R.string.picker_shot_both_detail
+                        ScreenshotTarget.BOTH_SEPARATE -> R.string.picker_shot_both_separate_detail
+                    },
+                )
+            },
+            onPick = { target -> onChosen(Shortcut(ButtonAction.SCREENSHOT, shot = target)) },
             onDismiss = onDismiss,
         )
     }

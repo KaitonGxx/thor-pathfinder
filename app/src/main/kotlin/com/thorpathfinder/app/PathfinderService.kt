@@ -27,8 +27,9 @@ import kotlin.concurrent.thread
 /**
  * Watches the Thor's buttons and runs the user's shortcuts.
  *
- * It asks for key events only: no accessibility events and no window content,
- * so it never sees what is on screen.
+ * It asks for key events only: no accessibility events and no window content.
+ * It sees what is on screen only when a Screenshot shortcut has it take a
+ * picture of a screen (see [ScreenCapture]), which goes straight to Pictures.
  */
 class PathfinderService : AccessibilityService() {
 
@@ -40,6 +41,7 @@ class PathfinderService : AccessibilityService() {
     private lateinit var overlay: Overlay
     private lateinit var apps: AppWatcher
     private lateinit var levels: LevelControl
+    private lateinit var capture: ScreenCapture
 
     /** Keys whose press closed the map, so that their release is kept from the app as well. */
     private val closedMap = mutableSetOf<Int>()
@@ -79,6 +81,7 @@ class PathfinderService : AccessibilityService() {
         apps = AppWatcher(this, ::announceApp)
         apps.start()
         levels = LevelControl(this, apps, ::toast)
+        capture = ScreenCapture(this, handler)
         Profiles.watch(this, profilesChanged)
         updateFiltering()
         running = true
@@ -195,7 +198,7 @@ class PathfinderService : AccessibilityService() {
             ButtonAction.RECENTS -> performGlobalAction(GLOBAL_ACTION_RECENTS)
             ButtonAction.NOTIFICATIONS -> performGlobalAction(GLOBAL_ACTION_NOTIFICATIONS)
             ButtonAction.QUICK_SETTINGS -> performGlobalAction(GLOBAL_ACTION_QUICK_SETTINGS)
-            ButtonAction.SCREENSHOT -> performGlobalAction(GLOBAL_ACTION_TAKE_SCREENSHOT)
+            ButtonAction.SCREENSHOT -> screenshot(shortcut.shot)
             ButtonAction.POWER_MENU -> performGlobalAction(GLOBAL_ACTION_POWER_DIALOG)
             ButtonAction.LOCK_SCREEN -> performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
             ButtonAction.SWAP_SCREENS -> worker.execute { swapOutcomeMessage(words(), ScreenSwap.swap(this, apps::quickSwap))?.let(::toast) }
@@ -238,6 +241,8 @@ class PathfinderService : AccessibilityService() {
             }
             ButtonAction.BRIGHTNESS -> levels.open(LevelKind.BRIGHTNESS)
             ButtonAction.VOLUME -> levels.open(LevelKind.VOLUME)
+            // Silent: the media pausing or playing says it, and nothing reports a miss.
+            ButtonAction.PLAY_PAUSE -> MediaKey.playPause(this)
             ButtonAction.LAUNCH_APP -> openApps(shortcut)
             ButtonAction.PROFILE -> switchProfile(shortcut)
             ButtonAction.SHORTCUT_MENU ->
@@ -289,6 +294,27 @@ class PathfinderService : AccessibilityService() {
             performGlobalAction(GLOBAL_ACTION_HOME)
         } else {
             worker.execute { Launcher.goHome(this, target)?.let(::toast) }
+        }
+    }
+
+    /**
+     * A "Screenshot" shortcut: Android's own, of the top screen, or one
+     * Pathfinder takes itself of the bottom screen or both. Pathfinder's says
+     * how it went only once the pictures are saved, so the message isn't in
+     * them, and a top-screen message still up from before (the last
+     * screenshot's, say) is taken down and given a moment to go first. Only
+     * the top screen has messages, so a bottom-screen picture needn't wait.
+     */
+    private fun screenshot(target: ScreenshotTarget) {
+        if (target == ScreenshotTarget.ANDROID) {
+            performGlobalAction(GLOBAL_ACTION_TAKE_SCREENSHOT)
+            return
+        }
+        val take = Runnable { capture.take(target) { toast(screenshotMessage(words(), it)) } }
+        if (target != ScreenshotTarget.BOTTOM && overlay.clearMessage()) {
+            handler.postDelayed(take, Screenshots.CLEAR_MS)
+        } else {
+            take.run()
         }
     }
 
@@ -393,6 +419,7 @@ class PathfinderService : AccessibilityService() {
         closedMap.clear()
         handler.removeCallbacksAndMessages(null)
         if (::worker.isInitialized) worker.shutdown()
+        if (::capture.isInitialized) capture.shutdown()
         // Tell the watchdog now, while whatever switched the service off is
         // still in front: a switch-off in Android's settings is to be kept.
         val app = applicationContext

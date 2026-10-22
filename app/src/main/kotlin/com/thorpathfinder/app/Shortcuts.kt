@@ -77,6 +77,12 @@ class Shortcuts(private val context: Context, private val profile: Int? = null) 
             ?.let { name -> FocusSwitch.entries.firstOrNull { it.name == name } }
             ?: FocusSwitch.CYCLE
 
+    /** What a SCREENSHOT gesture captures; a mapping without one takes Android's own, as it always did. */
+    fun shot(button: PhysicalButton, gesture: Gesture): ScreenshotTarget =
+        prefs.getString(key(button, gesture) + ".shot", null)
+            ?.let { name -> ScreenshotTarget.entries.firstOrNull { it.name == name } }
+            ?: ScreenshotTarget.ANDROID
+
     /** The screens a HOME gesture sends home; null for the old way, Android's own Home. */
     fun home(button: PhysicalButton, gesture: Gesture): HomeTarget? =
         prefs.getString(key(button, gesture) + ".home", null)
@@ -94,6 +100,7 @@ class Shortcuts(private val context: Context, private val profile: Int? = null) 
         profile = profile(button, gesture),
         profileId = profileId(button, gesture),
         focus = focus(button, gesture),
+        shot = shot(button, gesture),
     )
 
     fun set(button: PhysicalButton, gesture: Gesture, shortcut: Shortcut) = write(key(button, gesture), shortcut)
@@ -128,6 +135,8 @@ class Shortcuts(private val context: Context, private val profile: Int? = null) 
             profileId = prefs.getInt("$slot.profileId", Profiles.ORIGINAL),
             focus = prefs.getString("$slot.focus", null)
                 ?.let { name -> FocusSwitch.entries.firstOrNull { it.name == name } } ?: FocusSwitch.CYCLE,
+            shot = prefs.getString("$slot.shot", null)
+                ?.let { name -> ScreenshotTarget.entries.firstOrNull { it.name == name } } ?: ScreenshotTarget.ANDROID,
         )
     }
 
@@ -156,9 +165,10 @@ class Shortcuts(private val context: Context, private val profile: Int? = null) 
         profile: ProfileSwitch = ProfileSwitch.CYCLE,
         profileId: Int = Profiles.ORIGINAL,
         focus: FocusSwitch = FocusSwitch.CYCLE,
+        shot: ScreenshotTarget = ScreenshotTarget.ANDROID,
     ) = write(
         key(button, gesture),
-        Shortcut(action, app, screen, second, home, close, closeApps, profile, profileId, focus),
+        Shortcut(action, app, screen, second, home, close, closeApps, profile, profileId, focus, shot),
     )
 
     /** Stores [shortcut] under [key], keeping only the extras its action uses. */
@@ -173,6 +183,7 @@ class Shortcuts(private val context: Context, private val profile: Int? = null) 
         val profile = shortcut.profile
         val profileId = shortcut.profileId
         val focus = shortcut.focus
+        val shot = shortcut.shot
         prefs.edit {
             putString(key, action.name)
             if (action == ButtonAction.LAUNCH_APP) {
@@ -198,6 +209,7 @@ class Shortcuts(private val context: Context, private val profile: Int? = null) 
                 remove("$key.profileId")
             }
             if (action == ButtonAction.FOCUS_MODE) putString("$key.focus", focus.name) else remove("$key.focus")
+            if (action == ButtonAction.SCREENSHOT) putString("$key.shot", shot.name) else remove("$key.shot")
         }
     }
 

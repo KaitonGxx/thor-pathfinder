@@ -64,9 +64,9 @@ independent project, not affiliated with Wayfinder or AYN.
 - Select, Start, L3 and R3: double-press and hold. Games still receive every
   press of these buttons, so a plain press stays with the game.
 - Actions: swap screens, mouse mode on/off, Focus Mode, brightness, volume,
-  back, home, recent apps, close app(s), notifications, quick settings,
-  screenshot, screen record (testing), power menu, lock screen, the Shortcut
-  menu, or open an app.
+  play/pause media, back, home, recent apps, close app(s), notifications,
+  quick settings, screenshot, screen record (testing), power menu, lock
+  screen, the Shortcut menu, or open an app.
 - The Shortcut menu puts every shortcut in one list on the top screen: the
   same list you set a gesture from in the app, with the same questions after
   the ones with an arrow. The one you pick runs straight away, once, so a
@@ -86,6 +86,19 @@ independent project, not affiliated with Wayfinder or AYN.
   While it is up it has the controller, so the game underneath gets no
   presses. How much a press changes and how fast a hold goes are set on the
   same page. Brightness, and the bottom screen's volume, need Shizuku.
+- Play/pause media pauses or resumes music or a video while you play, say
+  for a cutscene, without leaving the game: it works like a headset's
+  play/pause button, which Android hands to the app playing now, or else to
+  the one that played last, on either screen. If the button it is on has
+  no double-press shortcut, two quick presses skip to the next track in
+  many players, as with a headset; where there is no next track, they
+  cancel out. No Shizuku needed.
+- Screenshot asks which screen: the top one, through Android's own
+  screenshot as before, the bottom one, or both, either in one image (the
+  top screen above the bottom one) or as two. Pathfinder takes the
+  bottom-screen and two-screen pictures itself and saves them as PNGs in
+  Pictures/Screenshots, beside Android's own, then says when they are saved.
+  No Shizuku needed.
 - Close app(s) closes every app, like Recents' Clear all, or just some: the
   background ones (all but what the two screens are showing), the focused app
   (on the screen you last used), the top screen's app, the bottom screen's
@@ -171,8 +184,10 @@ there's no button for it in its menus.
   key as the copy you already have.
 
 **🔒 Private and light**
-- The accessibility service receives button presses only. It cannot read the
-  screen or anything you type.
+- The accessibility service receives button presses, and sees what is on
+  the screens only when a Screenshot shortcut set to the bottom screen or
+  both takes a picture, which goes straight to Pictures/Screenshots and
+  nowhere else. It cannot read anything you type.
 - App profiles learn which app is in front from Android's task manager,
   through Shizuku, and only the apps' names: nothing inside them.
 - It goes online only to ask GitHub for the newest release: when you open
@@ -247,12 +262,14 @@ their normal behaviour, with no delay, until you give them a shortcut.
 
 **Seeing the buttons.** Android only shares button presses with
 *accessibility services*, so Pathfinder runs one. It hears about each press
-just before the app on screen does, and asks for nothing else: no screen
-contents and no typing. Every physical button also reports a hardware number,
-its *scan code*. That's how Pathfinder tells the Home button (102) from the
-AYN button (194), although Android calls both "Home". Presses that Android
-makes up itself, such as the back gesture on the screen, carry no scan code,
-so Pathfinder leaves them alone.
+just before the app on screen does, and asks for one thing more: the right
+to take a screenshot, which it uses only for a Screenshot shortcut set to
+the bottom screen or both, one picture at a time. It gets no screen
+contents otherwise, and no typing. Every physical button also reports a
+hardware number, its *scan code*. That's how Pathfinder tells the Home
+button (102) from the AYN button (194), although Android calls both "Home".
+Presses that Android makes up itself, such as the back gesture on the
+screen, carry no scan code, so Pathfinder leaves them alone.
 
 The AYN button isn't really a Home button, though: the Thor's own software
 catches it and opens AYN's menu on a press, or another panel on a long press.

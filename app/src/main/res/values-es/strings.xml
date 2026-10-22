@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Spanish. Written with AI help; corrections are welcome. -->
 <resources>
-    <string name="accessibility_description">Thor Pathfinder vigila los botones Atrás, Inicio, AYN, Select, Start, L3 y R3 para tus atajos: intercambiar pantallas, apps recientes, modo ratón y más. Solo recibe pulsaciones de botones. No puede leer la pantalla ni nada de lo que escribes.</string>
+    <string name="accessibility_description">Thor Pathfinder vigila los botones Atrás, Inicio, AYN, Select, Start, L3 y R3 para tus atajos: intercambiar pantallas, apps recientes, modo ratón y más. Solo recibe pulsaciones de botones, y solo ve lo que hay en las pantallas cuando haces una captura con él. No puede leer nada de lo que escribes.</string>
 
     <!-- The Thor's buttons -->
     <string name="button_back">Atrás</string>
@@ -52,6 +52,29 @@
     <string name="focus_bottom">Foco en la pantalla inferior</string>
     <string name="focus_cycle">Rotar modos de foco</string>
     <string name="focus_swap">Alternar foco arriba/abajo</string>
+
+    <!-- What a Screenshot shortcut captures, and what it says afterwards -->
+    <string name="shot_android">Pantalla superior (captura de Android)</string>
+    <string name="shot_bottom">Pantalla inferior</string>
+    <string name="shot_both">Ambas pantallas en una imagen</string>
+    <string name="shot_both_separate">Ambas pantallas en dos imágenes</string>
+    <string name="shot_android_short">arriba</string>
+    <string name="shot_bottom_short">abajo</string>
+    <string name="shot_both_short">ambas</string>
+    <string name="shot_both_separate_short">ambas, 2 imágenes</string>
+    <string name="map_screenshot_of">Captura de pantalla (%1$s)</string>
+    <string name="picker_shot_android_detail">La captura de Android, que solo muestra la pantalla superior</string>
+    <string name="picker_shot_bottom_detail">La hace Pathfinder y se guarda en Pictures/Screenshots</string>
+    <string name="picker_shot_both_detail">La pantalla superior encima de la inferior, en una imagen guardada en Pictures/Screenshots</string>
+    <string name="picker_shot_both_separate_detail">Una imagen de cada pantalla, las dos guardadas en Pictures/Screenshots</string>
+    <string name="msg_screenshot_saved">Captura guardada</string>
+    <string name="msg_screenshots_saved">Ambas capturas guardadas</string>
+    <string name="msg_screenshot_failed">Captura no guardada: %1$s</string>
+    <string name="screenshot_too_soon">demasiado pronto tras la anterior</string>
+    <string name="screenshot_no_access">Android denegó el acceso a la pantalla</string>
+    <string name="screenshot_bad_screen">Android no pudo capturar esa pantalla</string>
+    <string name="screenshot_internal">algo salió mal</string>
+    <string name="screenshot_not_written">no se pudo escribir en Pictures</string>
 
     <!-- Actions -->
     <string name="action_normal">Normal</string>
@@ -278,7 +301,7 @@
     <string name="wayfinder_uninstall">Desinstalar Wayfinder</string>
     <string name="wayfinder_turn_off">Desactivarlo en su lugar</string>
     <string name="a11y_title">Deja que Pathfinder vea los botones</string>
-    <string name="a11y_body">Android solo comparte las pulsaciones de botones con los servicios de accesibilidad, así que Pathfinder tiene uno. Recibe pulsaciones de botones y nada más: no puede leer la pantalla ni nada de lo que escribes.</string>
+    <string name="a11y_body">Android solo comparte las pulsaciones de botones con los servicios de accesibilidad, así que Pathfinder tiene uno. Recibe pulsaciones de botones, y solo ve lo que hay en las pantallas cuando haces una captura con él. No puede leer nada de lo que escribes.</string>
     <string name="a11y_on">El servicio de Pathfinder está activado</string>
     <string name="a11y_stuck">Pathfinder está activado, pero Android no lo ha iniciado</string>
     <string name="a11y_off">El servicio de Pathfinder está desactivado</string>
@@ -338,6 +361,7 @@
     <string name="page_timing_detail">Cuánto dura mantener, y el margen de la doble pulsación</string>
     <string name="action_brightness">Brillo</string>
     <string name="action_volume">Volumen</string>
+    <string name="action_play_pause">Reproducir/pausar multimedia</string>
     <string name="msg_brightness_needs_shizuku">El brillo requiere Shizuku</string>
     <string name="page_levels">Brillo y volumen</string>
     <string name="page_levels_detail">Cuánto cambia cada pulsación, e intercambiar el volumen con las apps</string>

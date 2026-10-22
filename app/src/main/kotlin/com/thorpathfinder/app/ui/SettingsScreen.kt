@@ -599,6 +599,7 @@ internal fun shortcutText(context: Context, shortcut: Shortcut): String {
             else -> words.text(shortcut.close.text)
         }
         ButtonAction.FOCUS_MODE -> words.text(shortcut.focus.text)
+        ButtonAction.SCREENSHOT -> words.text(R.string.map_screenshot_of, words.text(shortcut.shot.short))
         else -> words.text(shortcut.action.text)
     }
 }
